@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./scripts/train_mim.sh --config PATH [--python PATH]
+  ./scripts/train_mim.sh --data-root PATH --output-dir PATH [options] [--python PATH]
+
+What it does:
+  - launches the unified ag-foundation CLI
+  - trains a MAE-style masked image modeling run
+  - supports RGB and multispectral data on cpu, cuda, or mps
+  - can append command output to command.log for reproducibility
+
+Options:
+  --log-file PATH       Append wrapper logs to a custom file.
+  --no-log              Disable wrapper logging for one run.
+
+Examples:
+  ./scripts/train_mim.sh --config ./configs/train_mim.example.yaml
+  ./scripts/train_mim.sh --config ./configs/pretraining_seedlings_smoke.yaml --resume
+  ./scripts/train_mim.sh --data-root /data/ag.zip --output-dir ./runs/ag-mim --channels 4 --precision fp16 --model-name S
+EOF
+}
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CODE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+. "${SCRIPT_DIR}/common.sh"
+DEFAULT_LOG_FILE="${CODE_DIR}/command.log"
+INVOCATION_CWD="$(pwd)"
+ORIGINAL_ARGS=("$@")
+STARTED_SECONDS="${SECONDS}"
+LOG_FILE="${DEFAULT_LOG_FILE}"
+LOG_ENABLED="1"
+PYTHON_BIN=""
+FORWARD_ARGS=()
+
+setup_logging() {
+  if [[ "${LOG_ENABLED}" != "1" ]]; then
+    return
+  fi
+
+  mkdir -p "$(dirname "${LOG_FILE}")"
+
+  local command_string=""
+  local token=""
+  for token in "$0" "${ORIGINAL_ARGS[@]}"; do
+    if [[ -n "${command_string}" ]]; then
+      command_string+=" "
+    fi
+    printf -v quoted_token '%q' "${token}"
+    command_string+="${quoted_token}"
+  done
+
+  exec > >(tee -a "${LOG_FILE}") 2>&1
+
+  echo
+  echo "================================================================================"
+  echo "Command Log"
+  echo "================================================================================"
+  echo "Started   : $(date '+%Y-%m-%dT%H:%M:%S%z')"
+  echo "Command   : ${command_string}"
+  echo "CWD       : ${INVOCATION_CWD}"
+  echo "Log file  : ${LOG_FILE}"
+  echo "================================================================================"
+  echo "[logging] Appending command output to ${LOG_FILE}"
+
+  trap 'status=$?; elapsed_seconds=$((SECONDS - STARTED_SECONDS)); printf -v duration "%02d:%02d:%02d" "$((elapsed_seconds / 3600))" "$(((elapsed_seconds % 3600) / 60))" "$((elapsed_seconds % 60))"; echo "[logging] Finished (exit=${status}, finished=$(date "+%Y-%m-%dT%H:%M:%S%z"), duration=${duration}, elapsed_seconds=${elapsed_seconds})"' EXIT
+}
+
+scan_logging_flags() {
+  local args=("$@")
+  local index=0
+  while [[ ${index} -lt ${#args[@]} ]]; do
+    case "${args[${index}]}" in
+      --no-log)
+        LOG_ENABLED="0"
+        ;;
+      --log-file)
+        if [[ $((index + 1)) -lt ${#args[@]} ]]; then
+          LOG_FILE="${args[$((index + 1))]}"
+          index=$((index + 1))
+        fi
+        ;;
+      --log-file=*)
+        LOG_FILE="${args[${index}]#--log-file=}"
+        ;;
+    esac
+    index=$((index + 1))
+  done
+}
+
+scan_logging_flags "${ORIGINAL_ARGS[@]}"
+setup_logging
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --python=*)
+      PYTHON_BIN="${1#--python=}"
+      shift 1
+      ;;
+    --python)
+      if [[ -z "${2:-}" || "$2" == --* ]]; then
+        echo "Error: --python requires a path." >&2
+        exit 1
+      fi
+      PYTHON_BIN="$2"
+      shift 2
+      ;;
+    --log-file=*)
+      LOG_FILE="${1#--log-file=}"
+      shift 1
+      ;;
+    --log-file)
+      if [[ -z "${2:-}" || "$2" == --* ]]; then
+        echo "Error: --log-file requires a path." >&2
+        exit 1
+      fi
+      LOG_FILE="$2"
+      shift 2
+      ;;
+    --no-log)
+      LOG_ENABLED="0"
+      shift 1
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      FORWARD_ARGS+=("$1")
+      shift 1
+      ;;
+  esac
+done
+
+PYTHON_BIN="$(resolve_python "${PYTHON_BIN}" "${CODE_DIR}")"
+COMMAND=(
+  "${PYTHON_BIN}"
+  "${CODE_DIR}/scripts/ag_foundation.py"
+  train-mim
+  "${FORWARD_ARGS[@]}"
+)
+echo "Running: ${COMMAND[*]}"
+AG_FOUNDATION_WRAPPER_LOGGING=1 "${COMMAND[@]}"

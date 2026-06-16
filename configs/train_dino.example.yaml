@@ -1,0 +1,49 @@
+data:
+  data_root: ../data/your_dataset_or_zip
+  catalog_path: null
+  crop_size: 224
+  channels: 3
+  batch_size: 8
+  num_workers: 4
+  prefetch_factor: 2
+  val_fraction: 0.2
+
+runtime:
+  output_dir: ../runs/train_dino_example
+  epochs: 10
+  seed: 27
+  precision: fp32
+  device: auto
+  warmup_epochs: 1
+  resume: true
+  resume_from: null
+  log_every: 10
+  save_visualizations: true
+  visualization_every: 1
+  visualization_samples: 4
+
+model:
+  model_name: S
+  pretrained_backbone: true
+  pretrained_cfg: null
+  dino_out_dim: 65536
+  dino_hidden_dim: 2048
+  dino_bottleneck_dim: 256
+  head_nlayers: 3
+  num_global_crops: 2
+  num_local_crops: 4
+  global_crop_scale: [0.6, 1.0]
+  local_crop_scale: [0.3, 0.6]
+  student_temperature: 0.1
+  teacher_temperature: 0.04
+  teacher_momentum_start: 0.996
+  teacher_momentum_end: 1.0
+  center_momentum: 0.9
+  gradient_checkpointing: false
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.0
+
+optimizer:
+  learning_rate: 0.0001
+  weight_decay: 0.0001

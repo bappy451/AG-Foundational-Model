@@ -1,0 +1,49 @@
+data:
+  data_root: ../../Pretraining/ssharma2020:Plant-Seedlings-Dataset.zip
+  catalog_path: ../catalogs/pretraining_seedlings_subset.csv
+  crop_size: 32
+  channels: 3
+  batch_size: 4
+  num_workers: 0
+  prefetch_factor: 2
+  val_fraction: 0.25
+
+runtime:
+  output_dir: ../runs/pretraining_dino_smoke
+  epochs: 1
+  seed: 27
+  precision: fp32
+  device: auto
+  warmup_epochs: 0
+  resume: true
+  resume_from: null
+  log_every: 10
+  save_visualizations: true
+  visualization_every: 1
+  visualization_samples: 4
+
+model:
+  model_name: S
+  pretrained_backbone: true
+  pretrained_cfg: null
+  dino_out_dim: 256
+  dino_hidden_dim: 1024
+  dino_bottleneck_dim: 128
+  head_nlayers: 3
+  num_global_crops: 2
+  num_local_crops: 1
+  global_crop_scale: [0.8, 1.0]
+  local_crop_scale: [0.5, 0.8]
+  student_temperature: 0.1
+  teacher_temperature: 0.04
+  teacher_momentum_start: 0.996
+  teacher_momentum_end: 1.0
+  center_momentum: 0.9
+  gradient_checkpointing: false
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.0
+
+optimizer:
+  learning_rate: 0.0001
+  weight_decay: 0.0001

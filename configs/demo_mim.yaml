@@ -1,0 +1,37 @@
+data:
+  data_root: ../data/demo/multispectral
+  catalog_path: null
+  crop_size: 32
+  channels: 5
+  batch_size: 4
+  num_workers: 0
+  prefetch_factor: 2
+  val_fraction: 0.25
+
+runtime:
+  output_dir: ../runs/demo_mim
+  epochs: 1
+  seed: 27
+  precision: fp32
+  device: auto
+  warmup_epochs: 0
+  resume: false
+  resume_from: null
+  log_every: 1
+  save_visualizations: true
+  visualization_every: 1
+  visualization_samples: 4
+
+model:
+  model_name: S
+  pretrained_backbone: true
+  pretrained_cfg: null
+  mask_ratio: 0.75
+  gradient_checkpointing: false
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.0
+
+optimizer:
+  learning_rate: 0.0001
+  weight_decay: 0.0001

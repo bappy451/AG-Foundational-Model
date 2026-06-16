@@ -1,0 +1,25 @@
+.DS_Store
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+build/
+dist/
+.coverage
+htmlcov/
+
+# Generated artifacts
+runs/
+command.log
+data/*
+!data/README.md
+*.tmp
+.tmp_*
+
+# OS / editor noise
+Thumbs.db
+.idea/
+.vscode/

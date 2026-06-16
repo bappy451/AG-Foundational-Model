@@ -1,0 +1,199 @@
+schema_version: 1
+last_reviewed: 2026-06-15
+status_values:
+  - candidate
+  - downloaded
+  - audited
+  - excluded
+
+sources:
+  - id: plantvillage
+    name: PlantVillage Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/abdallahalidev/plantvillage-dataset
+
+  - id: plants_leafs
+    name: Plants Leafs Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/hadyahmed00/plants-leafs-dataset
+
+  - id: plantifydr
+    name: PlantifyDr Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/lavaman151/plantifydr-dataset
+
+  - id: v2_plant_seedlings
+    name: V2 Plant Seedlings Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/vbookshelf/v2-plant-seedlings-dataset
+
+  - id: plant_disease_detection_karagwaan
+    name: Plant Disease Detection
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/karagwaanntreasure/plant-disease-detection
+
+  - id: plant_disease_expert
+    name: Plant Disease Expert
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/sadmansakibmahi/plant-disease-expert
+
+  - id: wheat_plant_diseases
+    name: Wheat Plant Diseases
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/kushagra3204/wheat-plant-diseases
+
+  - id: plant_pathogen
+    name: Plant Pathogen Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/kanishk3813/pathogen-dataset
+
+  - id: rice_plant
+    name: Rice Plant Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/rajkumar898/rice-plant-dataset
+
+  - id: house_plant_species
+    name: House Plant Species
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/kacpergregorowicz/house-plant-species
+
+  - id: rice_plant_diseases
+    name: Rice Plant Diseases Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/jay7080dev/rice-plant-diseases-dataset
+
+  - id: plants_type
+    name: Plants Type Datasets
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/yudhaislamisulistya/plants-type-datasets
+
+  - id: plant_leaves_classification
+    name: Plant Leaves for Image Classification
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/csafrit2/plant-leaves-for-image-classification
+
+  - id: toxic_plant_classification
+    name: Toxic Plant Classification
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/hanselliott/toxic-plant-classification
+
+  - id: cotton_plant_disease
+    name: Cotton Plant Disease
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/dhamur/cotton-plant-disease
+
+  - id: chili_plant_disease
+    name: Chili Plant Disease Detection
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/shuvokumarbasak4004/chili-plant-disease-detection
+
+  - id: edible_wild_plants
+    name: Edible Wild Plants
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/gverzea/edible-wild-plants
+
+  - id: soybean_weed_detection
+    name: Weed Detection in Soybean Crops
+    provider: Kaggle and Mendeley Data
+    status: candidate
+    url: https://www.kaggle.com/datasets/fpeccia/weed-detection-in-soybean-crops
+    alternate_url: https://data.mendeley.com/datasets/3fmjm7ncc6/2
+
+  - id: rice_leaf_diseases_kaggle
+    name: Rice Leaf Diseases Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/vbookshelf/rice-leaf-diseases
+
+  - id: paddy_leaf_stress
+    name: Plant Stress Identification - Paddy Leaves
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/ritikbompilwar/plantstressidentification
+
+  - id: pea_plant
+    name: Pea Plant Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/zunorain/pea-plant-dataset
+
+  - id: plant_disease_detection_ironwolf
+    name: Plant Disease Detection Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/ironwolf437/plant-disease-detection-dataset
+
+  - id: ghana_crop_disease
+    name: Ghana Crop Disease Detection Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/ohagwucollinspatrick/ghana-crop-disease
+
+  - id: indian_medicinal_plants
+    name: Indian Medicinal Plant Image Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/warcoder/indian-medicinal-plant-image-dataset
+
+  - id: plant_disease_rashid
+    name: Plant Disease Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/rashidthihan/plant-disease-dataset
+
+  - id: agriculture_crop_images
+    name: Agriculture Crop Images
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/aman2000jaiswal/agriculture-crop-images
+
+  - id: cotton_weed_det3
+    name: CottonWeedDet3
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/yuzhenlu/cottonweeddet3
+
+  - id: paddy_doctor
+    name: Paddy Doctor - Paddy Disease Classification
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/competitions/paddy-disease-classification/data
+
+  - id: geoplant
+    name: GeoPlant - Spatial Plant Species Prediction Dataset
+    provider: Kaggle
+    status: candidate
+    url: https://www.kaggle.com/datasets/picekl/geoplant
+
+  - id: pumpkin_leaf_diseases_bangladesh
+    name: Pumpkin Leaf Diseases Dataset From Bangladesh
+    provider: Mendeley Data
+    status: candidate
+    version: 1
+    doi: 10.17632/wtxcw8wpxb.1
+    url: https://data.mendeley.com/datasets/wtxcw8wpxb/1
+
+  - id: rice_leaf_diseases_mendeley
+    name: Rice Leaf Diseases Dataset
+    provider: Mendeley Data
+    status: candidate
+    version: 1
+    doi: 10.17632/dwtn3c6w6p.1
+    url: https://data.mendeley.com/datasets/dwtn3c6w6p/1
