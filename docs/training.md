@@ -127,5 +127,5 @@ rather than spending the second epoch at zero LR.
 - There is no automatic gradient accumulation.
 - There is no built-in W&B/TensorBoard backend; local CSV, JSON, PNG, logs, and
   checkpoints are the source of truth.
-- The DINO implementation is DINO-style and does not yet include every DINOv2
-  objective.
+- The DINO implementation is DINOv3-style with Gram anchoring and still does
+  not attempt the paper's full large-scale training and distillation stack.

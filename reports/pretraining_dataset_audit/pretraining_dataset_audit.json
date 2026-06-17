@@ -1,0 +1,4688 @@
+{
+  "aggregate": {
+    "annotation_count": 7,
+    "annotation_extension_counts": {
+      ".csv": 4,
+      ".json": 2,
+      ".txt": 1
+    },
+    "extension_counts": {
+      ".csv": 4,
+      ".hdf5": 2,
+      ".jfif": 6,
+      ".jpeg": 1010,
+      ".jpg": 400359,
+      ".json": 2,
+      ".png": 11079,
+      ".txt": 1,
+      ".xls": 1,
+      "[no extension]": 2
+    },
+    "image_count": 412454,
+    "local_dataset_count": 13,
+    "manifest_entry_count": 31,
+    "matched_manifest_entry_count": 10,
+    "modality_counts": {
+      "HDF5/NPZ container candidate (not expanded)": 1,
+      "sampled RGB imagery": 13,
+      "standard RGB/image files": 13
+    },
+    "nested_archive_count": 0,
+    "size_bytes": 38506142606,
+    "theme_counts": {
+      "crop-specific agronomy": 8,
+      "detection / annotation": 3,
+      "plant disease / stress": 7,
+      "seedling / early growth": 1,
+      "species / plant identification": 5,
+      "weed / crop discrimination": 3
+    },
+    "total_files": 412466,
+    "unmatched_local_dataset_count": 1
+  },
+  "dataset_list": "/Users/abedinm/Desktop/AG Dataset/Pretraining/Dataset.txt",
+  "generated_at_utc": "2026-06-17T04:45:12.174353+00:00",
+  "local_datasets": [
+    {
+      "annotation_count": 1,
+      "annotation_extension_counts": {
+        ".csv": 1
+      },
+      "extension_counts": {
+        ".csv": 1,
+        ".jfif": 6,
+        ".jpeg": 1006,
+        ".jpg": 94
+      },
+      "image_count": 1106,
+      "inferred_label_folder_count": 7,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "crop-specific agronomy"
+      ],
+      "manifest_providers": [
+        "Kaggle"
+      ],
+      "manifest_urls": [
+        "https://www.kaggle.com/datasets/aman2000jaiswal/agriculture-crop-images?select=crop_images"
+      ],
+      "matched_manifest_name": "Agriculture crop images",
+      "name": "Agriculture crop images.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/Agriculture crop images.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute001a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute002a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute003a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute004a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute005a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute006a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute007a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute008a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute009a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute010a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute011a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute012a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute013a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute014a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute015a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute016a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute017a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute018a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute019a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute020a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute021a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute022a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute023a.jpeg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 224,
+          "mode": "RGB",
+          "path": "crop_images/jute/jute024a.jpeg",
+          "width": 224
+        }
+      ],
+      "size_bytes": 62575817,
+      "top_label_folders": [
+        {
+          "count": 210,
+          "label": "jute"
+        },
+        {
+          "count": 210,
+          "label": "maize"
+        },
+        {
+          "count": 210,
+          "label": "rice"
+        },
+        {
+          "count": 210,
+          "label": "sugarcane"
+        },
+        {
+          "count": 205,
+          "label": "wheat"
+        },
+        {
+          "count": 51,
+          "label": "test_crop_image"
+        },
+        {
+          "count": 10,
+          "label": "Wheat"
+        }
+      ],
+      "total_files": 1107,
+      "warnings": []
+    },
+    {
+      "annotation_count": 0,
+      "annotation_extension_counts": {},
+      "extension_counts": {
+        ".jpg": 200
+      },
+      "image_count": 200,
+      "inferred_label_folder_count": 2,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "plant disease / stress",
+        "crop-specific agronomy",
+        "detection / annotation"
+      ],
+      "manifest_providers": [
+        "Kaggle"
+      ],
+      "manifest_urls": [
+        "https://www.kaggle.com/datasets/shuvokumarbasak4004/chili-plant-disease-detection"
+      ],
+      "matched_manifest_name": "Chili Plant Disease Detection",
+      "name": "Chili Plant Disease Detection.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/Chili Plant Disease Detection.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/1.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/10.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/100.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/11.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/12.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/13.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/14.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/15.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/16.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/17.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/18.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/19.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/2.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/20.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/21.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/22.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/23.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/24.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/25.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/26.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/27.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/28.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/29.jpg",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "train/healthy/3.jpg",
+          "width": 256
+        }
+      ],
+      "size_bytes": 847209,
+      "top_label_folders": [
+        {
+          "count": 100,
+          "label": "healthy"
+        },
+        {
+          "count": 100,
+          "label": "unhealthy"
+        }
+      ],
+      "total_files": 200,
+      "warnings": []
+    },
+    {
+      "annotation_count": 0,
+      "annotation_extension_counts": {},
+      "extension_counts": {
+        ".jpg": 500
+      },
+      "image_count": 500,
+      "inferred_label_folder_count": 5,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "plant disease / stress",
+        "crop-specific agronomy",
+        "detection / annotation"
+      ],
+      "manifest_providers": [
+        "Kaggle"
+      ],
+      "manifest_urls": [
+        "https://www.kaggle.com/datasets/shuvokumarbasak4004/chili-plant-disease-detection"
+      ],
+      "matched_manifest_name": "Chili Plant Disease Detection",
+      "name": "Chili Plant Disease.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/Chili Plant Disease.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 220,
+          "mode": "RGB",
+          "path": "test/healthy/Cabai sehat003.jpg",
+          "width": 229
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 225,
+          "mode": "RGB",
+          "path": "test/healthy/Cabai sehat004.jpg",
+          "width": 225
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 194,
+          "mode": "RGB",
+          "path": "test/healthy/Cabai sehat007.jpg",
+          "width": 259
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 195,
+          "mode": "RGB",
+          "path": "test/healthy/Cabai sehat011.jpg",
+          "width": 259
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 183,
+          "mode": "RGB",
+          "path": "test/healthy/Cabai sehat016.jpg",
+          "width": 276
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 225,
+          "mode": "RGB",
+          "path": "test/healthy/Cabai sehat023.jpg",
+          "width": 224
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 194,
+          "mode": "RGB",
+          "path": "test/healthy/Cabai sehat034.jpg",
+          "width": 259
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 194,
+          "mode": "RGB",
+          "path": "test/healthy/Cabai sehat043.jpg",
+          "width": 259
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 163,
+          "mode": "RGB",
+          "path": "test/healthy/Cabai sehat058.jpg",
+          "width": 310
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 184,
+          "mode": "RGB",
+          "path": "test/healthy/Cabai sehat060.jpg",
+          "width": 274
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 194,
+          "mode": "RGB",
+          "path": "test/leaf curl/download (11).jpg",
+          "width": 260
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 100,
+          "mode": "RGB",
+          "path": "test/leaf curl/download.jpg",
+          "width": 100
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 202,
+          "mode": "RGB",
+          "path": "test/leaf curl/images (11).jpg",
+          "width": 250
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 193,
+          "mode": "RGB",
+          "path": "test/leaf curl/images (14).jpg",
+          "width": 261
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 259,
+          "mode": "RGB",
+          "path": "test/leaf curl/images (33).jpg",
+          "width": 195
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 259,
+          "mode": "RGB",
+          "path": "test/leaf curl/images (34).jpg",
+          "width": 194
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 208,
+          "mode": "RGB",
+          "path": "test/leaf curl/images (35).jpg",
+          "width": 242
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 194,
+          "mode": "RGB",
+          "path": "test/leaf curl/images (36).jpg",
+          "width": 259
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 232,
+          "mode": "RGB",
+          "path": "test/leaf curl/images (37).jpg",
+          "width": 217
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 299,
+          "mode": "RGB",
+          "path": "test/leaf curl/images (38).jpg",
+          "width": 168
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 195,
+          "mode": "RGB",
+          "path": "test/leaf spot/leaf spot13 (1).jpg",
+          "width": 258
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 163,
+          "mode": "RGB",
+          "path": "test/leaf spot/leaf spot15 (1).jpg",
+          "width": 310
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 194,
+          "mode": "RGB",
+          "path": "test/leaf spot/leaf spot16 (1).jpg",
+          "width": 259
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 205,
+          "mode": "RGB",
+          "path": "test/leaf spot/leaf spot17 (1).jpg",
+          "width": 246
+        }
+      ],
+      "size_bytes": 5176708,
+      "top_label_folders": [
+        {
+          "count": 100,
+          "label": "healthy"
+        },
+        {
+          "count": 100,
+          "label": "leaf curl"
+        },
+        {
+          "count": 100,
+          "label": "leaf spot"
+        },
+        {
+          "count": 100,
+          "label": "whitefly"
+        },
+        {
+          "count": 100,
+          "label": "yellowish"
+        }
+      ],
+      "total_files": 500,
+      "warnings": []
+    },
+    {
+      "annotation_count": 0,
+      "annotation_extension_counts": {},
+      "extension_counts": {
+        ".hdf5": 2,
+        ".jpeg": 3,
+        ".jpg": 6875,
+        ".xls": 1
+      },
+      "image_count": 6878,
+      "inferred_label_folder_count": 63,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "HDF5/NPZ container candidate (not expanded)",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "plant disease / stress",
+        "species / plant identification",
+        "weed / crop discrimination"
+      ],
+      "manifest_providers": [
+        "Kaggle"
+      ],
+      "manifest_urls": [
+        "https://www.kaggle.com/datasets/gverzea/edible-wild-plants"
+      ],
+      "matched_manifest_name": "Edible wild plants",
+      "name": "Edible wild plants.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/Edible wild plants.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpeg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Alfalfa/Alfalfa_test1.jpeg",
+          "width": 500
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Alfalfa/Alfalfa_test2.jpg",
+          "width": 450
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 870,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Alfalfa/Alfalfa_test3.jpg",
+          "width": 1152
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 243,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Alfalfa/Alfalfa_test4.jpg",
+          "width": 200
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 188,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Alfalfa/Alfalfa_test5.jpg",
+          "width": 250
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 350,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Asparagus/asparagus-test1.jpg",
+          "width": 1020
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 324,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Asparagus/asparagus-test2.jpg",
+          "width": 648
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 189,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Asparagus/asparagus-test3.jpg",
+          "width": 267
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 154,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Asparagus/asparagus-test4.jpg",
+          "width": 328
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 273,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Asparagus/asparagus-test5.jpg",
+          "width": 185
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 200,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Blue Vervain/Blue_vervain_test1.jpg",
+          "width": 265
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 480,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Blue Vervain/Blue_vervain_test2.jpg",
+          "width": 640
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 380,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Blue Vervain/Blue_vervain_test3.jpg",
+          "width": 253
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 900,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Blue Vervain/Blue_vervain_test4.jpg",
+          "width": 675
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 184,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Blue Vervain/Blue_vervain_test5.jpg",
+          "width": 123
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 525,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Broadleaf Plantain/Broadleaf_plantain_test1.jpg",
+          "width": 700
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 480,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Broadleaf Plantain/Broadleaf_plantain_test2.jpg",
+          "width": 500
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 567,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Broadleaf Plantain/Broadleaf_plantain_test3.jpg",
+          "width": 686
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 975,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Broadleaf Plantain/Broadleaf_plantain_test4.jpg",
+          "width": 1000
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 263,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Broadleaf Plantain/Broadleaf_plantain_test5.jpg",
+          "width": 191
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 576,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Bull Thistle/Bull_thistle_test1.jpg",
+          "width": 768
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 200,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Bull Thistle/Bull_thistle_test2.jpg",
+          "width": 266
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 640,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Bull Thistle/Bull_thistle_test3.jpg",
+          "width": 584
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 275,
+          "mode": "RGB",
+          "path": "datasets/dataset-test/Bull Thistle/Bull_thistle_test4.jpg",
+          "width": 183
+        }
+      ],
+      "size_bytes": 802778599,
+      "top_label_folders": [
+        {
+          "count": 1058,
+          "label": "Dandellion"
+        },
+        {
+          "count": 775,
+          "label": "Daisy Fleabane"
+        },
+        {
+          "count": 740,
+          "label": "Sunflower"
+        },
+        {
+          "count": 155,
+          "label": "Chickweed"
+        },
+        {
+          "count": 155,
+          "label": "Curly Dock"
+        },
+        {
+          "count": 155,
+          "label": "Henbit"
+        },
+        {
+          "count": 155,
+          "label": "Lambs Quarters"
+        },
+        {
+          "count": 155,
+          "label": "Peppergrass"
+        },
+        {
+          "count": 105,
+          "label": "Asparagus"
+        },
+        {
+          "count": 105,
+          "label": "Common Sow Thistle"
+        },
+        {
+          "count": 105,
+          "label": "Creeping Charlie"
+        },
+        {
+          "count": 105,
+          "label": "Elderberry"
+        },
+        {
+          "count": 105,
+          "label": "Field Pennycress"
+        },
+        {
+          "count": 105,
+          "label": "Garlic Mustard"
+        },
+        {
+          "count": 105,
+          "label": "Purple Deadnettle"
+        }
+      ],
+      "total_files": 6881,
+      "warnings": [
+        "Found .hdf5 container final_model_weights.hdf5; internal arrays were not expanded.",
+        "Found .hdf5 container vanilla_model_weights.hdf5; internal arrays were not expanded."
+      ]
+    },
+    {
+      "annotation_count": 0,
+      "annotation_extension_counts": {},
+      "extension_counts": {
+        ".jpg": 5945
+      },
+      "image_count": 5945,
+      "inferred_label_folder_count": 40,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "species / plant identification",
+        "weed / crop discrimination"
+      ],
+      "manifest_providers": [
+        "Kaggle"
+      ],
+      "manifest_urls": [
+        "https://www.kaggle.com/datasets/warcoder/indian-medicinal-plant-image-dataset"
+      ],
+      "matched_manifest_name": "Indian Medicinal Plant Image Dataset",
+      "name": "Indian Medicinal Plant Image Dataset.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/Indian Medicinal Plant Image Dataset.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/339.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 283,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/340.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 283,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/341.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/342.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/343.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 283,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/344.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/345.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/346.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 283,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/347.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 283,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/348.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/349.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/350.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/351.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/4230.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/4231.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/4232.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/4233.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/4234.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 283,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/4235.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/4236.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/4237.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 283,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/4238.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 283,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/4239.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "Medicinal plant dataset/Aloevera/4240.jpg",
+          "width": 600
+        }
+      ],
+      "size_bytes": 264918525,
+      "top_label_folders": [
+        {
+          "count": 187,
+          "label": "Jasmine"
+        },
+        {
+          "count": 168,
+          "label": "Rose"
+        },
+        {
+          "count": 165,
+          "label": "Hibiscus"
+        },
+        {
+          "count": 164,
+          "label": "Aloevera"
+        },
+        {
+          "count": 160,
+          "label": "Castor"
+        },
+        {
+          "count": 153,
+          "label": "Mint"
+        },
+        {
+          "count": 152,
+          "label": "Nagadali"
+        },
+        {
+          "count": 151,
+          "label": "Betel"
+        },
+        {
+          "count": 150,
+          "label": "Henna"
+        },
+        {
+          "count": 146,
+          "label": "Amla"
+        },
+        {
+          "count": 146,
+          "label": "Amruta_Balli"
+        },
+        {
+          "count": 146,
+          "label": "Arali"
+        },
+        {
+          "count": 146,
+          "label": "Ashoka"
+        },
+        {
+          "count": 146,
+          "label": "Ashwagandha"
+        },
+        {
+          "count": 146,
+          "label": "Avacado"
+        }
+      ],
+      "total_files": 5945,
+      "warnings": []
+    },
+    {
+      "annotation_count": 0,
+      "annotation_extension_counts": {},
+      "extension_counts": {
+        ".jpeg": 1,
+        ".jpg": 35723,
+        ".png": 1,
+        "[no extension]": 1
+      },
+      "image_count": 35725,
+      "inferred_label_folder_count": 23,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "plant disease / stress",
+        "detection / annotation"
+      ],
+      "manifest_providers": [
+        "Kaggle"
+      ],
+      "manifest_urls": [
+        "https://www.kaggle.com/datasets/karagwaanntreasure/plant-disease-detection"
+      ],
+      "matched_manifest_name": "Plant Disease Detection",
+      "name": "Plant Disease Detection.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/Plant Disease Detection.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/00075aa8-d81a-4184-8541-b692b78d398a___FREC_Scab 3335.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/01a66316-0e98-4d3b-a56f-d78752cd043f___FREC_Scab 3003.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/01a66316-0e98-4d3b-a56f-d78752cd043f___FREC_Scab 3003_270deg.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/01a66316-0e98-4d3b-a56f-d78752cd043f___FREC_Scab 3003_90deg.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/01a66316-0e98-4d3b-a56f-d78752cd043f___FREC_Scab 3003_new30degFlipLR.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/01f3deaa-6143-4b6c-9c22-620a46d8be04___FREC_Scab 3112.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/01f3deaa-6143-4b6c-9c22-620a46d8be04___FREC_Scab 3112_90deg.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/01f3deaa-6143-4b6c-9c22-620a46d8be04___FREC_Scab 3112_new30degFlipLR.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/0208f4eb-45a4-4399-904e-989ac2c6257c___FREC_Scab 3037.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/0208f4eb-45a4-4399-904e-989ac2c6257c___FREC_Scab 3037_270deg.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/0208f4eb-45a4-4399-904e-989ac2c6257c___FREC_Scab 3037_new30degFlipLR.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/023123cb-7b69-4c9f-a521-766d7c8543bb___FREC_Scab 3487_270deg.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/023123cb-7b69-4c9f-a521-766d7c8543bb___FREC_Scab 3487_new30degFlipLR.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/0261a6e4-21f8-481a-8827-b674e6955644___FREC_Scab 3055_270deg.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/0261a6e4-21f8-481a-8827-b674e6955644___FREC_Scab 3055_90deg.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/029424b0-0ef5-491b-9ef5-069190d24d8f___FREC_Scab 3504.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/029424b0-0ef5-491b-9ef5-069190d24d8f___FREC_Scab 3504_270deg.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/029424b0-0ef5-491b-9ef5-069190d24d8f___FREC_Scab 3504_90deg.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/029424b0-0ef5-491b-9ef5-069190d24d8f___FREC_Scab 3504_new30degFlipLR.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/03354abb-aa1c-4f9d-a1ef-9f40505cd539___FREC_Scab 3355_270deg.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/03354abb-aa1c-4f9d-a1ef-9f40505cd539___FREC_Scab 3355_90deg.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/03354abb-aa1c-4f9d-a1ef-9f40505cd539___FREC_Scab 3355_new30degFlipLR.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/0340dc35-5215-48ab-8db7-06af99fcb358___FREC_Scab 2966.JPG",
+          "width": 256
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 256,
+          "mode": "RGB",
+          "path": "Dataset/Apple___Apple_scab/0340dc35-5215-48ab-8db7-06af99fcb358___FREC_Scab 2966_270deg.JPG",
+          "width": 256
+        }
+      ],
+      "size_bytes": 559927257,
+      "top_label_folders": [
+        {
+          "count": 3208,
+          "label": "Tomato__Tomato_YellowLeaf__Curl_Virus"
+        },
+        {
+          "count": 2127,
+          "label": "Tomato_Bacterial_spot"
+        },
+        {
+          "count": 2016,
+          "label": "Apple___Apple_scab"
+        },
+        {
+          "count": 2008,
+          "label": "Apple___healthy"
+        },
+        {
+          "count": 1987,
+          "label": "Apple___Black_rot"
+        },
+        {
+          "count": 1909,
+          "label": "Tomato_Late_blight"
+        },
+        {
+          "count": 1908,
+          "label": "Corn_(maize)___Northern_Leaf_Blight"
+        },
+        {
+          "count": 1907,
+          "label": "Corn_(maize)___Common_rust_"
+        },
+        {
+          "count": 1859,
+          "label": "Corn_(maize)___healthy"
+        },
+        {
+          "count": 1771,
+          "label": "Tomato_Septoria_leaf_spot"
+        },
+        {
+          "count": 1760,
+          "label": "Apple___Cedar_apple_rust"
+        },
+        {
+          "count": 1676,
+          "label": "Tomato_Spider_mites_Two_spotted_spider_mite"
+        },
+        {
+          "count": 1642,
+          "label": "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot"
+        },
+        {
+          "count": 1591,
+          "label": "Tomato_healthy"
+        },
+        {
+          "count": 1478,
+          "label": "Pepper__bell___healthy"
+        }
+      ],
+      "total_files": 35726,
+      "warnings": []
+    },
+    {
+      "annotation_count": 2,
+      "annotation_extension_counts": {
+        ".json": 2
+      },
+      "extension_counts": {
+        ".jpg": 306146,
+        ".json": 2,
+        "[no extension]": 1
+      },
+      "image_count": 306146,
+      "inferred_label_folder_count": 1081,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "species / plant identification"
+      ],
+      "manifest_providers": [],
+      "manifest_urls": [],
+      "matched_manifest_name": null,
+      "name": "plantnet_300K.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/plantnet_300K.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 506,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1413751/008262d86f03ca9ecda79c5bdc19a1f1e66b7cae.jpg",
+          "width": 506
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1413751/89006edf7f7d4e476489ffd80edfa651f7fd2348.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 506,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1413751/0e252b1ede620f9a18ba1891c00e2642f7f4528b.jpg",
+          "width": 506
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 480,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1414746/9c31f353b51005b9cdd403b4899bfd5ca5e13cf4.jpg",
+          "width": 480
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1414746/7bb1fd6fd9668236fcb3adf2caea2785d314819c.jpg",
+          "width": 450
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1414746/affc022a3a4cf132d5595e8780c3e12daccbac5b.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/9fb6966b4097af71f939db802a2b051156dd552b.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/6637196849127b87a7e2dafb5fa4d000d9039613.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/697679eac76987792efb540d580d28c646e8ed61.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/3c79956d59328245a5e5005d1e6f648dee2ffa07.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/0a5b5f5df65561c7daac35ef373ecda12901bdc9.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/7b8cda9a1ccac664fd6689d6d1417a095681a8a8.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/53414add70d4c6b3f678f994562b904214e0d801.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 506,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/a9fc5409c4b3b745cbe223f03cbecd12ceca386b.jpg",
+          "width": 506
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/bc1a6799e39b9d5f0677f5fb6f55803bb2aa7cc6.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/60b250c744f0050130fe85433f3e502bd739a85c.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/f542ee35cfd2485f63f63a17bf9ff723ef9e12e9.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 506,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/e28e71a44d7897f660c44d412e0a0a97e12e27a3.jpg",
+          "width": 506
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/fa2ad7387bb5d82e0b2e80042589885431b3ba42.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/206a97a317c40bc4b16a99f8f5720a9ea06c3c41.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/fa996dbc42f74249e0aa07f019ec828a97b4c21b.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 506,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/7b4f72872e5b01956b23e3ebd74c7be6593ae4ee.jpg",
+          "width": 506
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 506,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/7cbc971ae2315f00e545dc6fa485d04ef38d0de0.jpg",
+          "width": 506
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/2604c9b6920dd6c7477e1990932b7705b79cdd54.jpg",
+          "width": 600
+        }
+      ],
+      "size_bytes": 31654430714,
+      "top_label_folders": [
+        {
+          "count": 9012,
+          "label": "1363227"
+        },
+        {
+          "count": 7922,
+          "label": "1392475"
+        },
+        {
+          "count": 7675,
+          "label": "1356022"
+        },
+        {
+          "count": 6670,
+          "label": "1364099"
+        },
+        {
+          "count": 6474,
+          "label": "1355937"
+        },
+        {
+          "count": 6330,
+          "label": "1359517"
+        },
+        {
+          "count": 6047,
+          "label": "1357330"
+        },
+        {
+          "count": 5628,
+          "label": "1358752"
+        },
+        {
+          "count": 5357,
+          "label": "1359620"
+        },
+        {
+          "count": 5009,
+          "label": "1363128"
+        },
+        {
+          "count": 4828,
+          "label": "1363991"
+        },
+        {
+          "count": 4275,
+          "label": "1355936"
+        },
+        {
+          "count": 4236,
+          "label": "1394460"
+        },
+        {
+          "count": 4193,
+          "label": "1363740"
+        },
+        {
+          "count": 3980,
+          "label": "1394994"
+        }
+      ],
+      "total_files": 306149,
+      "warnings": []
+    },
+    {
+      "annotation_count": 0,
+      "annotation_extension_counts": {},
+      "extension_counts": {
+        ".jpg": 30000
+      },
+      "image_count": 30000,
+      "inferred_label_folder_count": 30,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "species / plant identification",
+        "crop-specific agronomy"
+      ],
+      "manifest_providers": [
+        "Kaggle"
+      ],
+      "manifest_urls": [
+        "https://www.kaggle.com/datasets/yudhaislamisulistya/plants-type-datasets"
+      ],
+      "matched_manifest_name": "Plants Type Datasets",
+      "name": "Plants Type Datasets.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/Plants Type Datasets.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 154,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aloevera42.jpg",
+          "width": 327
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 225,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aloevera434.jpg",
+          "width": 225
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 193,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aloevera447.jpg",
+          "width": 262
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 168,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aloevera458.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 194,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aloevera461.jpg",
+          "width": 259
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 183,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aloevera462.jpg",
+          "width": 275
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 219,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aloevera472.jpg",
+          "width": 230
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 259,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aloevera480.jpg",
+          "width": 194
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 220,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aloevera49.jpg",
+          "width": 229
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 1194,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aloevera561.jpg",
+          "width": 1592
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 183,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aloevera569.jpg",
+          "width": 275
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 211,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_1116.jpg",
+          "width": 239
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 163,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_1117.jpg",
+          "width": 309
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 183,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_1125.jpg",
+          "width": 276
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 1920,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_1163.jpg",
+          "width": 2560
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 290,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_1184.jpg",
+          "width": 728
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 182,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_1187.jpg",
+          "width": 277
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 900,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_1207.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 225,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_1295.jpg",
+          "width": 225
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 168,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_1352.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 168,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_1365.jpg",
+          "width": 299
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 700,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_1448.jpg",
+          "width": 700
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 217,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_147.jpg",
+          "width": 232
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 194,
+          "mode": "RGB",
+          "path": "split_ttv_dataset_type_of_plants/Test_Set_Folder/aloevera/aug_0_1473.jpg",
+          "width": 259
+        }
+      ],
+      "size_bytes": 982641259,
+      "top_label_folders": [
+        {
+          "count": 1000,
+          "label": "aloevera"
+        },
+        {
+          "count": 1000,
+          "label": "banana"
+        },
+        {
+          "count": 1000,
+          "label": "bilimbi"
+        },
+        {
+          "count": 1000,
+          "label": "cantaloupe"
+        },
+        {
+          "count": 1000,
+          "label": "cassava"
+        },
+        {
+          "count": 1000,
+          "label": "coconut"
+        },
+        {
+          "count": 1000,
+          "label": "corn"
+        },
+        {
+          "count": 1000,
+          "label": "cucumber"
+        },
+        {
+          "count": 1000,
+          "label": "curcuma"
+        },
+        {
+          "count": 1000,
+          "label": "eggplant"
+        },
+        {
+          "count": 1000,
+          "label": "galangal"
+        },
+        {
+          "count": 1000,
+          "label": "ginger"
+        },
+        {
+          "count": 1000,
+          "label": "guava"
+        },
+        {
+          "count": 1000,
+          "label": "kale"
+        },
+        {
+          "count": 1000,
+          "label": "longbeans"
+        }
+      ],
+      "total_files": 30000,
+      "warnings": []
+    },
+    {
+      "annotation_count": 0,
+      "annotation_extension_counts": {},
+      "extension_counts": {
+        ".jpg": 120
+      },
+      "image_count": 120,
+      "inferred_label_folder_count": 3,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "plant disease / stress",
+        "crop-specific agronomy"
+      ],
+      "manifest_providers": [
+        "Kaggle"
+      ],
+      "manifest_urls": [
+        "https://www.kaggle.com/datasets/vbookshelf/rice-leaf-diseases"
+      ],
+      "matched_manifest_name": "Rice Leaf Diseases Dataset",
+      "name": "Rice Leaf Diseases Dataset.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/Rice Leaf Diseases Dataset.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0365.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0366.jpg",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0367.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0370.jpg",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0372.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0373.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0374.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0375.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0376.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0377.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0378.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0379.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0380.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0381.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0382.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0383.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0384.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0385.jpg",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0386.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0388.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0389.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0390.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0392.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "rice_leaf_diseases/Bacterial leaf blight/DSC_0393.JPG",
+          "width": 3081
+        }
+      ],
+      "size_bytes": 38456279,
+      "top_label_folders": [
+        {
+          "count": 40,
+          "label": "Bacterial leaf blight"
+        },
+        {
+          "count": 40,
+          "label": "Brown spot"
+        },
+        {
+          "count": 40,
+          "label": "Leaf smut"
+        }
+      ],
+      "total_files": 120,
+      "warnings": []
+    },
+    {
+      "annotation_count": 0,
+      "annotation_extension_counts": {},
+      "extension_counts": {
+        ".jpg": 4684
+      },
+      "image_count": 4684,
+      "inferred_label_folder_count": 3,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "plant disease / stress",
+        "crop-specific agronomy"
+      ],
+      "manifest_providers": [
+        "Kaggle"
+      ],
+      "manifest_urls": [
+        "https://www.kaggle.com/datasets/jay7080dev/rice-plant-diseases-dataset"
+      ],
+      "matched_manifest_name": "Rice Plant diseases dataset",
+      "name": "Rice Plant diseases dataset.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/Rice Plant diseases dataset.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_001.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_002.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_003.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_004.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_005.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_006.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_007.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_008.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_009.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_010.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_011.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_012.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_013.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_014.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_015.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_016.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_017.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_018.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_019.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_020.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_021.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_022.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_023.jpg",
+          "width": 300
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 300,
+          "mode": "RGB",
+          "path": "rice leaf diseases dataset/Bacterialblight/BACTERAILBLIGHT3_024.jpg",
+          "width": 300
+        }
+      ],
+      "size_bytes": 184522498,
+      "top_label_folders": [
+        {
+          "count": 1620,
+          "label": "Brownspot"
+        },
+        {
+          "count": 1604,
+          "label": "Bacterialblight"
+        },
+        {
+          "count": 1460,
+          "label": "Leafsmut"
+        }
+      ],
+      "total_files": 4684,
+      "warnings": []
+    },
+    {
+      "annotation_count": 0,
+      "annotation_extension_counts": {},
+      "extension_counts": {
+        ".jpg": 120
+      },
+      "image_count": 120,
+      "inferred_label_folder_count": 3,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "plant disease / stress",
+        "crop-specific agronomy"
+      ],
+      "manifest_providers": [
+        "Kaggle"
+      ],
+      "manifest_urls": [
+        "https://www.kaggle.com/datasets/vbookshelf/rice-leaf-diseases"
+      ],
+      "matched_manifest_name": "Rice Leaf Diseases Dataset",
+      "name": "rice+leaf+diseases.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/rice+leaf+diseases.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0365.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0366.jpg",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0367.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0370.jpg",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0372.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0373.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0374.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0375.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0376.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0377.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0378.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0379.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0380.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0381.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0382.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0383.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0384.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0385.jpg",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0386.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0388.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0389.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0390.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0392.JPG",
+          "width": 3081
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 897,
+          "mode": "RGB",
+          "path": "Bacterial leaf blight/DSC_0393.JPG",
+          "width": 3081
+        }
+      ],
+      "size_bytes": 38442567,
+      "top_label_folders": [
+        {
+          "count": 40,
+          "label": "Bacterial leaf blight"
+        },
+        {
+          "count": 40,
+          "label": "Brown spot"
+        },
+        {
+          "count": 40,
+          "label": "Leaf smut"
+        }
+      ],
+      "total_files": 120,
+      "warnings": []
+    },
+    {
+      "annotation_count": 0,
+      "annotation_extension_counts": {},
+      "extension_counts": {
+        ".png": 11078
+      },
+      "image_count": 11078,
+      "inferred_label_folder_count": 12,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "crop-specific agronomy",
+        "seedling / early growth",
+        "weed / crop discrimination"
+      ],
+      "manifest_providers": [
+        "Kaggle"
+      ],
+      "manifest_urls": [
+        "https://www.kaggle.com/datasets/vbookshelf/v2-plant-seedlings-dataset"
+      ],
+      "matched_manifest_name": "V2 Plant Seedlings Dataset",
+      "name": "ssharma2020:Plant-Seedlings-Dataset.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/ssharma2020:Plant-Seedlings-Dataset.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 450,
+          "mode": "RGB",
+          "path": "archive/Cleavers/348.png",
+          "width": 450
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 295,
+          "mode": "RGB",
+          "path": "archive/Cleavers/176.png",
+          "width": 295
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 299,
+          "mode": "RGB",
+          "path": "archive/Cleavers/88.png",
+          "width": 299
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 194,
+          "mode": "RGB",
+          "path": "archive/Cleavers/162.png",
+          "width": 194
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 438,
+          "mode": "RGB",
+          "path": "archive/Cleavers/189.png",
+          "width": 438
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 190,
+          "mode": "RGB",
+          "path": "archive/Cleavers/77.png",
+          "width": 190
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 212,
+          "mode": "RGB",
+          "path": "archive/Cleavers/63.png",
+          "width": 212
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 460,
+          "mode": "RGB",
+          "path": "archive/Cleavers/228.png",
+          "width": 460
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 363,
+          "mode": "RGB",
+          "path": "archive/Cleavers/200.png",
+          "width": 363
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 184,
+          "mode": "RGB",
+          "path": "archive/Cleavers/214.png",
+          "width": 184
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 108,
+          "mode": "RGB",
+          "path": "archive/Cleavers/215.png",
+          "width": 108
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 304,
+          "mode": "RGB",
+          "path": "archive/Cleavers/201.png",
+          "width": 304
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 400,
+          "mode": "RGB",
+          "path": "archive/Cleavers/229.png",
+          "width": 400
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 418,
+          "mode": "RGB",
+          "path": "archive/Cleavers/62.png",
+          "width": 418
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 521,
+          "mode": "RGB",
+          "path": "archive/Cleavers/188.png",
+          "width": 521
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 295,
+          "mode": "RGB",
+          "path": "archive/Cleavers/76.png",
+          "width": 295
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 205,
+          "mode": "RGB",
+          "path": "archive/Cleavers/163.png",
+          "width": 205
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 274,
+          "mode": "RGB",
+          "path": "archive/Cleavers/177.png",
+          "width": 274
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 410,
+          "mode": "RGB",
+          "path": "archive/Cleavers/89.png",
+          "width": 410
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 140,
+          "mode": "RGB",
+          "path": "archive/Cleavers/149.png",
+          "width": 140
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 232,
+          "mode": "RGB",
+          "path": "archive/Cleavers/161.png",
+          "width": 232
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 196,
+          "mode": "RGB",
+          "path": "archive/Cleavers/175.png",
+          "width": 196
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 434,
+          "mode": "RGB",
+          "path": "archive/Cleavers/60.png",
+          "width": 434
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".png",
+          "height": 235,
+          "mode": "RGB",
+          "path": "archive/Cleavers/74.png",
+          "width": 235
+        }
+      ],
+      "size_bytes": 3432196494,
+      "top_label_folders": [
+        {
+          "count": 1524,
+          "label": "Loose Silky-bent"
+        },
+        {
+          "count": 1426,
+          "label": "Common Chickweed"
+        },
+        {
+          "count": 1214,
+          "label": "Scentless Mayweed"
+        },
+        {
+          "count": 1152,
+          "label": "Small-flowered Cranesbill"
+        },
+        {
+          "count": 1076,
+          "label": "Fat Hen"
+        },
+        {
+          "count": 926,
+          "label": "Sugar beet"
+        },
+        {
+          "count": 904,
+          "label": "Charlock"
+        },
+        {
+          "count": 670,
+          "label": "Cleavers"
+        },
+        {
+          "count": 618,
+          "label": "Black-grass"
+        },
+        {
+          "count": 548,
+          "label": "Shepherd\u0393\u00c7\u00d6s Purse"
+        },
+        {
+          "count": 514,
+          "label": "Maize"
+        },
+        {
+          "count": 506,
+          "label": "Common wheat"
+        }
+      ],
+      "total_files": 11078,
+      "warnings": []
+    },
+    {
+      "annotation_count": 4,
+      "annotation_extension_counts": {
+        ".csv": 3,
+        ".txt": 1
+      },
+      "extension_counts": {
+        ".csv": 3,
+        ".jpg": 9952,
+        ".txt": 1
+      },
+      "image_count": 9952,
+      "inferred_label_folder_count": 5,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "species / plant identification"
+      ],
+      "manifest_providers": [
+        "Kaggle"
+      ],
+      "manifest_urls": [
+        "https://www.kaggle.com/datasets/hanselliott/toxic-plant-classification"
+      ],
+      "matched_manifest_name": "Toxic Plant Classification",
+      "name": "Toxic Plant Classification.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/Toxic Plant Classification.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/000.jpg",
+          "width": 335
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/001.jpg",
+          "width": 447
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/002.jpg",
+          "width": 333
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/003.jpg",
+          "width": 333
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/004.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/005.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/006.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 375,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/007.jpg",
+          "width": 500
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/008.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 333,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/009.jpg",
+          "width": 500
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/010.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/011.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/012.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/013.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/014.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/015.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 358,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/016.jpg",
+          "width": 500
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/017.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/018.jpg",
+          "width": 281
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/019.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/020.jpg",
+          "width": 281
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 375,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/021.jpg",
+          "width": 500
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/022.jpg",
+          "width": 375
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 500,
+          "mode": "RGB",
+          "path": "tpc-imgs/nontoxic_images/000/023.jpg",
+          "width": 375
+        }
+      ],
+      "size_bytes": 479228680,
+      "top_label_folders": [
+        {
+          "count": 2000,
+          "label": "000"
+        },
+        {
+          "count": 2000,
+          "label": "002"
+        },
+        {
+          "count": 2000,
+          "label": "003"
+        },
+        {
+          "count": 1998,
+          "label": "004"
+        },
+        {
+          "count": 1954,
+          "label": "001"
+        }
+      ],
+      "total_files": 9956,
+      "warnings": []
+    }
+  ],
+  "missing_manifest_entries": [
+    {
+      "index": 1,
+      "line": "PlantVillage Dataset: https://www.kaggle.com/datasets/abdallahalidev/plantvillage-dataset",
+      "name": "PlantVillage Dataset",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/abdallahalidev/plantvillage-dataset"
+      ]
+    },
+    {
+      "index": 2,
+      "line": "Plants leafs Dataset: https://www.kaggle.com/datasets/hadyahmed00/plants-leafs-dataset",
+      "name": "Plants leafs Dataset",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/hadyahmed00/plants-leafs-dataset"
+      ]
+    },
+    {
+      "index": 3,
+      "line": "PlantifyDr Dataset: https://www.kaggle.com/datasets/lavaman151/plantifydr-dataset",
+      "name": "PlantifyDr Dataset",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/lavaman151/plantifydr-dataset"
+      ]
+    },
+    {
+      "index": 6,
+      "line": "Plant Disease Expert: https://www.kaggle.com/datasets/sadmansakibmahi/plant-disease-expert",
+      "name": "Plant Disease Expert",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/sadmansakibmahi/plant-disease-expert"
+      ]
+    },
+    {
+      "index": 7,
+      "line": "Wheat Plant Diseases: https://www.kaggle.com/datasets/kushagra3204/wheat-plant-diseases",
+      "name": "Wheat Plant Diseases",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/kushagra3204/wheat-plant-diseases"
+      ]
+    },
+    {
+      "index": 8,
+      "line": "Plant Pathogen Dataset: https://www.kaggle.com/datasets/kanishk3813/pathogen-dataset",
+      "name": "Plant Pathogen Dataset",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/kanishk3813/pathogen-dataset"
+      ]
+    },
+    {
+      "index": 9,
+      "line": "Rice Plant Dataset: https://www.kaggle.com/datasets/rajkumar898/rice-plant-dataset",
+      "name": "Rice Plant Dataset",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/rajkumar898/rice-plant-dataset"
+      ]
+    },
+    {
+      "index": 10,
+      "line": "\ud83c\udf31 House Plant Species \ud83c\udf31: https://www.kaggle.com/datasets/kacpergregorowicz/house-plant-species",
+      "name": "House Plant Species",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/kacpergregorowicz/house-plant-species"
+      ]
+    },
+    {
+      "index": 13,
+      "line": "Plant Leaves for Image Classification: https://www.kaggle.com/datasets/csafrit2/plant-leaves-for-image-classification",
+      "name": "Plant Leaves for Image Classification",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/csafrit2/plant-leaves-for-image-classification"
+      ]
+    },
+    {
+      "index": 15,
+      "line": "Cotton plant disease \ud83c\udf31\ud83c\udf42\ud83c\udf42\ud83c\udf31: https://www.kaggle.com/datasets/dhamur/cotton-plant-disease",
+      "name": "Cotton plant disease",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/dhamur/cotton-plant-disease"
+      ]
+    },
+    {
+      "index": 18,
+      "line": "Weed Detection in Soybean Crops: https://www.kaggle.com/datasets/fpeccia/weed-detection-in-soybean-crops (https://data.mendeley.com/datasets/3fmjm7ncc6/2)",
+      "name": "Weed Detection in Soybean Crops",
+      "providers": [
+        "Kaggle",
+        "Mendeley Data"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/fpeccia/weed-detection-in-soybean-crops",
+        "https://data.mendeley.com/datasets/3fmjm7ncc6/2"
+      ]
+    },
+    {
+      "index": 20,
+      "line": "Plant Stress Identification (Paddy Leaves): https://www.kaggle.com/datasets/ritikbompilwar/plantstressidentification",
+      "name": "Plant Stress Identification (Paddy Leaves)",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/ritikbompilwar/plantstressidentification"
+      ]
+    },
+    {
+      "index": 21,
+      "line": "Pea Plant dataset: https://www.kaggle.com/datasets/zunorain/pea-plant-dataset",
+      "name": "Pea Plant dataset",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/zunorain/pea-plant-dataset"
+      ]
+    },
+    {
+      "index": 22,
+      "line": "plant disease detection - dataset: https://www.kaggle.com/datasets/ironwolf437/plant-disease-detection-dataset",
+      "name": "plant disease detection - dataset",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/ironwolf437/plant-disease-detection-dataset"
+      ]
+    },
+    {
+      "index": 23,
+      "line": "Ghana Crop Disease Detection Dataset: https://www.kaggle.com/datasets/ohagwucollinspatrick/ghana-crop-disease",
+      "name": "Ghana Crop Disease Detection Dataset",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/ohagwucollinspatrick/ghana-crop-disease"
+      ]
+    },
+    {
+      "index": 25,
+      "line": "Plant Disease Dataset: https://www.kaggle.com/datasets/rashidthihan/plant-disease-dataset",
+      "name": "Plant Disease Dataset",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/rashidthihan/plant-disease-dataset"
+      ]
+    },
+    {
+      "index": 27,
+      "line": "CottonWeedDet3: https://www.kaggle.com/datasets/yuzhenlu/cottonweeddet3",
+      "name": "CottonWeedDet3",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/yuzhenlu/cottonweeddet3"
+      ]
+    },
+    {
+      "index": 28,
+      "line": "Paddy Doctor: Paddy Disease Classification: https://www.kaggle.com/competitions/paddy-disease-classification/data",
+      "name": "Paddy Doctor: Paddy Disease Classification",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/competitions/paddy-disease-classification/data"
+      ]
+    },
+    {
+      "index": 30,
+      "line": "GeoPlant: Spatial Plant Species Prediction Dataset: https://www.kaggle.com/datasets/picekl/geoplant",
+      "name": "GeoPlant: Spatial Plant Species Prediction Dataset",
+      "providers": [
+        "Kaggle"
+      ],
+      "urls": [
+        "https://www.kaggle.com/datasets/picekl/geoplant"
+      ]
+    },
+    {
+      "index": 32,
+      "line": "Pumpkin Leaf Diseases Dataset From Bangladesh Published: 24 June 2024 | Version 1 | DOI: 10.17632/wtxcw8wpxb.1: https://data.mendeley.com/datasets/wtxcw8wpxb/1",
+      "name": "Pumpkin Leaf Diseases Dataset From Bangladesh Published: 24 June 2024 | Version 1 | DOI: 10.17632/wtxcw8wpxb.1",
+      "providers": [
+        "Mendeley Data"
+      ],
+      "urls": [
+        "https://data.mendeley.com/datasets/wtxcw8wpxb/1"
+      ]
+    },
+    {
+      "index": 33,
+      "line": "Rice Leaf Diseases Dataset Published: 19 October 2023 | Version 1 | DOI: 10.17632/dwtn3c6w6p.1: https://data.mendeley.com/datasets/dwtn3c6w6p/1",
+      "name": "Rice Leaf Diseases Dataset Published: 19 October 2023 | Version 1 | DOI: 10.17632/dwtn3c6w6p.1",
+      "providers": [
+        "Mendeley Data"
+      ],
+      "urls": [
+        "https://data.mendeley.com/datasets/dwtn3c6w6p/1"
+      ]
+    }
+  ],
+  "outputs": {
+    "csv": "/Users/abedinm/Desktop/AG Dataset/AG_Foundational_Model/reports/pretraining_dataset_audit/pretraining_dataset_audit.csv",
+    "json": "/Users/abedinm/Desktop/AG Dataset/AG_Foundational_Model/reports/pretraining_dataset_audit/pretraining_dataset_audit.json",
+    "markdown": "/Users/abedinm/Desktop/AG Dataset/AG_Foundational_Model/reports/pretraining_dataset_audit/pretraining_dataset_audit.md"
+  },
+  "pretraining_root": "/Users/abedinm/Desktop/AG Dataset/Pretraining",
+  "recommendations": [
+    "Add true multispectral and GeoTIFF pretraining data, ideally Sentinel-2/Landsat/UAV tiles with NIR and red-edge bands, because the current corpus is dominated by standard RGB formats.",
+    "Add georeferenced field-scale imagery with location, date, crop stage, climate, soil, and management metadata so the foundation model learns agronomic context instead of only leaf appearance.",
+    "Standardize the existing annotation files into a single schema and add segmentation/detection coverage for datasets that currently provide only class folders.",
+    "Add external held-out benchmark datasets grouped by geography, crop, farm, and season to measure cross-domain generalization for CVPR or Computers and Electronics in Agriculture quality.",
+    "Run duplicate and near-duplicate detection before pretraining, especially for augmented disease datasets, so SSL does not overfit repeated transformations.",
+    "Track license, citation, source URL, and download date per dataset before publication; this is essential for a top-tier reproducible dataset release."
+  ],
+  "unmatched_local_datasets": [
+    {
+      "annotation_count": 2,
+      "annotation_extension_counts": {
+        ".json": 2
+      },
+      "extension_counts": {
+        ".jpg": 306146,
+        ".json": 2,
+        "[no extension]": 1
+      },
+      "image_count": 306146,
+      "inferred_label_folder_count": 1081,
+      "kind": "zip",
+      "likely_modalities": [
+        "standard RGB/image files",
+        "sampled RGB imagery"
+      ],
+      "likely_themes": [
+        "species / plant identification"
+      ],
+      "manifest_providers": [],
+      "manifest_urls": [],
+      "matched_manifest_name": null,
+      "name": "plantnet_300K.zip",
+      "nested_archive_count": 0,
+      "path": "/Users/abedinm/Desktop/AG Dataset/Pretraining/plantnet_300K.zip",
+      "sample_images": [
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 506,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1413751/008262d86f03ca9ecda79c5bdc19a1f1e66b7cae.jpg",
+          "width": 506
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1413751/89006edf7f7d4e476489ffd80edfa651f7fd2348.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 506,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1413751/0e252b1ede620f9a18ba1891c00e2642f7f4528b.jpg",
+          "width": 506
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 480,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1414746/9c31f353b51005b9cdd403b4899bfd5ca5e13cf4.jpg",
+          "width": 480
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 450,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1414746/7bb1fd6fd9668236fcb3adf2caea2785d314819c.jpg",
+          "width": 450
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1414746/affc022a3a4cf132d5595e8780c3e12daccbac5b.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/9fb6966b4097af71f939db802a2b051156dd552b.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/6637196849127b87a7e2dafb5fa4d000d9039613.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/697679eac76987792efb540d580d28c646e8ed61.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/3c79956d59328245a5e5005d1e6f648dee2ffa07.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/0a5b5f5df65561c7daac35ef373ecda12901bdc9.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/7b8cda9a1ccac664fd6689d6d1417a095681a8a8.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/53414add70d4c6b3f678f994562b904214e0d801.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 506,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/a9fc5409c4b3b745cbe223f03cbecd12ceca386b.jpg",
+          "width": 506
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/bc1a6799e39b9d5f0677f5fb6f55803bb2aa7cc6.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/60b250c744f0050130fe85433f3e502bd739a85c.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/f542ee35cfd2485f63f63a17bf9ff723ef9e12e9.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 506,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/e28e71a44d7897f660c44d412e0a0a97e12e27a3.jpg",
+          "width": 506
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/fa2ad7387bb5d82e0b2e80042589885431b3ba42.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/206a97a317c40bc4b16a99f8f5720a9ea06c3c41.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/fa996dbc42f74249e0aa07f019ec828a97b4c21b.jpg",
+          "width": 600
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 506,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/7b4f72872e5b01956b23e3ebd74c7be6593ae4ee.jpg",
+          "width": 506
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 506,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/7cbc971ae2315f00e545dc6fa485d04ef38d0de0.jpg",
+          "width": 506
+        },
+        {
+          "bands": 3,
+          "dtype": null,
+          "error": null,
+          "extension": ".jpg",
+          "height": 600,
+          "mode": "RGB",
+          "path": "plantnet_300K/images_train/1373231/2604c9b6920dd6c7477e1990932b7705b79cdd54.jpg",
+          "width": 600
+        }
+      ],
+      "size_bytes": 31654430714,
+      "top_label_folders": [
+        {
+          "count": 9012,
+          "label": "1363227"
+        },
+        {
+          "count": 7922,
+          "label": "1392475"
+        },
+        {
+          "count": 7675,
+          "label": "1356022"
+        },
+        {
+          "count": 6670,
+          "label": "1364099"
+        },
+        {
+          "count": 6474,
+          "label": "1355937"
+        },
+        {
+          "count": 6330,
+          "label": "1359517"
+        },
+        {
+          "count": 6047,
+          "label": "1357330"
+        },
+        {
+          "count": 5628,
+          "label": "1358752"
+        },
+        {
+          "count": 5357,
+          "label": "1359620"
+        },
+        {
+          "count": 5009,
+          "label": "1363128"
+        },
+        {
+          "count": 4828,
+          "label": "1363991"
+        },
+        {
+          "count": 4275,
+          "label": "1355936"
+        },
+        {
+          "count": 4236,
+          "label": "1394460"
+        },
+        {
+          "count": 4193,
+          "label": "1363740"
+        },
+        {
+          "count": 3980,
+          "label": "1394994"
+        }
+      ],
+      "total_files": 306149,
+      "warnings": []
+    }
+  ]
+}

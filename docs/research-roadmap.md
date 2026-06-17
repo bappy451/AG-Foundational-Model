@@ -10,7 +10,7 @@ decreases.
 
 1. A provenance-aware, deduplicated agricultural pretraining corpus
 2. A simple sensor adapter that preserves official RGB ImageNet ViTs
-3. Controlled MIM versus DINO continual-pretraining comparison
+3. Controlled MIM versus DINOv3-style continual-pretraining comparison
 4. RGB-to-multispectral transfer and mixed-sensor training
 5. Broad downstream evaluation under source and geography shift
 6. Open configs, manifests, checkpoints, and reproducible protocols
@@ -72,19 +72,31 @@ Report:
 - crop resolution
 - MIM then DINO sequential pretraining versus either alone
 
-## DINOv2 Gap
+## DINOv3 Alignment
 
-Before calling the method a full DINOv2 reproduction, add and validate:
+The current implementation is intentionally DINOv3-style rather than a strict
+paper reproduction. It already includes the pieces that matter for this
+project:
 
-- iBOT-style masked patch prediction
-- KoLeo regularization
-- teacher temperature warmup
-- robust large-scale crop/augmentation recipe
-- source-balanced sampling
+- official ViT-S/B/L backbones
+- ImageNet initialization
+- 1x1 spectral adapter
+- student-teacher self-distillation
+- Gram anchoring on dense features
+- constant teacher-momentum scheduling
+- continual pretraining on agricultural RGB and multispectral data
+
+To make it a stronger DINOv3 reproduction and publication baseline, add:
+
 - distributed multi-GPU training
-- stability studies at large output dimension
+- higher-resolution pretraining runs
+- post-hoc distillation into smaller student variants
+- larger-scale crop and augmentation sweeps
+- source-balanced sampling across mixed agricultural corpora
+- stability studies at larger output dimensions
 
-Until then, use the precise phrase "DINO-style continual pretraining."
+Until then, use the precise phrase "DINOv3-style continual pretraining" rather
+than claiming a full Meta-scale reproduction.
 
 ## Data Governance
 
@@ -127,4 +139,3 @@ crops, and held-out domains, with rigorous data curation and ablation.
 6. Execute downstream benchmark and ablations.
 7. Repeat critical experiments across seeds.
 8. Release manifests, configs, code, and permitted checkpoints.
-

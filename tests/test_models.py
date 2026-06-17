@@ -6,7 +6,7 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from ag_foundation.models.dino import RemoteSensingDINOModel
+from ag_foundation.models.dino import RemoteSensingDINOModel, RemoteSensingDINOv3Model
 from ag_foundation.models.mim import RemoteSensingMIMModel
 from ag_foundation.models.vit import BandAdapter, RemoteSensingViT
 
@@ -151,6 +151,37 @@ def test_dino_model_returns_logits_and_updates_teacher(fake_timm) -> None:
     teacher_adapter_param = next(model.teacher_adapter.parameters())
     assert torch.allclose(teacher_adapter_param, student_adapter_param)
     assert all(not parameter.requires_grad for parameter in model.teacher_adapter.parameters())
+
+
+def test_dino_v3_gram_anchor_loss_tracks_dense_feature_similarity(fake_timm) -> None:
+    fake_timm()
+    torch.manual_seed(11)
+    model = RemoteSensingDINOv3Model(
+        in_channels=4,
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        pretrained_backbone=False,
+        dino_out_dim=16,
+        dino_hidden_dim=32,
+        dino_bottleneck_dim=8,
+        head_nlayers=2,
+        gram_anchor_weight=0.25,
+        gram_anchor_max_tokens=4,
+    )
+
+    inputs = torch.randn(2, 4, 32, 32)
+    adapted = model.adapt(inputs)
+    student_dense = model.student_dense_views([adapted])
+    teacher_dense = model.teacher_dense_views([adapted])
+    matching_loss = model.gram_anchor_loss(student_dense, teacher_dense)
+    shifted_dense = [student_dense[0] + 0.5]
+    shifted_loss = model.gram_anchor_loss(shifted_dense, teacher_dense)
+
+    assert matching_loss.ndim == 0
+    assert torch.isfinite(matching_loss)
+    assert matching_loss <= shifted_loss
+    assert model.gram_anchor_weight == pytest.approx(0.25)
 
 
 def test_dino_model_migrates_legacy_shared_adapter_checkpoint(fake_timm) -> None:

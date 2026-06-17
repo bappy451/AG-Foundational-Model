@@ -15,7 +15,7 @@ crop, source, geography, and sensor shift.
 ## Research Questions
 
 1. How much does agricultural continual pretraining improve over ImageNet alone?
-2. Do MIM and DINO-style objectives learn complementary agricultural features?
+2. Do MIM and DINOv3-style objectives learn complementary agricultural features?
 3. Can a lightweight 1x1 spectral adapter preserve official RGB ViTs while
    transferring effectively to multispectral sensors?
 4. Which data sources and modalities produce the largest cross-domain gains?
@@ -28,7 +28,7 @@ crop, source, geography, and sensor shift.
 - ImageNet initialization enabled by default
 - always-present learnable 1x1 band adapter
 - MAE-style masked image modeling
-- DINO-style student-teacher continual pretraining
+- DINOv3-style student-teacher continual pretraining
 - EMA teacher adapter, backbone, and projection head with paired global crops
 - RGB, multiband GeoTIFF, NPY, ZIP, and nested-ZIP input
 - group-disjoint train/validation splitting
@@ -108,10 +108,10 @@ Phase 3:
 
 ## Honest Current Status
 
-The software foundation is operational and tested for MIM and DINO with official
+The software foundation is operational and tested for MIM and DINOv3 with official
 pretrained ViT-S models, including five-band input. The current demo and smoke
 runs prove implementation correctness only. Dataset curation, real multispectral
-coverage, distributed scale, downstream benchmarking, and full DINOv2 objective
+coverage, distributed scale, downstream benchmarking, and full DINOv3 paper-scale
 parity remain research work required for a top-tier submission.
 
 See [docs/README.md](docs/README.md) for the complete technical documentation.

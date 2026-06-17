@@ -37,8 +37,11 @@ model:
   student_temperature: 0.1
   teacher_temperature: 0.04
   teacher_momentum_start: 0.996
-  teacher_momentum_end: 1.0
+  teacher_momentum_end: 0.996
+  teacher_momentum_schedule: constant
   center_momentum: 0.9
+  gram_anchor_weight: 0.1
+  gram_anchor_max_tokens: 256
   gradient_checkpointing: false
   drop_rate: 0.0
   attn_drop_rate: 0.0

@@ -5,12 +5,13 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_ROOT = PROJECT_ROOT / "src"
-if str(SRC_ROOT) not in sys.path:
-    sys.path.insert(0, str(SRC_ROOT))
+sys.path = [path for path in sys.path if path != str(SRC_ROOT)]
+sys.path.insert(0, str(SRC_ROOT))
 
-from ag_foundation.cli import main as cli_main
 
 def main() -> None:
+    from ag_foundation.cli import main as cli_main
+
     cli_main(["slice-geotiffs", *sys.argv[1:]], enable_logging=True)
 
 

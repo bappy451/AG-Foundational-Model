@@ -44,8 +44,11 @@ TRAIN_DINO_DEFAULTS: dict[str, Any] = {
     "student_temperature": 0.1,
     "teacher_temperature": 0.04,
     "teacher_momentum_start": 0.996,
-    "teacher_momentum_end": 1.0,
+    "teacher_momentum_end": 0.996,
+    "teacher_momentum_schedule": "constant",
     "center_momentum": 0.9,
+    "gram_anchor_weight": 0.1,
+    "gram_anchor_max_tokens": 256,
     "gradient_checkpointing": False,
     "drop_rate": 0.0,
     "attn_drop_rate": 0.0,
@@ -107,7 +110,10 @@ TRAIN_DINO_SECTION_MAP: dict[str, dict[str, str]] = {
         "teacher_temperature": "teacher_temperature",
         "teacher_momentum_start": "teacher_momentum_start",
         "teacher_momentum_end": "teacher_momentum_end",
+        "teacher_momentum_schedule": "teacher_momentum_schedule",
         "center_momentum": "center_momentum",
+        "gram_anchor_weight": "gram_anchor_weight",
+        "gram_anchor_max_tokens": "gram_anchor_max_tokens",
         "gradient_checkpointing": "gradient_checkpointing",
         "drop_rate": "drop_rate",
         "attn_drop_rate": "attn_drop_rate",
@@ -158,7 +164,7 @@ def build_train_dino_parser(config_defaults: dict[str, Any] | None = None) -> ar
     if config_defaults:
         defaults.update({key: value for key, value in config_defaults.items() if value is not None})
 
-    parser = argparse.ArgumentParser(description="Train the agricultural ViT with DINO-style self-distillation.")
+    parser = argparse.ArgumentParser(description="Train the agricultural ViT with DINOv3-style self-distillation.")
     parser.add_argument("--config", default=None, help="Optional YAML config file.")
     parser.add_argument("--data-root", default=defaults["data_root"], help="Dataset root directory or ZIP archive.")
     parser.add_argument("--output-dir", default=defaults["output_dir"], help="Directory for checkpoints and metrics.")
@@ -192,7 +198,14 @@ def build_train_dino_parser(config_defaults: dict[str, Any] | None = None) -> ar
     parser.add_argument("--teacher-temperature", type=float, default=defaults["teacher_temperature"])
     parser.add_argument("--teacher-momentum-start", type=float, default=defaults["teacher_momentum_start"])
     parser.add_argument("--teacher-momentum-end", type=float, default=defaults["teacher_momentum_end"])
+    parser.add_argument(
+        "--teacher-momentum-schedule",
+        choices=("constant", "cosine"),
+        default=defaults["teacher_momentum_schedule"],
+    )
     parser.add_argument("--center-momentum", type=float, default=defaults["center_momentum"])
+    parser.add_argument("--gram-anchor-weight", type=float, default=defaults["gram_anchor_weight"])
+    parser.add_argument("--gram-anchor-max-tokens", type=int, default=defaults["gram_anchor_max_tokens"])
     parser.add_argument(
         "--gradient-checkpointing",
         action=argparse.BooleanOptionalAction,
@@ -279,11 +292,19 @@ def _validate_dino_args(
         parser.error("DINO student and teacher temperatures must be positive.")
     if not 0.0 <= args.center_momentum < 1.0:
         parser.error("--center-momentum must be in [0, 1).")
-    if not 0.0 <= args.teacher_momentum_start <= args.teacher_momentum_end <= 1.0:
-        parser.error(
-            "Teacher momenta must satisfy 0 <= --teacher-momentum-start "
-            "<= --teacher-momentum-end <= 1."
-        )
+    if args.teacher_momentum_schedule == "cosine":
+        if not 0.0 <= args.teacher_momentum_start <= args.teacher_momentum_end <= 1.0:
+            parser.error(
+                "Teacher momenta must satisfy 0 <= --teacher-momentum-start "
+                "<= --teacher-momentum-end <= 1."
+            )
+    else:
+        if not 0.0 <= args.teacher_momentum_start <= 1.0 or not 0.0 <= args.teacher_momentum_end <= 1.0:
+            parser.error("Teacher momenta must satisfy 0 <= values <= 1.")
+    if args.gram_anchor_weight < 0.0:
+        parser.error("--gram-anchor-weight must be non-negative.")
+    if args.gram_anchor_max_tokens is not None and args.gram_anchor_max_tokens <= 0:
+        parser.error("--gram-anchor-max-tokens must be positive when provided.")
     for flag, value in {
         "--global-crop-scale": args.global_crop_scale,
         "--local-crop-scale": args.local_crop_scale,
@@ -340,6 +361,8 @@ def run_train_dino(args: argparse.Namespace, *, command_argv: list[str] | None =
         dino_hidden_dim=args.dino_hidden_dim,
         dino_bottleneck_dim=args.dino_bottleneck_dim,
         head_nlayers=args.head_nlayers,
+        gram_anchor_weight=args.gram_anchor_weight,
+        gram_anchor_max_tokens=args.gram_anchor_max_tokens,
         gradient_checkpointing=args.gradient_checkpointing,
         drop_rate=args.drop_rate,
         attn_drop_rate=args.attn_drop_rate,
@@ -373,6 +396,9 @@ def run_train_dino(args: argparse.Namespace, *, command_argv: list[str] | None =
         center_momentum=args.center_momentum,
         teacher_momentum_start=args.teacher_momentum_start,
         teacher_momentum_end=args.teacher_momentum_end,
+        teacher_momentum_schedule=args.teacher_momentum_schedule,
+        gram_anchor_weight=args.gram_anchor_weight,
+        gram_anchor_max_tokens=args.gram_anchor_max_tokens,
         augmentation_config=augmentation_config,
         progress_callback=_build_progress_callback("train-dino"),
         save_visualizations=args.save_visualizations,

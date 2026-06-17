@@ -221,6 +221,9 @@ class DINOTrainer:
         center_momentum: float = 0.9,
         teacher_momentum_start: float = 0.996,
         teacher_momentum_end: float = 1.0,
+        teacher_momentum_schedule: str = "constant",
+        gram_anchor_weight: float | None = None,
+        gram_anchor_max_tokens: int | None = None,
         augmentation_config: DINOAugmentationConfig | None = None,
         save_visualizations: bool = True,
         visualization_every: int = 1,
@@ -263,6 +266,20 @@ class DINOTrainer:
         self.center_momentum = float(center_momentum)
         self.teacher_momentum_start = float(teacher_momentum_start)
         self.teacher_momentum_end = float(teacher_momentum_end)
+        self.teacher_momentum_schedule = str(teacher_momentum_schedule).strip().lower()
+        if self.teacher_momentum_schedule not in {"constant", "cosine"}:
+            raise ValueError("teacher_momentum_schedule must be 'constant' or 'cosine'.")
+        model_gram_weight = float(getattr(self.model, "gram_anchor_weight", 0.0))
+        self.gram_anchor_weight = model_gram_weight if gram_anchor_weight is None else float(gram_anchor_weight)
+        if self.gram_anchor_weight < 0.0:
+            raise ValueError("gram_anchor_weight must be non-negative.")
+        model_gram_tokens = getattr(self.model, "gram_anchor_max_tokens", None)
+        if gram_anchor_max_tokens is None:
+            self.gram_anchor_max_tokens = None if model_gram_tokens is None else int(model_gram_tokens)
+        else:
+            if gram_anchor_max_tokens <= 0:
+                raise ValueError("gram_anchor_max_tokens must be positive when provided.")
+            self.gram_anchor_max_tokens = int(gram_anchor_max_tokens)
         if augmentation_config is None:
             augmentation_config = DINOAugmentationConfig(
                 image_size=self.model.student_backbone.image_size,
@@ -317,6 +334,8 @@ class DINOTrainer:
             group["lr"] = float(base_lr * scale)
 
     def _teacher_momentum(self, epoch_index: int, step_index: int, total_epochs: int, num_batches: int) -> float:
+        if self.teacher_momentum_schedule == "constant":
+            return self.teacher_momentum_start
         total_steps = max(1, total_epochs * num_batches - 1)
         global_step = epoch_index * num_batches + step_index
         progress = min(max(float(global_step) / float(total_steps), 0.0), 1.0)
@@ -359,14 +378,24 @@ class DINOTrainer:
         with self._autocast_context():
             student_outputs = self.model.forward_student_views(student_views)
             teacher_outputs = self.model.forward_teacher_views(teacher_views)
-            loss = self.model.dino_loss(
+            student_dense_views = None
+            teacher_dense_views = None
+            if self.gram_anchor_weight > 0.0:
+                student_dense_views = self.model.student_dense_views(student_views[: len(teacher_views)])
+                teacher_dense_views = self.model.teacher_dense_views(teacher_views)
+            losses = self.model.dino_v3_loss(
                 student_outputs,
                 teacher_outputs,
+                student_dense_views=student_dense_views,
+                teacher_dense_views=teacher_dense_views,
                 student_temperature=self.student_temperature,
+                gram_anchor_weight=self.gram_anchor_weight,
+                gram_anchor_max_tokens=self.gram_anchor_max_tokens,
             )
+            loss = losses["loss"]
 
         if not torch.isfinite(loss):
-            raise FloatingPointError("Encountered a non-finite DINO loss.")
+            raise FloatingPointError("Encountered a non-finite DINOv3 loss.")
 
         if self.grad_scaler.is_enabled():
             self.grad_scaler.scale(loss).backward()
@@ -395,7 +424,11 @@ class DINOTrainer:
         self.model.update_center(teacher_outputs, self.center_momentum)
         if self.scheduler is not None:
             self.scheduler.step()
-        return {"loss": float(loss.detach().cpu())}
+        return {
+            "loss": float(loss.detach().cpu()),
+            "cls_loss": float(losses["cls_loss"].detach().cpu()),
+            "gram_anchor_loss": float(losses["gram_anchor_loss"].detach().cpu()),
+        }
 
     def train_epoch(self, epoch_index: int, total_epochs: int = 1) -> dict[str, float]:
         sampler = getattr(self.train_loader, "sampler", None)
@@ -403,18 +436,28 @@ class DINOTrainer:
             sampler.set_epoch(epoch_index)
 
         total_loss = 0.0
+        total_cls_loss = 0.0
+        total_gram_anchor_loss = 0.0
         total_batches = 0
         num_batches = len(self.train_loader)
         last_loss = 0.0
+        last_cls_loss = 0.0
+        last_gram_anchor_loss = 0.0
         last_teacher_momentum = self.teacher_momentum_start
 
         for step_index, batch in enumerate(self.train_loader):
             teacher_momentum = self._teacher_momentum(epoch_index, step_index, total_epochs, num_batches)
             metrics = self.train_step(batch, teacher_momentum=teacher_momentum)
             current_loss = metrics["loss"]
+            current_cls_loss = metrics["cls_loss"]
+            current_gram_anchor_loss = metrics["gram_anchor_loss"]
             total_loss += current_loss
+            total_cls_loss += current_cls_loss
+            total_gram_anchor_loss += current_gram_anchor_loss
             total_batches += 1
             last_loss = current_loss
+            last_cls_loss = current_cls_loss
+            last_gram_anchor_loss = current_gram_anchor_loss
             last_teacher_momentum = teacher_momentum
             if self.progress_callback is not None:
                 total_work = total_epochs * num_batches
@@ -425,17 +468,20 @@ class DINOTrainer:
                     f"ep {epoch_index + 1}/{total_epochs} | "
                     f"batch {step_index + 1}/{num_batches} | "
                     f"loss {last_loss:.4f} (avg {avg_loss:.4f}) | "
+                    f"cls {last_cls_loss:.4f} | gram {last_gram_anchor_loss:.4f} | "
                     f"lr {lr:.6f} | ema {teacher_momentum:.6f}"
                 )
                 self.progress_callback(completed_work, total_work, detail=detail)
             if (step_index + 1) % self.log_every == 0:
                 print(
                     f"train-dino epoch={epoch_index + 1} step={step_index + 1}/{num_batches} "
-                    f"loss={current_loss:.6f}"
+                    f"loss={current_loss:.6f} cls={current_cls_loss:.6f} gram={current_gram_anchor_loss:.6f}"
                 )
 
         return {
             "loss": float(total_loss / total_batches) if total_batches > 0 else float("nan"),
+            "cls_loss": float(total_cls_loss / total_batches) if total_batches > 0 else float("nan"),
+            "gram_anchor_loss": float(total_gram_anchor_loss / total_batches) if total_batches > 0 else float("nan"),
             "batches": total_batches,
             "teacher_momentum": float(last_teacher_momentum),
         }
@@ -451,6 +497,8 @@ class DINOTrainer:
         self.model.teacher_backbone.eval()
         self.model.teacher_head.eval()
         losses: list[float] = []
+        cls_losses: list[float] = []
+        gram_losses: list[float] = []
         with torch.no_grad():
             for batch in self.val_loader:
                 moved_batch = _move_ssl_batch_to_device(batch, self.device)
@@ -459,18 +507,40 @@ class DINOTrainer:
                 with self._autocast_context():
                     student_outputs = self.model.forward_student_views(student_views)
                     teacher_outputs = self.model.forward_teacher_views(teacher_views)
-                    loss = self.model.dino_loss(
+                    student_dense_views = None
+                    teacher_dense_views = None
+                    if self.gram_anchor_weight > 0.0:
+                        student_dense_views = self.model.student_dense_views(student_views[: len(teacher_views)])
+                        teacher_dense_views = self.model.teacher_dense_views(teacher_views)
+                    losses_dict = self.model.dino_v3_loss(
                         student_outputs,
                         teacher_outputs,
+                        student_dense_views=student_dense_views,
+                        teacher_dense_views=teacher_dense_views,
                         student_temperature=self.student_temperature,
+                        gram_anchor_weight=self.gram_anchor_weight,
+                        gram_anchor_max_tokens=self.gram_anchor_max_tokens,
                     )
+                    loss = losses_dict["loss"]
                 if not torch.isfinite(loss):
-                    raise FloatingPointError("Encountered a non-finite DINO validation loss.")
+                    raise FloatingPointError("Encountered a non-finite DINOv3 validation loss.")
                 losses.append(float(loss.detach().cpu()))
+                cls_losses.append(float(losses_dict["cls_loss"].detach().cpu()))
+                gram_losses.append(float(losses_dict["gram_anchor_loss"].detach().cpu()))
 
         mean_loss = float(sum(losses) / len(losses)) if losses else float("nan")
-        print(f"train-dino epoch={epoch_index + 1} val_loss={mean_loss:.6f}")
-        return {"loss": mean_loss, "batches": len(losses)}
+        mean_cls_loss = float(sum(cls_losses) / len(cls_losses)) if cls_losses else float("nan")
+        mean_gram_loss = float(sum(gram_losses) / len(gram_losses)) if gram_losses else float("nan")
+        print(
+            f"train-dino epoch={epoch_index + 1} val_loss={mean_loss:.6f} "
+            f"val_cls={mean_cls_loss:.6f} val_gram={mean_gram_loss:.6f}"
+        )
+        return {
+            "loss": mean_loss,
+            "cls_loss": mean_cls_loss,
+            "gram_anchor_loss": mean_gram_loss,
+            "batches": len(losses),
+        }
 
     def _best_metric_from_history(self, history: list[dict[str, Any]]) -> float:
         best_metric = float("inf")
@@ -599,17 +669,32 @@ class DINOTrainer:
             history.append(
                 {
                     "epoch": epoch_index + 1,
+                    "loss": final_train_loss,
+                    "cls_loss": train_metrics["cls_loss"],
+                    "gram_anchor_loss": train_metrics["gram_anchor_loss"],
                     "train_loss": final_train_loss,
+                    "train_cls_loss": train_metrics["cls_loss"],
+                    "train_gram_anchor_loss": train_metrics["gram_anchor_loss"],
                     "val_loss": final_val_loss,
+                    "val_cls_loss": val_metrics.get("cls_loss"),
+                    "val_gram_anchor_loss": val_metrics.get("gram_anchor_loss"),
                     "epoch_duration_seconds": epoch_duration,
                     "learning_rate": self._current_learning_rate(),
                     "teacher_momentum": train_metrics["teacher_momentum"],
                 }
             )
+            val_cls_display = float("nan") if val_metrics.get("cls_loss") is None else val_metrics["cls_loss"]
+            val_gram_display = (
+                float("nan") if val_metrics.get("gram_anchor_loss") is None else val_metrics["gram_anchor_loss"]
+            )
             print(
                 f"train-dino epoch={epoch_index + 1} summary "
                 f"train_loss={final_train_loss:.6f} "
+                f"train_cls={train_metrics['cls_loss']:.6f} "
+                f"train_gram={train_metrics['gram_anchor_loss']:.6f} "
                 f"val_loss={float('nan') if final_val_loss is None else final_val_loss:.6f} "
+                f"val_cls={val_cls_display:.6f} "
+                f"val_gram={val_gram_display:.6f} "
                 f"lr={self._current_learning_rate():.6f} "
                 f"duration={epoch_duration:.2f}s"
             )
@@ -625,7 +710,7 @@ class DINOTrainer:
                 resolved_precision=getattr(self.model, "resolved_precision", self.requested_precision),
                 best_metric=best_metric,
             )
-            curve_path = save_training_curves(history, output_dir, method_name="DINO")
+            curve_path = save_training_curves(history, output_dir, method_name="DINOv3")
             checkpoint = {
                 "epoch": epoch_index + 1,
                 "model_state_dict": self.model.state_dict(),
@@ -667,3 +752,6 @@ class DINOTrainer:
             summary=summary,
         )
         return summary
+
+
+DINOv3Trainer = DINOTrainer

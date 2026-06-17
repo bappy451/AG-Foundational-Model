@@ -7,10 +7,10 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from ag_foundation.models.dino import RemoteSensingDINOModel
+from ag_foundation.models.dino import RemoteSensingDINOModel, RemoteSensingDINOv3Model
 from ag_foundation.models.mim import RemoteSensingMIMModel
 from ag_foundation.training.artifacts import save_training_checkpoint
-from ag_foundation.training.dino_trainer import DINOTrainer
+from ag_foundation.training.dino_trainer import DINOTrainer, DINOv3Trainer
 from ag_foundation.training.ssl_trainer import (
     SSLTrainer,
     _build_grad_scaler,
@@ -259,6 +259,64 @@ def test_dino_trainer_fit_and_resume(fake_timm, tmp_path: Path) -> None:
     assert metrics["system_info"]["starting_epoch"] == 1
     assert metrics["system_info"]["resumed_from"].endswith("last.pt")
     assert resumed_summary.epochs == 2
+
+
+def test_dino_v3_trainer_emits_gram_anchor_metrics(fake_timm, tmp_path: Path, monkeypatch) -> None:
+    fake_timm()
+    batch = _make_batch()
+    train_loader = _SimpleLoader([batch, batch])
+    val_loader = _SimpleLoader([batch])
+    model = RemoteSensingDINOv3Model(
+        in_channels=4,
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        pretrained_backbone=False,
+        dino_out_dim=16,
+        dino_hidden_dim=32,
+        dino_bottleneck_dim=8,
+        head_nlayers=2,
+        gram_anchor_weight=0.5,
+        gram_anchor_max_tokens=4,
+    )
+    seen_student_dense_view_counts: list[int] = []
+    original_student_dense_views = model.student_dense_views
+
+    def tracking_student_dense_views(views):
+        seen_student_dense_view_counts.append(len(views))
+        return original_student_dense_views(views)
+
+    monkeypatch.setattr(model, "student_dense_views", tracking_student_dense_views)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+    output_dir = tmp_path / "dino-v3-run"
+
+    trainer = DINOv3Trainer(
+        model,
+        train_loader,
+        optimizer,
+        val_loader=val_loader,
+        device="cpu",
+        precision="fp32",
+        log_every=100,
+        num_global_crops=2,
+        num_local_crops=1,
+        student_temperature=0.1,
+        gram_anchor_weight=0.5,
+        gram_anchor_max_tokens=4,
+        teacher_momentum_schedule="constant",
+    )
+    summary = trainer.fit(epochs=1, output_dir=output_dir)
+
+    metrics = json.loads((output_dir / "metrics.json").read_text(encoding="utf-8"))
+    history_record = metrics["history"][0]
+    assert "gram_anchor_loss" in history_record
+    assert "cls_loss" in history_record
+    assert history_record["loss"] == pytest.approx(
+        history_record["cls_loss"] + 0.5 * history_record["gram_anchor_loss"]
+    )
+    assert seen_student_dense_view_counts
+    assert set(seen_student_dense_view_counts) == {2}
+    assert summary.final_train_loss is not None
 
 
 def test_dino_student_and_teacher_receive_identically_augmented_global_views(fake_timm) -> None:

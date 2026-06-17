@@ -1,0 +1,14 @@
+name,kind,size_gb,matched_manifest_name,image_count,annotation_count,inferred_label_folder_count,top_extensions,likely_themes,likely_modalities,warnings
+Agriculture crop images.zip,zip,0.058,Agriculture crop images,1106,1,7,".jpeg:1006, .jpg:94, .jfif:6, .csv:1",crop-specific agronomy,standard RGB/image files; sampled RGB imagery,
+Chili Plant Disease Detection.zip,zip,0.001,Chili Plant Disease Detection,200,0,2,.jpg:200,plant disease / stress; crop-specific agronomy; detection / annotation,standard RGB/image files; sampled RGB imagery,
+Chili Plant Disease.zip,zip,0.005,Chili Plant Disease Detection,500,0,5,.jpg:500,plant disease / stress; crop-specific agronomy; detection / annotation,standard RGB/image files; sampled RGB imagery,
+Edible wild plants.zip,zip,0.748,Edible wild plants,6878,0,63,".jpg:6875, .jpeg:3, .hdf5:2, .xls:1",plant disease / stress; species / plant identification; weed / crop discrimination,standard RGB/image files; HDF5/NPZ container candidate (not expanded); sampled RGB imagery,Found .hdf5 container final_model_weights.hdf5; internal arrays were not expanded.; Found .hdf5 container vanilla_model_weights.hdf5; internal arrays were not expanded.
+Indian Medicinal Plant Image Dataset.zip,zip,0.247,Indian Medicinal Plant Image Dataset,5945,0,40,.jpg:5945,species / plant identification; weed / crop discrimination,standard RGB/image files; sampled RGB imagery,
+Plant Disease Detection.zip,zip,0.521,Plant Disease Detection,35725,0,23,".jpg:35723, .jpeg:1, .png:1, [no extension]:1",plant disease / stress; detection / annotation,standard RGB/image files; sampled RGB imagery,
+plantnet_300K.zip,zip,29.480,,306146,2,1081,".jpg:306146, .json:2, [no extension]:1",species / plant identification,standard RGB/image files; sampled RGB imagery,
+Plants Type Datasets.zip,zip,0.915,Plants Type Datasets,30000,0,30,.jpg:30000,species / plant identification; crop-specific agronomy,standard RGB/image files; sampled RGB imagery,
+Rice Leaf Diseases Dataset.zip,zip,0.036,Rice Leaf Diseases Dataset,120,0,3,.jpg:120,plant disease / stress; crop-specific agronomy,standard RGB/image files; sampled RGB imagery,
+Rice Plant diseases dataset.zip,zip,0.172,Rice Plant diseases dataset,4684,0,3,.jpg:4684,plant disease / stress; crop-specific agronomy,standard RGB/image files; sampled RGB imagery,
+rice+leaf+diseases.zip,zip,0.036,Rice Leaf Diseases Dataset,120,0,3,.jpg:120,plant disease / stress; crop-specific agronomy,standard RGB/image files; sampled RGB imagery,
+ssharma2020:Plant-Seedlings-Dataset.zip,zip,3.196,V2 Plant Seedlings Dataset,11078,0,12,.png:11078,crop-specific agronomy; seedling / early growth; weed / crop discrimination,standard RGB/image files; sampled RGB imagery,
+Toxic Plant Classification.zip,zip,0.446,Toxic Plant Classification,9952,4,5,".jpg:9952, .csv:3, .txt:1",species / plant identification,standard RGB/image files; sampled RGB imagery,

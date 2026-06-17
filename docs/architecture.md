@@ -14,7 +14,7 @@ flowchart TD
   E --> F["ImageNet normalization"]
   F --> G["Official timm Vision Transformer"]
   G --> H["MIM reconstruction objective"]
-  G --> I["DINO student-teacher objective"]
+  G --> I["DINOv3 student-teacher objective"]
   H --> J["Metrics, figures, and checkpoints"]
   I --> J
 ```
@@ -90,16 +90,19 @@ The default mask ratio is `0.75`.
 6. Match centered, temperature-scaled teacher probabilities.
 7. Update teacher adapter, backbone, and head using exponential moving average.
 8. Update the teacher-output center.
+9. Regularize dense patch similarities with Gram anchoring on aligned global views.
 
 The complete teacher image encoder is initialized as an exact copy of the
 ImageNet-initialized student and remains frozen to gradient updates. Legacy
 checkpoints created with the earlier shared `adapter.*` layout migrate
 automatically when loaded.
 
-This is a DINO-style continual-pretraining implementation. A full DINOv2 paper
-replication would additionally require components such as iBOT patch loss,
-KoLeo regularization, large-scale balanced sampling, and the original training
-scale. Those are publication-roadmap items, not silently claimed features.
+This is a DINOv3-style continual-pretraining implementation. It adds Gram
+anchoring on dense features and a constant-momentum training path while keeping
+the official ViT S/B/L backbones and 1x1 adapter design. A full paper
+reproduction would still require the large-scale training, post-hoc distillation
+suite, and scaling recipe described in the DINOv3 report, so those remain
+roadmap items rather than hidden claims.
 
 ## Precision And Devices
 

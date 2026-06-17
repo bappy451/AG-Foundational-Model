@@ -10,7 +10,7 @@ Usage:
 
 What it does:
   - launches the unified ag-foundation CLI
-  - trains a DINO-style continual pretraining run
+  - trains a DINOv3-style continual pretraining run
   - supports RGB and multispectral data on cpu, cuda, or mps
   - can append command output to command.log for reproducibility
 

@@ -225,7 +225,14 @@ def test_parse_train_mim_args_rejects_invalid_values(extra_args: list[str]) -> N
     [
         ["--num-global-crops", "1"],
         ["--student-temperature", "0"],
-        ["--teacher-momentum-start", "1", "--teacher-momentum-end", "0.9"],
+        [
+            "--teacher-momentum-start",
+            "1",
+            "--teacher-momentum-end",
+            "0.9",
+            "--teacher-momentum-schedule",
+            "cosine",
+        ],
         ["--local-crop-scale", "0.8", "0.2"],
     ],
 )
@@ -281,8 +288,11 @@ model:
   student_temperature: 0.1
   teacher_temperature: 0.04
   teacher_momentum_start: 0.996
-  teacher_momentum_end: 1.0
+  teacher_momentum_end: 0.996
+  teacher_momentum_schedule: constant
   center_momentum: 0.9
+  gram_anchor_weight: 0.25
+  gram_anchor_max_tokens: 64
   gradient_checkpointing: false
   drop_rate: 0.0
   attn_drop_rate: 0.0
@@ -328,8 +338,11 @@ optimizer:
         "student_temperature": 0.1,
         "teacher_temperature": 0.04,
         "teacher_momentum_start": 0.996,
-        "teacher_momentum_end": 1.0,
+        "teacher_momentum_end": 0.996,
+        "teacher_momentum_schedule": "constant",
         "center_momentum": 0.9,
+        "gram_anchor_weight": 0.25,
+        "gram_anchor_max_tokens": 64,
         "gradient_checkpointing": False,
         "drop_rate": 0.0,
         "attn_drop_rate": 0.0,
@@ -351,6 +364,7 @@ model:
   model_name: B
   num_local_crops: 1
   global_crop_scale: [0.8, 1.0]
+  gram_anchor_weight: 0.1
 """.strip(),
         encoding="utf-8",
     )
@@ -369,6 +383,10 @@ model:
             "--pretrained-backbone",
             "--dino-out-dim",
             "128",
+            "--gram-anchor-weight",
+            "0.35",
+            "--teacher-momentum-schedule",
+            "constant",
         ]
     )
 
@@ -379,3 +397,5 @@ model:
     assert args.global_crop_scale == [0.7, 1.0]
     assert args.pretrained_backbone is True
     assert args.dino_out_dim == 128
+    assert args.gram_anchor_weight == 0.35
+    assert args.teacher_momentum_schedule == "constant"

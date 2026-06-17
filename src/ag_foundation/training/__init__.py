@@ -9,6 +9,7 @@ from .dino_runner import (
 from .dino_runner import (
     main as train_dino_main,
 )
+from .dino_trainer import DINOTrainer, DINOv3Trainer
 from .experiment_metadata import build_run_manifest, resolve_config_paths, write_run_manifest
 from .mim_runner import (
     build_epoch_lr_schedule,
@@ -30,6 +31,8 @@ __all__ = [
     "build_run_manifest",
     "build_train_mim_parser",
     "build_train_dino_parser",
+    "DINOTrainer",
+    "DINOv3Trainer",
     "load_train_dino_config",
     "load_train_mim_config",
     "parse_train_dino_args",

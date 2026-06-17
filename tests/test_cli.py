@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -24,6 +25,7 @@ def test_cli_help_lists_primary_commands(capsys) -> None:
     output = capsys.readouterr().out
     assert "train-mim" in output
     assert "train-dino" in output
+    assert "audit-pretraining-data" in output
     assert "create-catalog" in output
     assert "create-demo-data" in output
     assert "slice-geotiffs" in output
@@ -96,6 +98,12 @@ def test_cli_can_log_direct_invocations(tmp_path: Path) -> None:
 
 
 def test_data_package_does_not_eagerly_require_torch() -> None:
+    project_root = Path(__file__).resolve().parents[1]
+    src_root = project_root / "src"
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(src_root), env["PYTHONPATH"]] if env.get("PYTHONPATH") else [str(src_root)]
+    )
     completed = subprocess.run(
         [
             sys.executable,
@@ -107,6 +115,7 @@ def test_data_package_does_not_eagerly_require_torch() -> None:
         ],
         check=False,
         capture_output=True,
+        env=env,
         text=True,
     )
 

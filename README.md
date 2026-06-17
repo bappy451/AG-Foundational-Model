@@ -11,7 +11,7 @@ inputs, and reproducible MIM and DINO training pipelines.
 - Learnable 1x1 input adapter on every model
 - RGB, multiband GeoTIFF, NPY, folder, ZIP, and nested-ZIP loading
 - MAE-style masked image modeling
-- DINO-style student-teacher continual pretraining
+- DINOv3-style student-teacher continual pretraining with Gram anchoring
 - Live batch and epoch metrics in the terminal
 - Per-epoch loss curves and model-output visualizations
 - Best/latest checkpoints with optimizer, config, and RNG state
@@ -28,7 +28,7 @@ flowchart LR
   B --> C["3-channel ImageNet input"]
   C --> D["Official timm ViT-S / ViT-B / ViT-L"]
   D --> E["MIM reconstruction head"]
-  D --> F["DINO student and EMA teacher heads"]
+  D --> F["DINOv3 student and EMA teacher heads"]
 ```
 
 The adapter is identity-initialized for RGB. For multispectral input, its first
@@ -139,6 +139,23 @@ python -m ag_foundation slice-geotiffs \
   --stride 224 \
   --output-format tif
 ```
+
+## Audit The Pretraining Dataset
+
+After updating the sibling `Pretraining/` directory or `Pretraining/Dataset.txt`,
+regenerate the dataset audit:
+
+```bash
+python scripts/analyze_pretraining_dataset.py \
+  --pretraining-root ../Pretraining \
+  --dataset-list ../Pretraining/Dataset.txt \
+  --output-dir reports/pretraining_dataset_audit
+```
+
+The audit writes Markdown, JSON, and CSV reports with local image counts, format
+mix, manifest coverage, likely image/task types, missing sources, and recommended
+dataset additions. The current audit found 412,454 image-like files across 13
+local ZIP datasets, with no local GeoTIFF/NPY multispectral files detected.
 
 ## Live Metrics And Outputs
 

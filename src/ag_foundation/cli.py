@@ -12,15 +12,22 @@ def _build_root_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ag-foundation",
         description=(
-            "Agricultural foundation-model utilities for dataset cataloging, GeoTIFF slicing, "
-            "masked image modeling pretraining, DINO-style continual pretraining, command logging, "
+            "Agricultural foundation-model utilities for dataset auditing, cataloging, GeoTIFF slicing, "
+            "masked image modeling pretraining, DINOv3-style continual pretraining, command logging, "
             "and run-manifest capture."
         ),
     )
     parser.add_argument(
         "command",
         nargs="?",
-        choices=("train-mim", "train-dino", "create-catalog", "create-demo-data", "slice-geotiffs"),
+        choices=(
+            "train-mim",
+            "train-dino",
+            "audit-pretraining-data",
+            "create-catalog",
+            "create-demo-data",
+            "slice-geotiffs",
+        ),
         help="Command to run.",
     )
     parser.add_argument("--log-file", help="Append stdout/stderr to this file.")
@@ -36,6 +43,12 @@ def _run_create_catalog(argv: list[str]) -> None:
     parser.add_argument("--output-path", required=True)
     args = parser.parse_args(argv)
     create_dataset_catalog(args.data_root, args.output_path)
+
+
+def _run_audit_pretraining_data(argv: list[str]) -> None:
+    from ag_foundation.data.pretraining_audit import main as audit_main
+
+    audit_main(argv)
 
 
 def _run_slice_geotiffs(argv: list[str]) -> None:
@@ -103,6 +116,9 @@ def _dispatch(argv: list[str]) -> None:
         return
     if command == "train-dino":
         _run_train_dino(remainder)
+        return
+    if command == "audit-pretraining-data":
+        _run_audit_pretraining_data(remainder)
         return
     if command == "create-catalog":
         _run_create_catalog(remainder)
