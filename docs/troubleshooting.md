@@ -48,9 +48,15 @@ cross-scene radiometric meaning.
 Reduce `crop_size` or tile/resize the source data. The loader does not upscale
 small images automatically.
 
-## Crop Not Divisible By 16
+## Crop Not Divisible By The Selected Patch Size
 
-Use a crop such as 224, 256, 384, or another multiple of 16.
+Use a crop that matches the selected backbone family. Examples:
+
+- 224, 256, or 384 for 16-patch backbones
+- 28, 56, or 224 for DINOv2's 14-patch backbone
+
+If you switch `pretrained_source`, recheck the crop size before launching a
+long run.
 
 ## Fewer Than Two Groups
 
@@ -92,4 +98,3 @@ over many epochs.
 Early one-epoch reconstructions are expected to be poor, especially on tiny
 32 x 32 verification crops with only four patches. Judge MIM output after a
 proper training schedule and resolution.
-

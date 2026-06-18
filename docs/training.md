@@ -30,8 +30,8 @@ Start from `configs/train_mim.example.yaml`.
 Recommended initial experiment:
 
 - ViT-B
-- 224 or larger crop divisible by 16
-- ImageNet initialization
+- crop divisible by the selected patch size
+- official checkpoint initialization
 - mask ratio 0.75
 - bf16 or fp16 on supported GPUs
 - 50 to 200 epochs depending on corpus size
@@ -59,10 +59,10 @@ bash scripts/train_dino.sh --config configs/my_dino.yaml
 
 ## Continual Pretraining Meaning
 
-Both objectives begin from ImageNet weights and update the complete trainable
-student backbone plus the band adapter. DINO's teacher adapter, backbone, and
-head follow their student counterparts by EMA. This is domain-adaptive
-continual pretraining, not training from scratch.
+Both objectives begin from a selected official checkpoint family and update the
+complete trainable student backbone plus the band adapter. DINO's teacher
+adapter, backbone, and head follow their student counterparts by EMA. This is
+domain-adaptive continual pretraining, not training from scratch.
 
 ## Live Monitoring
 
@@ -127,5 +127,5 @@ rather than spending the second epoch at zero LR.
 - There is no automatic gradient accumulation.
 - There is no built-in W&B/TensorBoard backend; local CSV, JSON, PNG, logs, and
   checkpoints are the source of truth.
-- The DINO implementation is DINOv3-style with Gram anchoring and still does
-  not attempt the paper's full large-scale training and distillation stack.
+- The DINO implementation is DINO-style and still does not attempt the
+  paper's full large-scale training and distillation stack.

@@ -10,28 +10,108 @@ import torch.utils.checkpoint as checkpoint_utils
 from torch import nn
 
 SUPPORTED_PRECISIONS = ("fp32", "fp16", "bf16")
+SUPPORTED_PRETRAINED_SOURCES = ("imagenet", "dinov2", "dinov3", "mae")
+DEFAULT_PRETRAINED_SOURCE = "imagenet"
 PRECISION_DTYPES = {
     "fp32": torch.float32,
     "fp16": torch.float16,
     "bf16": torch.bfloat16,
 }
-VIT_CONFIGS: dict[str, dict[str, Any]] = {
-    "S": {
-        "model_name": "vit_small_patch16_224",
-        "embed_dim": 384,
-        "patch_size": 16,
+_PRETRAINED_VIT_CONFIGS: dict[str, dict[str, dict[str, Any]]] = {
+    "imagenet": {
+        "S": {
+            "model_name": "vit_small_patch16_224",
+            "embed_dim": 384,
+            "patch_size": 16,
+        },
+        "B": {
+            "model_name": "vit_base_patch16_224",
+            "embed_dim": 768,
+            "patch_size": 16,
+        },
+        "L": {
+            "model_name": "vit_large_patch16_224",
+            "embed_dim": 1024,
+            "patch_size": 16,
+        },
     },
-    "B": {
-        "model_name": "vit_base_patch16_224",
-        "embed_dim": 768,
-        "patch_size": 16,
+    "dinov2": {
+        "S": {
+            "model_name": "vit_small_patch14_dinov2.lvd142m",
+            "embed_dim": 384,
+            "patch_size": 14,
+        },
+        "B": {
+            "model_name": "vit_base_patch14_dinov2.lvd142m",
+            "embed_dim": 768,
+            "patch_size": 14,
+        },
+        "L": {
+            "model_name": "vit_large_patch14_dinov2.lvd142m",
+            "embed_dim": 1024,
+            "patch_size": 14,
+        },
     },
-    "L": {
-        "model_name": "vit_large_patch16_224",
-        "embed_dim": 1024,
-        "patch_size": 16,
+    "dinov3": {
+        "S": {
+            "model_name": "vit_small_patch16_dinov3.lvd1689m",
+            "embed_dim": 384,
+            "patch_size": 16,
+        },
+        "B": {
+            "model_name": "vit_base_patch16_dinov3.lvd1689m",
+            "embed_dim": 768,
+            "patch_size": 16,
+        },
+        "L": {
+            "model_name": "vit_large_patch16_dinov3.lvd1689m",
+            "embed_dim": 1024,
+            "patch_size": 16,
+        },
+    },
+    "mae": {
+        "B": {
+            "model_name": "vit_base_patch16_224.mae",
+            "embed_dim": 768,
+            "patch_size": 16,
+        },
+        "L": {
+            "model_name": "vit_large_patch16_224.mae",
+            "embed_dim": 1024,
+            "patch_size": 16,
+        },
     },
 }
+VIT_CONFIGS: dict[str, dict[str, Any]] = {
+    variant: dict(spec)
+    for variant, spec in _PRETRAINED_VIT_CONFIGS[DEFAULT_PRETRAINED_SOURCE].items()
+}
+
+
+@dataclass(frozen=True)
+class BackboneSpec:
+    model_name: str
+    embed_dim: int
+    patch_size: int
+    pretrained_source: str
+    model_family: str
+
+
+def _exact_backbone_specs() -> dict[str, BackboneSpec]:
+    specs: dict[str, BackboneSpec] = {}
+    for source, variants in _PRETRAINED_VIT_CONFIGS.items():
+        for model_family, spec in variants.items():
+            specs[spec["model_name"]] = BackboneSpec(
+                model_name=str(spec["model_name"]),
+                embed_dim=int(spec["embed_dim"]),
+                patch_size=int(spec["patch_size"]),
+                pretrained_source=source,
+                model_family=model_family,
+            )
+    return specs
+
+
+_EXACT_BACKBONE_SPECS = _exact_backbone_specs()
 
 
 def _validate_precision(precision: str) -> str:
@@ -67,10 +147,49 @@ def _trunc_normal_(tensor: torch.Tensor, std: float = 0.02) -> torch.Tensor:
 def _resolve_model_name(model_name: str) -> str:
     if model_name in VIT_CONFIGS:
         return str(VIT_CONFIGS[model_name]["model_name"])
-    if model_name in {str(spec["model_name"]) for spec in VIT_CONFIGS.values()}:
+    if model_name in _EXACT_BACKBONE_SPECS:
         return model_name
     supported = ", ".join(sorted(VIT_CONFIGS))
     raise ValueError(f"Unknown ViT model '{model_name}'. Supported variants: {supported}.")
+
+
+def _normalize_pretrained_source(pretrained_source: str | None) -> str:
+    normalized = DEFAULT_PRETRAINED_SOURCE if pretrained_source is None else str(pretrained_source).strip().lower()
+    if normalized in {"", "default"}:
+        normalized = DEFAULT_PRETRAINED_SOURCE
+    if normalized not in SUPPORTED_PRETRAINED_SOURCES:
+        supported = ", ".join(SUPPORTED_PRETRAINED_SOURCES)
+        raise ValueError(f"Unknown pretrained_source '{pretrained_source}'. Supported sources: {supported}.")
+    return normalized
+
+
+def resolve_backbone_spec(model_name: str, *, pretrained_source: str = DEFAULT_PRETRAINED_SOURCE) -> BackboneSpec:
+    normalized_model_name = str(model_name).strip()
+    if normalized_model_name in _EXACT_BACKBONE_SPECS:
+        return _EXACT_BACKBONE_SPECS[normalized_model_name]
+
+    normalized_source = _normalize_pretrained_source(pretrained_source)
+    if normalized_model_name not in VIT_CONFIGS:
+        supported = ", ".join(sorted(VIT_CONFIGS))
+        raise ValueError(f"Unknown ViT model '{model_name}'. Supported variants: {supported}.")
+    if normalized_source not in _PRETRAINED_VIT_CONFIGS:
+        supported = ", ".join(SUPPORTED_PRETRAINED_SOURCES)
+        raise ValueError(f"Unsupported pretrained source '{pretrained_source}'. Supported sources: {supported}.")
+    source_configs = _PRETRAINED_VIT_CONFIGS[normalized_source]
+    if normalized_model_name not in source_configs:
+        supported = ", ".join(sorted(source_configs))
+        raise ValueError(
+            f"Model '{normalized_model_name}' is not available for pretrained_source='{normalized_source}'. "
+            f"Supported model names for that source: {supported}."
+        )
+    spec = source_configs[normalized_model_name]
+    return BackboneSpec(
+        model_name=str(spec["model_name"]),
+        embed_dim=int(spec["embed_dim"]),
+        patch_size=int(spec["patch_size"]),
+        pretrained_source=normalized_source,
+        model_family=normalized_model_name,
+    )
 
 
 def _load_timm() -> Any:
@@ -147,6 +266,7 @@ class RemoteSensingViT(nn.Module):
         *,
         precision: str = "fp32",
         pretrained_backbone: bool = True,
+        pretrained_source: str = DEFAULT_PRETRAINED_SOURCE,
         pretrained_cfg: str | dict[str, Any] | None = None,
         gradient_checkpointing: bool = False,
         drop_rate: float = 0.0,
@@ -156,12 +276,21 @@ class RemoteSensingViT(nn.Module):
         super().__init__()
         self.requested_precision = _validate_precision(precision)
         self.resolved_precision = self.requested_precision
-        self.model_name = _resolve_model_name(model_name)
+        self.backbone_spec = resolve_backbone_spec(model_name, pretrained_source=pretrained_source)
+        self.model_name = self.backbone_spec.model_name
+        self.pretrained_source = self.backbone_spec.pretrained_source
+        self.model_family = self.backbone_spec.model_family
         self.use_gradient_checkpointing = bool(gradient_checkpointing)
         self.image_size = _pair(image_size)
-        self.geometry = _ImageGeometry(image_size=self.image_size, patch_size=(16, 16))
+        self.geometry = _ImageGeometry(image_size=self.image_size, patch_size=(self.backbone_spec.patch_size,) * 2)
         self.grid_size = self.geometry.grid_size
         self.num_patches = self.geometry.num_patches
+
+        if pretrained_cfg is not None and pretrained_cfg != "" and self.pretrained_source != "imagenet":
+            raise ValueError(
+                "pretrained_cfg is only supported with pretrained_source='imagenet'. "
+                "Official DINOv2, DINOv3, and MAE checkpoints are selected by name."
+            )
 
         timm = _load_timm()
         self.backbone = timm.create_model(

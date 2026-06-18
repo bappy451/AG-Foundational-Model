@@ -6,7 +6,7 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from ag_foundation.models.dino import RemoteSensingDINOModel, RemoteSensingDINOv3Model
+from ag_foundation.models.dino import RemoteSensingDINOModel
 from ag_foundation.models.mim import RemoteSensingMIMModel
 from ag_foundation.models.vit import BandAdapter, RemoteSensingViT
 
@@ -63,6 +63,81 @@ def test_vit_forward_features_returns_patch_tokens_and_metadata(fake_timm) -> No
     assert capture["kwargs"]["num_classes"] == 0
     assert capture["kwargs"]["global_pool"] == ""
     assert capture["kwargs"]["img_size"] == (32, 32)
+
+
+def test_vit_can_load_official_dinov2_backbones(fake_timm) -> None:
+    capture: dict[str, object] = {}
+    fake_timm(capture)
+
+    model = RemoteSensingViT(
+        image_size=28,
+        model_name="S",
+        precision="fp32",
+        pretrained_backbone=True,
+        pretrained_source="dinov2",
+    )
+    inputs = torch.randn(2, 3, 28, 28)
+
+    outputs = model.forward_features(inputs)
+
+    assert outputs.shape == (2, 4, 384)
+    assert model.patch_size == (14, 14)
+    assert capture["model_name"] == "vit_small_patch14_dinov2.lvd142m"
+    assert capture["kwargs"]["pretrained"] is True
+
+
+def test_mim_model_can_load_official_mae_backbones(fake_timm) -> None:
+    capture: dict[str, object] = {}
+    fake_timm(capture)
+
+    model = RemoteSensingMIMModel(
+        in_channels=4,
+        image_size=32,
+        model_name="B",
+        precision="fp32",
+        mask_ratio=0.75,
+        pretrained_backbone=True,
+        pretrained_source="mae",
+    )
+    outputs = model.forward_with_intermediates(torch.randn(2, 4, 32, 32))
+
+    assert outputs["tokens"].shape == (2, 4, 768)
+    assert model.backbone.patch_size == (16, 16)
+    assert capture["model_name"] == "vit_base_patch16_224.mae"
+    assert capture["kwargs"]["pretrained"] is True
+
+
+def test_dino_model_can_load_official_dinov3_backbones(fake_timm) -> None:
+    capture: dict[str, object] = {}
+    fake_timm(capture)
+
+    model = RemoteSensingDINOModel(
+        in_channels=4,
+        image_size=32,
+        model_name="L",
+        precision="fp32",
+        pretrained_backbone=True,
+        pretrained_source="dinov3",
+        dino_out_dim=16,
+        dino_hidden_dim=32,
+        dino_bottleneck_dim=8,
+        head_nlayers=2,
+    )
+
+    assert model.student_backbone.patch_size == (16, 16)
+    assert capture["model_name"] == "vit_large_patch16_dinov3.lvd1689m"
+    assert capture["kwargs"]["pretrained"] is True
+
+
+def test_vit_rejects_unsupported_official_family_combinations() -> None:
+    with pytest.raises(ValueError, match="not available for pretrained_source='mae'"):
+        RemoteSensingViT(
+            image_size=32,
+            model_name="S",
+            precision="fp32",
+            pretrained_backbone=True,
+            pretrained_source="mae",
+        )
 
 
 def test_mim_model_returns_expected_shapes_and_mask_ratio(fake_timm) -> None:
@@ -151,37 +226,6 @@ def test_dino_model_returns_logits_and_updates_teacher(fake_timm) -> None:
     teacher_adapter_param = next(model.teacher_adapter.parameters())
     assert torch.allclose(teacher_adapter_param, student_adapter_param)
     assert all(not parameter.requires_grad for parameter in model.teacher_adapter.parameters())
-
-
-def test_dino_v3_gram_anchor_loss_tracks_dense_feature_similarity(fake_timm) -> None:
-    fake_timm()
-    torch.manual_seed(11)
-    model = RemoteSensingDINOv3Model(
-        in_channels=4,
-        image_size=32,
-        model_name="S",
-        precision="fp32",
-        pretrained_backbone=False,
-        dino_out_dim=16,
-        dino_hidden_dim=32,
-        dino_bottleneck_dim=8,
-        head_nlayers=2,
-        gram_anchor_weight=0.25,
-        gram_anchor_max_tokens=4,
-    )
-
-    inputs = torch.randn(2, 4, 32, 32)
-    adapted = model.adapt(inputs)
-    student_dense = model.student_dense_views([adapted])
-    teacher_dense = model.teacher_dense_views([adapted])
-    matching_loss = model.gram_anchor_loss(student_dense, teacher_dense)
-    shifted_dense = [student_dense[0] + 0.5]
-    shifted_loss = model.gram_anchor_loss(shifted_dense, teacher_dense)
-
-    assert matching_loss.ndim == 0
-    assert torch.isfinite(matching_loss)
-    assert matching_loss <= shifted_loss
-    assert model.gram_anchor_weight == pytest.approx(0.25)
 
 
 def test_dino_model_migrates_legacy_shared_adapter_checkpoint(fake_timm) -> None:

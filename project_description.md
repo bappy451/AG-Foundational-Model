@@ -3,9 +3,9 @@
 ## Project Objective
 
 Build a sensor-adaptive agricultural vision foundation model that starts from
-official ImageNet-pretrained Vision Transformers and continues self-supervised
-pretraining over heterogeneous RGB, GeoTIFF, and multispectral agricultural
-imagery.
+official ImageNet, DINOv2, DINOv3, or MAE-pretrained Vision Transformers and
+continues self-supervised pretraining over heterogeneous RGB, GeoTIFF, and
+multispectral agricultural imagery.
 
 The project is intended for a top-tier computer-vision or agricultural
 informatics publication. Engineering completion is necessary but not sufficient:
@@ -15,7 +15,7 @@ crop, source, geography, and sensor shift.
 ## Research Questions
 
 1. How much does agricultural continual pretraining improve over ImageNet alone?
-2. Do MIM and DINOv3-style objectives learn complementary agricultural features?
+2. Do MIM and DINO-style objectives learn complementary agricultural features?
 3. Can a lightweight 1x1 spectral adapter preserve official RGB ViTs while
    transferring effectively to multispectral sensors?
 4. Which data sources and modalities produce the largest cross-domain gains?
@@ -25,10 +25,10 @@ crop, source, geography, and sensor shift.
 ## Implemented System
 
 - official `timm` ViT-S, ViT-B, and ViT-L
-- ImageNet initialization enabled by default
+- selectable ImageNet, DINOv2, DINOv3, and MAE initialization
 - always-present learnable 1x1 band adapter
 - MAE-style masked image modeling
-- DINOv3-style student-teacher continual pretraining
+- DINO-style student-teacher continual pretraining
 - EMA teacher adapter, backbone, and projection head with paired global crops
 - RGB, multiband GeoTIFF, NPY, ZIP, and nested-ZIP input
 - group-disjoint train/validation splitting
@@ -77,7 +77,7 @@ run manifest and immutable commit.
 Phase 1:
 
 - deduplicate and freeze corpus v1
-- establish ImageNet-only baselines
+- establish official checkpoint baselines
 - tune ViT-S MIM and DINO recipes
 - validate RGB and multispectral adapter behavior
 
@@ -108,10 +108,11 @@ Phase 3:
 
 ## Honest Current Status
 
-The software foundation is operational and tested for MIM and DINOv3 with official
-pretrained ViT-S models, including five-band input. The current demo and smoke
-runs prove implementation correctness only. Dataset curation, real multispectral
-coverage, distributed scale, downstream benchmarking, and full DINOv3 paper-scale
-parity remain research work required for a top-tier submission.
+The software foundation is operational and tested for MIM and DINO with official
+pretrained ViT-S/B/L models, including five-band input and official
+ImageNet/DINOv2/DINOv3/MAE source selection. The current demo and smoke runs
+prove implementation correctness only. Dataset curation, real multispectral
+coverage, distributed scale, downstream benchmarking, and full DINO-style
+paper-scale parity remain research work required for a top-tier submission.
 
 See [docs/README.md](docs/README.md) for the complete technical documentation.

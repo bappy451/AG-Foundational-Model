@@ -28,11 +28,11 @@ class _FakePatchEmbed(nn.Module):
 
 
 class _FakeTimmBackbone(nn.Module):
-    def __init__(self, embed_dim: int, num_patches: int) -> None:
+    def __init__(self, embed_dim: int, num_patches: int, patch_size: int) -> None:
         super().__init__()
         self.num_features = embed_dim
         self.num_prefix_tokens = 1
-        self.patch_embed = _FakePatchEmbed(embed_dim)
+        self.patch_embed = _FakePatchEmbed(embed_dim, patch_size=patch_size)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         self.pos_embed = nn.Parameter(torch.zeros(1, 1 + num_patches, embed_dim))
         self.pos_drop = nn.Identity()
@@ -61,8 +61,9 @@ def fake_timm(monkeypatch):
                 embed_dim = 768
             else:
                 embed_dim = 384
-            num_patches = (img_size[0] // 16) * (img_size[1] // 16)
-            return _FakeTimmBackbone(embed_dim=embed_dim, num_patches=num_patches)
+            patch_size = 14 if "patch14" in model_name else 16
+            num_patches = (img_size[0] // patch_size) * (img_size[1] // patch_size)
+            return _FakeTimmBackbone(embed_dim=embed_dim, num_patches=num_patches, patch_size=patch_size)
 
         fake_module = types.SimpleNamespace(create_model=create_model)
         monkeypatch.setattr("ag_foundation.models.official_vit._load_timm", lambda: fake_module)

@@ -23,8 +23,9 @@ runtime:
   visualization_samples: 4
 
 model:
-  model_name: S
+  model_name: B
   pretrained_backbone: true
+  pretrained_source: mae
   pretrained_cfg: null
   mask_ratio: 0.75
   gradient_checkpointing: false

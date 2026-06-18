@@ -13,8 +13,8 @@ def _build_root_parser() -> argparse.ArgumentParser:
         prog="ag-foundation",
         description=(
             "Agricultural foundation-model utilities for dataset auditing, cataloging, GeoTIFF slicing, "
-            "masked image modeling pretraining, DINOv3-style continual pretraining, command logging, "
-            "and run-manifest capture."
+            "masked image modeling pretraining, official ImageNet/DINOv2/DINOv3/MAE backbone selection, "
+            "command logging, and run-manifest capture."
         ),
     )
     parser.add_argument(

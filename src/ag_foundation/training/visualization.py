@@ -147,7 +147,7 @@ def save_dino_preview(
             if row_index == 0:
                 axes[row_index, column_index].set_title(titles[column_index])
 
-    fig.suptitle(f"DINOv3 multi-crop inputs after epoch {epoch}")
+    fig.suptitle(f"DINO multi-crop inputs after epoch {epoch}")
     fig.tight_layout()
     views_path = figures_dir / f"dino_views_epoch_{epoch:04d}.png"
     latest_views_path = figures_dir / "dino_views_latest.png"
@@ -166,7 +166,7 @@ def save_dino_preview(
     image = axis.imshow(similarity_array, vmin=-1.0, vmax=1.0, cmap="RdYlBu_r", aspect="auto")
     axis.set_xticks(range(len(teacher_labels)), teacher_labels)
     axis.set_yticks(range(len(student_labels)), student_labels)
-    axis.set_title(f"DINOv3 feature cosine similarity after epoch {epoch}")
+    axis.set_title(f"DINO feature cosine similarity after epoch {epoch}")
     for row_index in range(similarity_array.shape[0]):
         for column_index in range(similarity_array.shape[1]):
             axis.text(

@@ -4,7 +4,14 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from .official_vit import BandAdapter, RemoteSensingViT, _pair, _trunc_normal_, _validate_precision
+from .official_vit import (
+    DEFAULT_PRETRAINED_SOURCE,
+    BandAdapter,
+    RemoteSensingViT,
+    _pair,
+    _trunc_normal_,
+    _validate_precision,
+)
 
 
 class RemoteSensingMIMModel(nn.Module):
@@ -16,6 +23,7 @@ class RemoteSensingMIMModel(nn.Module):
         model_name: str = "S",
         precision: str = "fp32",
         pretrained_backbone: bool = True,
+        pretrained_source: str = DEFAULT_PRETRAINED_SOURCE,
         pretrained_cfg: str | dict[str, object] | None = None,
         mask_ratio: float = 0.75,
         gradient_checkpointing: bool = False,
@@ -36,6 +44,7 @@ class RemoteSensingMIMModel(nn.Module):
             model_name=model_name,
             precision=precision,
             pretrained_backbone=pretrained_backbone,
+            pretrained_source=pretrained_source,
             pretrained_cfg=pretrained_cfg,
             gradient_checkpointing=gradient_checkpointing,
             drop_rate=drop_rate,

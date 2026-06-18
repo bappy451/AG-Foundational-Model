@@ -92,11 +92,16 @@ pretrained model construction, training, metrics, figures, and checkpointing.
 ## Pretrained Weight Download
 
 `pretrained_backbone: true` is the project default. On the first run, `timm` may
-download ImageNet weights through Hugging Face Hub. Requirements:
+download ImageNet, DINOv2, DINOv3, or MAE weights through Hugging Face Hub,
+depending on `pretrained_source`. Requirements:
 
 - internet access for the first uncached run
 - enough cache storage for the selected ViT
 - optional `HF_TOKEN` for higher Hub request limits
+
+Use `pretrained_source: imagenet`, `dinov2`, `dinov3`, or `mae` in the model
+section of the config. Keep the crop size divisible by the selected source's
+patch size.
 
 An offline machine must receive the model cache in advance. Disabling pretrained
 weights is supported for tests with `--no-pretrained-backbone`, but it is not the

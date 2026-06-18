@@ -1,17 +1,17 @@
 # AG Foundational Model
 
 Research-grade self-supervised pretraining for agricultural imagery using official
-Vision Transformer backbones, ImageNet initialization, RGB/GeoTIFF/multispectral
-inputs, and reproducible MIM and DINO training pipelines.
+Vision Transformer backbones, selectable ImageNet/DINOv2/DINOv3/MAE initialization,
+RGB/GeoTIFF/multispectral inputs, and reproducible MIM and DINO training pipelines.
 
 ## Highlights
 
 - Official `timm` ViT-S, ViT-B, and ViT-L backbones
-- ImageNet-pretrained initialization by default for both MIM and DINO
+- Selectable ImageNet, DINOv2, DINOv3, and MAE official checkpoints
 - Learnable 1x1 input adapter on every model
 - RGB, multiband GeoTIFF, NPY, folder, ZIP, and nested-ZIP loading
 - MAE-style masked image modeling
-- DINOv3-style student-teacher continual pretraining with Gram anchoring
+- DINO-style student-teacher continual pretraining from official checkpoints
 - Live batch and epoch metrics in the terminal
 - Per-epoch loss curves and model-output visualizations
 - Best/latest checkpoints with optimizer, config, and RNG state
@@ -28,7 +28,7 @@ flowchart LR
   B --> C["3-channel ImageNet input"]
   C --> D["Official timm ViT-S / ViT-B / ViT-L"]
   D --> E["MIM reconstruction head"]
-  D --> F["DINOv3 student and EMA teacher heads"]
+  D --> F["DINO student and EMA teacher heads"]
 ```
 
 The adapter is identity-initialized for RGB. For multispectral input, its first
@@ -57,8 +57,9 @@ python -m ag_foundation train-dino --config configs/demo_dino.yaml
 python -m pytest -q
 ```
 
-The first pretrained run may download official ImageNet weights through `timm`
-and Hugging Face Hub. Later runs use the local model cache.
+The first pretrained run may download official ImageNet, DINOv2, DINOv3, or
+MAE weights through `timm` and Hugging Face Hub. Later runs use the local model
+cache.
 
 ### Windows PowerShell
 
@@ -100,13 +101,19 @@ python -m ag_foundation train-mim --config configs/my_mim.yaml
 python -m ag_foundation train-dino --config configs/my_dino.yaml
 ```
 
-Use `model_name: S`, `B`, or `L` in YAML. ImageNet loading is enabled with:
+Use `model_name: S`, `B`, or `L` in YAML. Select the official checkpoint family
+with `pretrained_source`:
 
 ```yaml
 model:
   model_name: B
   pretrained_backbone: true
+  pretrained_source: mae
 ```
+
+`pretrained_source` accepts `imagenet`, `dinov2`, `dinov3`, or `mae`. DINOv2
+uses patch size 14, while ImageNet, DINOv3, and MAE use patch size 16. Pick a
+crop size divisible by the selected patch size.
 
 ## Input Data
 

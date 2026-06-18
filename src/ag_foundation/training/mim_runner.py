@@ -12,7 +12,11 @@ import yaml
 
 from ag_foundation.data.dataset import get_dataloaders
 from ag_foundation.models.mim import RemoteSensingMIMModel
-from ag_foundation.models.vit import VIT_CONFIGS
+from ag_foundation.models.vit import (
+    SUPPORTED_PRETRAINED_SOURCES,
+    VIT_CONFIGS,
+    resolve_backbone_spec,
+)
 
 from .experiment_metadata import build_run_manifest, resolve_config_paths, write_run_manifest
 from .ssl_trainer import SSLTrainer, select_torch_device
@@ -29,6 +33,7 @@ TRAIN_MIM_DEFAULTS: dict[str, Any] = {
     "prefetch_factor": 2,
     "model_name": "S",
     "pretrained_backbone": True,
+    "pretrained_source": "imagenet",
     "pretrained_cfg": None,
     "mask_ratio": 0.75,
     "gradient_checkpointing": False,
@@ -79,6 +84,7 @@ TRAIN_MIM_SECTION_MAP: dict[str, dict[str, str]] = {
     "model": {
         "model_name": "model_name",
         "pretrained_backbone": "pretrained_backbone",
+        "pretrained_source": "pretrained_source",
         "pretrained_cfg": "pretrained_cfg",
         "mask_ratio": "mask_ratio",
         "gradient_checkpointing": "gradient_checkpointing",
@@ -152,6 +158,15 @@ def build_train_mim_parser(config_defaults: dict[str, Any] | None = None) -> arg
         action=argparse.BooleanOptionalAction,
         default=defaults["pretrained_backbone"],
     )
+    parser.add_argument(
+        "--pretrained-source",
+        choices=SUPPORTED_PRETRAINED_SOURCES,
+        default=defaults["pretrained_source"],
+        help=(
+            "Official ViT checkpoint family to use for initialization and patch-size matching. "
+            "Choose imagenet, dinov2, dinov3, or mae."
+        ),
+    )
     parser.add_argument("--pretrained-cfg", default=defaults["pretrained_cfg"])
     parser.add_argument("--mask-ratio", type=float, default=defaults["mask_ratio"])
     parser.add_argument(
@@ -201,6 +216,7 @@ def parse_train_mim_args(argv: list[str] | None = None) -> argparse.Namespace:
     if missing:
         parser.error(f"{' and '.join(missing)} {'is' if len(missing) == 1 else 'are'} required.")
     _validate_common_training_args(args, parser)
+    _validate_model_dimensions(args, parser)
     if not 0.0 <= args.mask_ratio <= 1.0:
         parser.error("--mask-ratio must be between 0 and 1.")
     return args
@@ -251,8 +267,6 @@ def _validate_common_training_args(
             parser.error(f"{flag} must be a positive integer.")
     if args.num_workers < 0:
         parser.error("--num-workers cannot be negative.")
-    if args.crop_size % 16 != 0:
-        parser.error("--crop-size must be divisible by the ViT patch size (16).")
     if args.learning_rate <= 0.0:
         parser.error("--learning-rate must be positive.")
     if args.weight_decay < 0.0:
@@ -270,10 +284,33 @@ def _validate_common_training_args(
             parser.error(f"{flag} must be in [0, 1).")
 
 
-def _resolve_model_dimensions(args: argparse.Namespace) -> dict[str, int]:
-    if args.model_name not in VIT_CONFIGS:
-        raise ValueError(f"Unknown model_name '{args.model_name}'. Supported: {', '.join(sorted(VIT_CONFIGS))}.")
-    return dict(VIT_CONFIGS[args.model_name])
+def _resolve_model_dimensions(args: argparse.Namespace) -> dict[str, Any]:
+    spec = resolve_backbone_spec(args.model_name, pretrained_source=args.pretrained_source)
+    return {
+        "model_name": spec.model_name,
+        "embed_dim": spec.embed_dim,
+        "patch_size": spec.patch_size,
+    }
+
+
+def _validate_model_dimensions(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
+    try:
+        spec = resolve_backbone_spec(args.model_name, pretrained_source=args.pretrained_source)
+    except ValueError as exc:
+        parser.error(str(exc))
+    if args.crop_size % spec.patch_size != 0:
+        parser.error(
+            f"--crop-size must be divisible by the ViT patch size ({spec.patch_size}) for "
+            f"{spec.model_name}."
+        )
+    has_pretrained_cfg = args.pretrained_cfg is not None and args.pretrained_cfg != ""
+    if not args.pretrained_backbone and has_pretrained_cfg:
+        parser.error("--pretrained-cfg requires --pretrained-backbone.")
+    if args.pretrained_source != "imagenet" and has_pretrained_cfg:
+        parser.error(
+            "--pretrained-cfg is only supported with --pretrained-source imagenet. "
+            "Official DINOv2, DINOv3, and MAE checkpoints are selected by name."
+        )
 
 
 def set_global_seed(seed: int) -> None:
@@ -343,6 +380,7 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
         model_name=args.model_name,
         precision=args.precision,
         pretrained_backbone=args.pretrained_backbone and resume_checkpoint is None,
+        pretrained_source=args.pretrained_source,
         pretrained_cfg=args.pretrained_cfg,
         mask_ratio=args.mask_ratio,
         gradient_checkpointing=args.gradient_checkpointing,
@@ -388,6 +426,7 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
     )
     manifest["model"]["initialization"] = {
         "pretrained_requested": bool(args.pretrained_backbone),
+        "pretrained_source": args.pretrained_source,
         "timm_pretrained_loaded": bool(args.pretrained_backbone and resume_checkpoint is None),
         "resume_checkpoint": None if resume_checkpoint is None else str(resume_checkpoint),
     }

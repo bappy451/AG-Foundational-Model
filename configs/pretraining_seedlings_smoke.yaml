@@ -15,7 +15,7 @@ runtime:
   precision: fp32
   device: auto
   warmup_epochs: 0
-  resume: true
+  resume: false
   resume_from: null
   log_every: 10
   save_visualizations: true
@@ -23,8 +23,9 @@ runtime:
   visualization_samples: 4
 
 model:
-  model_name: S
-  pretrained_backbone: true
+  model_name: B
+  pretrained_backbone: false
+  pretrained_source: imagenet
   pretrained_cfg: null
   mask_ratio: 0.75
   gradient_checkpointing: false

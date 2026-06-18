@@ -10,7 +10,7 @@ decreases.
 
 1. A provenance-aware, deduplicated agricultural pretraining corpus
 2. A simple sensor adapter that preserves official RGB ImageNet ViTs
-3. Controlled MIM versus DINOv3-style continual-pretraining comparison
+3. Controlled MIM versus DINO-style continual-pretraining comparison across official checkpoint families
 4. RGB-to-multispectral transfer and mixed-sensor training
 5. Broad downstream evaluation under source and geography shift
 6. Open configs, manifests, checkpoints, and reproducible protocols
@@ -72,21 +72,19 @@ Report:
 - crop resolution
 - MIM then DINO sequential pretraining versus either alone
 
-## DINOv3 Alignment
+## DINOv2 Alignment
 
-The current implementation is intentionally DINOv3-style rather than a strict
+The current implementation is intentionally DINO-style rather than a strict
 paper reproduction. It already includes the pieces that matter for this
 project:
 
 - official ViT-S/B/L backbones
-- ImageNet initialization
+- selectable ImageNet, DINOv2, DINOv3, and MAE initialization
 - 1x1 spectral adapter
 - student-teacher self-distillation
-- Gram anchoring on dense features
-- constant teacher-momentum scheduling
 - continual pretraining on agricultural RGB and multispectral data
 
-To make it a stronger DINOv3 reproduction and publication baseline, add:
+To make it a stronger DINO/DINOv3 reproduction and publication baseline, add:
 
 - distributed multi-GPU training
 - higher-resolution pretraining runs
@@ -95,8 +93,8 @@ To make it a stronger DINOv3 reproduction and publication baseline, add:
 - source-balanced sampling across mixed agricultural corpora
 - stability studies at larger output dimensions
 
-Until then, use the precise phrase "DINOv3-style continual pretraining" rather
-than claiming a full Meta-scale reproduction.
+Until then, use the precise phrase "DINO-style continual pretraining from
+official checkpoints" rather than claiming a full Meta-scale reproduction.
 
 ## Data Governance
 
@@ -120,13 +118,13 @@ fragmented across datasets.
 
 Method:
 
-Use a minimal learnable spectral adapter in front of official ImageNet ViTs and
-continually pretrain with complementary reconstruction and self-distillation
+Use a minimal learnable spectral adapter in front of official ViT checkpoints
+and continually pretrain with complementary reconstruction and self-distillation
 objectives.
 
 Evidence:
 
-Show gains over ImageNet initialization across tasks, label budgets, sensors,
+Show gains over official checkpoint initialization across tasks, label budgets, sensors,
 crops, and held-out domains, with rigorous data curation and ablation.
 
 ## Milestones

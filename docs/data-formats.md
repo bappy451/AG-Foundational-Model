@@ -46,7 +46,7 @@ before this generic loader when scientifically required.
 - Validation uses deterministic center crops.
 - DINO disables dataset color augmentation because its multi-crop augmenter
   owns the view transformations.
-- `crop_size` must be divisible by the ViT patch size, currently 16.
+- `crop_size` must be divisible by the selected ViT patch size.
 
 ## Group-Disjoint Split
 

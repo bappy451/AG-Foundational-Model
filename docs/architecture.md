@@ -14,24 +14,25 @@ flowchart TD
   E --> F["ImageNet normalization"]
   F --> G["Official timm Vision Transformer"]
   G --> H["MIM reconstruction objective"]
-  G --> I["DINOv3 student-teacher objective"]
+  G --> I["DINO student-teacher objective"]
   H --> J["Metrics, figures, and checkpoints"]
   I --> J
 ```
 
 ## Official Backbones
 
-| Config | `timm` model | Patch | Embedding |
-| --- | --- | ---: | ---: |
-| `S` | `vit_small_patch16_224` | 16 x 16 | 384 |
-| `B` | `vit_base_patch16_224` | 16 x 16 | 768 |
-| `L` | `vit_large_patch16_224` | 16 x 16 | 1024 |
+| Source | `S` | `B` | `L` | Patch |
+| --- | --- | --- | --- | ---: |
+| ImageNet | `vit_small_patch16_224` | `vit_base_patch16_224` | `vit_large_patch16_224` | 16 |
+| DINOv2 | `vit_small_patch14_dinov2.lvd142m` | `vit_base_patch14_dinov2.lvd142m` | `vit_large_patch14_dinov2.lvd142m` | 14 |
+| DINOv3 | `vit_small_patch16_dinov3.lvd1689m` | `vit_base_patch16_dinov3.lvd1689m` | `vit_large_patch16_dinov3.lvd1689m` | 16 |
+| MAE | not available | `vit_base_patch16_224.mae` | `vit_large_patch16_224.mae` | 16 |
 
-The configured crop size must be divisible by 16. Positional embeddings are
-interpolated to the runtime patch grid, so the backbone can train at compatible
-resolutions other than 224.
+The configured crop size must be divisible by the selected patch size.
+Positional embeddings are interpolated to the runtime patch grid, so the
+backbone can train at compatible resolutions other than 224.
 
-## ImageNet Initialization
+## Official Initialization
 
 `timm.create_model` constructs the official backbone with:
 
@@ -40,9 +41,10 @@ resolutions other than 224.
 - token output retained with `global_pool=""`
 - configured dropout and stochastic-depth values
 
+The selected `pretrained_source` determines which official family is loaded.
 The pretrained model's mean and standard deviation are registered and applied
 after the band adapter. This preserves the expected input distribution for the
-official RGB weights.
+selected RGB backbone.
 
 ## 1x1 Band Adapter
 
@@ -90,19 +92,17 @@ The default mask ratio is `0.75`.
 6. Match centered, temperature-scaled teacher probabilities.
 7. Update teacher adapter, backbone, and head using exponential moving average.
 8. Update the teacher-output center.
-9. Regularize dense patch similarities with Gram anchoring on aligned global views.
 
 The complete teacher image encoder is initialized as an exact copy of the
 ImageNet-initialized student and remains frozen to gradient updates. Legacy
 checkpoints created with the earlier shared `adapter.*` layout migrate
 automatically when loaded.
 
-This is a DINOv3-style continual-pretraining implementation. It adds Gram
-anchoring on dense features and a constant-momentum training path while keeping
-the official ViT S/B/L backbones and 1x1 adapter design. A full paper
-reproduction would still require the large-scale training, post-hoc distillation
-suite, and scaling recipe described in the DINOv3 report, so those remain
-roadmap items rather than hidden claims.
+This is a DINO-style continual-pretraining implementation that keeps the
+official ViT S/B/L backbones and 1x1 adapter design. A full paper reproduction
+would still require the large-scale training and distillation stack described
+in the DINOv2/DINOv3 reports, so those remain roadmap items rather than hidden
+claims.
 
 ## Precision And Devices
 

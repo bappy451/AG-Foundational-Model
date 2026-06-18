@@ -10,31 +10,12 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.utils.parametrizations import weight_norm
 
-from .official_vit import BandAdapter, RemoteSensingViT, _validate_precision
+from .official_vit import DEFAULT_PRETRAINED_SOURCE, BandAdapter, RemoteSensingViT, _validate_precision
 
 
 def _freeze_module(module: nn.Module) -> None:
     for parameter in module.parameters():
         parameter.requires_grad_(False)
-
-
-def _select_dense_tokens(dense_tokens: torch.Tensor, max_tokens: int | None) -> torch.Tensor:
-    if max_tokens is None or max_tokens <= 0 or dense_tokens.shape[1] <= max_tokens:
-        return dense_tokens
-    indices = torch.linspace(
-        0,
-        dense_tokens.shape[1] - 1,
-        steps=max_tokens,
-        device=dense_tokens.device,
-    ).round().long()
-    indices = torch.unique_consecutive(indices)
-    return dense_tokens.index_select(1, indices)
-
-
-def _dense_gram_matrix(dense_tokens: torch.Tensor, max_tokens: int | None = None) -> torch.Tensor:
-    selected_tokens = _select_dense_tokens(dense_tokens, max_tokens)
-    normalized_tokens = F.normalize(selected_tokens.float(), dim=-1)
-    return normalized_tokens @ normalized_tokens.transpose(1, 2)
 
 
 class DINOHead(nn.Module):
@@ -86,13 +67,12 @@ class RemoteSensingDINOModel(nn.Module):
         model_name: str,
         precision: str = "fp32",
         pretrained_backbone: bool = True,
+        pretrained_source: str = DEFAULT_PRETRAINED_SOURCE,
         pretrained_cfg: str | dict[str, Any] | None = None,
         dino_out_dim: int = 65536,
         dino_hidden_dim: int = 2048,
         dino_bottleneck_dim: int = 256,
         head_nlayers: int = 3,
-        gram_anchor_weight: float = 0.0,
-        gram_anchor_max_tokens: int | None = None,
         gradient_checkpointing: bool = False,
         drop_rate: float = 0.0,
         attn_drop_rate: float = 0.0,
@@ -104,13 +84,6 @@ class RemoteSensingDINOModel(nn.Module):
         self.teacher_temperature = float(teacher_temperature)
         if self.teacher_temperature <= 0.0:
             raise ValueError("teacher_temperature must be positive.")
-        self.gram_anchor_weight = float(gram_anchor_weight)
-        if self.gram_anchor_weight < 0.0:
-            raise ValueError("gram_anchor_weight must be non-negative.")
-        if gram_anchor_max_tokens is not None and gram_anchor_max_tokens <= 0:
-            raise ValueError("gram_anchor_max_tokens must be positive when provided.")
-        self.gram_anchor_max_tokens = None if gram_anchor_max_tokens is None else int(gram_anchor_max_tokens)
-        self.dino_version = "v3"
         self.student_adapter = BandAdapter(in_channels=in_channels, out_channels=3, precision=precision)
         self.teacher_adapter = copy.deepcopy(self.student_adapter)
         self.student_backbone = RemoteSensingViT(
@@ -118,6 +91,7 @@ class RemoteSensingDINOModel(nn.Module):
             model_name=model_name,
             precision=precision,
             pretrained_backbone=pretrained_backbone,
+            pretrained_source=pretrained_source,
             pretrained_cfg=pretrained_cfg,
             gradient_checkpointing=gradient_checkpointing,
             drop_rate=drop_rate,
@@ -173,13 +147,6 @@ class RemoteSensingDINOModel(nn.Module):
     def teacher_features(self, rgb_inputs: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
             return self.teacher_backbone.forward_cls_token(rgb_inputs)
-
-    def student_dense_views(self, views: Sequence[torch.Tensor]) -> list[torch.Tensor]:
-        return [self.student_backbone.forward_features(view) for view in views]
-
-    @torch.no_grad()
-    def teacher_dense_views(self, views: Sequence[torch.Tensor]) -> list[torch.Tensor]:
-        return [self.teacher_backbone.forward_features(view) for view in views]
 
     def student_logits(self, rgb_inputs: torch.Tensor) -> torch.Tensor:
         return self.student_head(self.student_features(rgb_inputs))
@@ -255,63 +222,6 @@ class RemoteSensingDINOModel(nn.Module):
             raise RuntimeError("DINO loss received no valid teacher/student view pairs.")
         return total_loss / float(num_terms)
 
-    def gram_anchor_loss(
-        self,
-        student_dense_views: Sequence[torch.Tensor],
-        teacher_dense_views: Sequence[torch.Tensor],
-        *,
-        max_tokens: int | None = None,
-    ) -> torch.Tensor:
-        if not student_dense_views:
-            raise ValueError("student_dense_views cannot be empty.")
-        if not teacher_dense_views:
-            raise ValueError("teacher_dense_views cannot be empty.")
-
-        max_tokens = self.gram_anchor_max_tokens if max_tokens is None else max_tokens
-        total_loss = torch.zeros((), device=student_dense_views[0].device, dtype=torch.float32)
-        num_terms = 0
-        for student_dense, teacher_dense in zip(student_dense_views, teacher_dense_views):
-            student_gram = _dense_gram_matrix(student_dense, max_tokens=max_tokens)
-            teacher_gram = _dense_gram_matrix(teacher_dense, max_tokens=max_tokens).detach()
-            total_loss = total_loss + F.mse_loss(student_gram.float(), teacher_gram.float())
-            num_terms += 1
-
-        if num_terms == 0:
-            raise RuntimeError("Gram anchoring received no valid teacher/student view pairs.")
-        return total_loss / float(num_terms)
-
-    def dino_v3_loss(
-        self,
-        student_outputs: Sequence[torch.Tensor],
-        teacher_outputs: Sequence[torch.Tensor],
-        *,
-        student_dense_views: Sequence[torch.Tensor] | None = None,
-        teacher_dense_views: Sequence[torch.Tensor] | None = None,
-        student_temperature: float,
-        gram_anchor_weight: float | None = None,
-        gram_anchor_max_tokens: int | None = None,
-    ) -> dict[str, torch.Tensor]:
-        cls_loss = self.dino_loss(
-            student_outputs,
-            teacher_outputs,
-            student_temperature=student_temperature,
-        )
-        gram_weight = self.gram_anchor_weight if gram_anchor_weight is None else float(gram_anchor_weight)
-        if gram_weight > 0.0 and student_dense_views and teacher_dense_views:
-            gram_loss = self.gram_anchor_loss(
-                student_dense_views,
-                teacher_dense_views,
-                max_tokens=gram_anchor_max_tokens,
-            )
-        else:
-            gram_loss = torch.zeros_like(cls_loss)
-        total_loss = cls_loss + gram_weight * gram_loss
-        return {
-            "loss": total_loss,
-            "cls_loss": cls_loss,
-            "gram_anchor_loss": gram_loss,
-        }
-
     def load_state_dict(
         self,
         state_dict: Mapping[str, Any],
@@ -331,6 +241,3 @@ class RemoteSensingDINOModel(nn.Module):
             migrated[f"teacher_adapter.{suffix}"] = value.clone() if hasattr(value, "clone") else value
 
         return super().load_state_dict(migrated, strict=strict, assign=assign)
-
-
-RemoteSensingDINOv3Model = RemoteSensingDINOModel

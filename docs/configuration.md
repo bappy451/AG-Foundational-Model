@@ -17,7 +17,7 @@ pretrained-weight download begins.
 | --- | --- |
 | `data_root` | Directory, image, GeoTIFF, or ZIP root |
 | `catalog_path` | Optional portable CSV catalog |
-| `crop_size` | Square crop and ViT input size; divisible by 16 |
+| `crop_size` | Square crop and ViT input size; divisible by the selected patch size |
 | `channels` | Exact number of input bands |
 | `batch_size` | Samples per optimizer step |
 | `num_workers` | DataLoader worker processes |
@@ -46,8 +46,9 @@ pretrained-weight download begins.
 | Key | Meaning |
 | --- | --- |
 | `model_name` | `S`, `B`, or `L` |
-| `pretrained_backbone` | Load official ImageNet weights |
-| `pretrained_cfg` | Optional `timm` pretrained variant |
+| `pretrained_backbone` | Load the selected official checkpoint family |
+| `pretrained_source` | `imagenet`, `dinov2`, `dinov3`, or `mae` |
+| `pretrained_cfg` | Optional `timm` pretrained variant for ImageNet-family runs |
 | `gradient_checkpointing` | Trade compute for activation memory |
 | `drop_rate` | Backbone dropout |
 | `attn_drop_rate` | Attention dropout |
@@ -114,6 +115,7 @@ runtime:
 model:
   model_name: B
   pretrained_backbone: true
+  pretrained_source: mae
   pretrained_cfg: null
   mask_ratio: 0.75
   gradient_checkpointing: true
@@ -139,3 +141,9 @@ python -m ag_foundation train-mim \
 
 Boolean flags support positive and negative forms, such as
 `--pretrained-backbone` and `--no-pretrained-backbone`.
+
+Patch-size reminders:
+
+- ImageNet and MAE backbones use patch size 16.
+- DINOv3 backbones use patch size 16.
+- DINOv2 backbones use patch size 14.

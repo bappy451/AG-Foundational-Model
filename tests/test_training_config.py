@@ -41,6 +41,7 @@ runtime:
 model:
   model_name: B
   pretrained_backbone: true
+  pretrained_source: mae
   pretrained_cfg: augreg_in1k
   mask_ratio: 0.8
   gradient_checkpointing: true
@@ -76,6 +77,7 @@ optimizer:
         "log_every": 7,
         "model_name": "B",
         "pretrained_backbone": True,
+        "pretrained_source": "mae",
         "pretrained_cfg": "augreg_in1k",
         "mask_ratio": 0.8,
         "gradient_checkpointing": True,
@@ -100,6 +102,7 @@ runtime:
 model:
   model_name: B
   pretrained_backbone: false
+  pretrained_source: dinov3
 """.strip(),
         encoding="utf-8",
     )
@@ -118,6 +121,8 @@ model:
             "--prefetch-factor",
             "5",
             "--pretrained-backbone",
+            "--pretrained-source",
+            "dinov2",
             "--drop-rate",
             "0.1",
             "--attn-drop-rate",
@@ -135,8 +140,28 @@ model:
     assert args.prefetch_factor == 5
     assert args.model_name == "B"
     assert args.pretrained_backbone is True
+    assert args.pretrained_source == "dinov2"
     assert args.drop_rate == 0.1
     assert args.attn_drop_rate == 0.2
+
+
+def test_parse_train_mim_args_accepts_official_mae_source() -> None:
+    args = parse_train_mim_args(
+        [
+            "--data-root",
+            "/tmp/data",
+            "--output-dir",
+            "/tmp/run",
+            "--crop-size",
+            "32",
+            "--model-name",
+            "B",
+            "--pretrained-source",
+            "mae",
+        ]
+    )
+
+    assert args.pretrained_source == "mae"
 
 
 def test_resolve_device_maps_auto_to_supported_backend(monkeypatch) -> None:
@@ -167,6 +192,31 @@ def test_resolve_model_dimensions_uses_preset_and_validates_variants() -> None:
         "model_name": "vit_base_patch16_224",
         "embed_dim": 768,
         "patch_size": 16,
+    }
+
+
+def test_resolve_model_dimensions_uses_official_dinov2_patch_size() -> None:
+    args = parse_train_mim_args(
+        [
+            "--data-root",
+            "/tmp/data.zip",
+            "--output-dir",
+            "/tmp/run",
+            "--model-name",
+            "S",
+            "--crop-size",
+            "28",
+            "--pretrained-source",
+            "dinov2",
+        ]
+    )
+
+    resolved = _resolve_model_dimensions(args)
+
+    assert resolved == {
+        "model_name": "vit_small_patch14_dinov2.lvd142m",
+        "embed_dim": 384,
+        "patch_size": 14,
     }
 
 
@@ -220,19 +270,28 @@ def test_parse_train_mim_args_rejects_invalid_values(extra_args: list[str]) -> N
         )
 
 
+def test_parse_train_mim_args_rejects_dinov2_crop_size_mismatch() -> None:
+    with pytest.raises(SystemExit):
+        parse_train_mim_args(
+            [
+                "--data-root",
+                "/tmp/data",
+                "--output-dir",
+                "/tmp/run",
+                "--crop-size",
+                "32",
+                "--pretrained-source",
+                "dinov2",
+            ]
+        )
+
+
 @pytest.mark.parametrize(
     "extra_args",
     [
         ["--num-global-crops", "1"],
         ["--student-temperature", "0"],
-        [
-            "--teacher-momentum-start",
-            "1",
-            "--teacher-momentum-end",
-            "0.9",
-            "--teacher-momentum-schedule",
-            "cosine",
-        ],
+        ["--teacher-momentum-start", "1", "--teacher-momentum-end", "0.9"],
         ["--local-crop-scale", "0.8", "0.2"],
     ],
 )
@@ -276,6 +335,7 @@ runtime:
 model:
   model_name: S
   pretrained_backbone: true
+  pretrained_source: dinov3
   pretrained_cfg: augreg_in1k
   dino_out_dim: 256
   dino_hidden_dim: 1024
@@ -288,11 +348,8 @@ model:
   student_temperature: 0.1
   teacher_temperature: 0.04
   teacher_momentum_start: 0.996
-  teacher_momentum_end: 0.996
-  teacher_momentum_schedule: constant
+  teacher_momentum_end: 1.0
   center_momentum: 0.9
-  gram_anchor_weight: 0.25
-  gram_anchor_max_tokens: 64
   gradient_checkpointing: false
   drop_rate: 0.0
   attn_drop_rate: 0.0
@@ -326,6 +383,7 @@ optimizer:
         "log_every": 9,
         "model_name": "S",
         "pretrained_backbone": True,
+        "pretrained_source": "dinov3",
         "pretrained_cfg": "augreg_in1k",
         "dino_out_dim": 256,
         "dino_hidden_dim": 1024,
@@ -338,11 +396,8 @@ optimizer:
         "student_temperature": 0.1,
         "teacher_temperature": 0.04,
         "teacher_momentum_start": 0.996,
-        "teacher_momentum_end": 0.996,
-        "teacher_momentum_schedule": "constant",
+        "teacher_momentum_end": 1.0,
         "center_momentum": 0.9,
-        "gram_anchor_weight": 0.25,
-        "gram_anchor_max_tokens": 64,
         "gradient_checkpointing": False,
         "drop_rate": 0.0,
         "attn_drop_rate": 0.0,
@@ -364,7 +419,6 @@ model:
   model_name: B
   num_local_crops: 1
   global_crop_scale: [0.8, 1.0]
-  gram_anchor_weight: 0.1
 """.strip(),
         encoding="utf-8",
     )
@@ -383,10 +437,6 @@ model:
             "--pretrained-backbone",
             "--dino-out-dim",
             "128",
-            "--gram-anchor-weight",
-            "0.35",
-            "--teacher-momentum-schedule",
-            "constant",
         ]
     )
 
@@ -396,6 +446,22 @@ model:
     assert args.num_local_crops == 3
     assert args.global_crop_scale == [0.7, 1.0]
     assert args.pretrained_backbone is True
+    assert args.pretrained_source == "imagenet"
     assert args.dino_out_dim == 128
-    assert args.gram_anchor_weight == 0.35
-    assert args.teacher_momentum_schedule == "constant"
+
+
+def test_parse_train_dino_args_accepts_official_dinov3_source() -> None:
+    args = parse_train_dino_args(
+        [
+            "--data-root",
+            "/tmp/data",
+            "--output-dir",
+            "/tmp/run",
+            "--crop-size",
+            "32",
+            "--pretrained-source",
+            "dinov3",
+        ]
+    )
+
+    assert args.pretrained_source == "dinov3"
