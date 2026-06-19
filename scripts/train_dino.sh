@@ -138,6 +138,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 PYTHON_BIN="$(resolve_python "${PYTHON_BIN}" "${CODE_DIR}")"
+require_python_modules "${PYTHON_BIN}" torch timm
 COMMAND=(
   "${PYTHON_BIN}"
   "${CODE_DIR}/scripts/ag_foundation.py"

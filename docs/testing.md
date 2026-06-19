@@ -44,24 +44,26 @@ tests replace `timm` with a deterministic test double.
 
 ## Verified End-To-End Runs
 
-On June 15, 2026, the following completed successfully on Apple MPS:
+On June 19, 2026, the following checks completed successfully in this workspace:
 
 | Method | Backbone | Input | Result |
 | --- | --- | --- | --- |
-| MIM | official pretrained ViT-S | five-band float32 NPY | checkpoint, metrics, curve, reconstruction |
-| DINO | official pretrained ViT-S | RGB PNG | checkpoint, metrics, curve, views, similarity |
-| DINO | official pretrained ViT-S | five-band float32 NPY | EMA spectral adapters, checkpoint, metrics, views, similarity |
+| MIM | official ImageNet ViT-S | five-band float32 NPY | checkpoint, metrics, curve, reconstruction |
+| DINO | official ImageNet ViT-S | RGB PNG | checkpoint, metrics, curve, views, similarity |
+| DINO | official DINOv2 ViT-S | RGB PNG, patch-14 crop | checkpoint, metrics, curve, views, similarity |
+| DINO | initialized from matched MIM ViT-S checkpoint | five-band float32 NPY | `initialize_from` manifest, checkpoint, metrics, views, similarity |
 
 The verification also confirmed:
 
-- editable package installation
-- pretrained weight retrieval
+- dependency checks in shell wrappers
+- official pretrained weight retrieval
 - direct CLI command logging
 - manifest dependency and model metadata
 - safe checkpoint reload with current PyTorch defaults
 - complete config and RNG state in both checkpoint types
 - two-epoch resume with nonzero final-epoch learning rate
-- `64 passed` in a rasterio-capable environment after the implementation audit
+- concise compatibility errors for mismatched `initialize_from` checkpoints
+- `82 passed` in a rasterio-capable environment after the audit
 
 ## Acceptance Checklist For A New Machine
 

@@ -18,6 +18,7 @@ from ag_foundation.models.vit import (
     resolve_backbone_spec,
 )
 
+from .artifacts import load_training_checkpoint
 from .experiment_metadata import build_run_manifest, resolve_config_paths, write_run_manifest
 from .ssl_trainer import SSLTrainer, select_torch_device
 
@@ -31,6 +32,7 @@ TRAIN_MIM_DEFAULTS: dict[str, Any] = {
     "crop_size": 224,
     "channels": 3,
     "prefetch_factor": 2,
+    "gradient_accumulation_steps": 1,
     "model_name": "S",
     "pretrained_backbone": True,
     "pretrained_source": "imagenet",
@@ -48,6 +50,7 @@ TRAIN_MIM_DEFAULTS: dict[str, Any] = {
     "device": None,
     "resume": False,
     "resume_from": None,
+    "initialize_from": None,
     "log_every": 10,
     "save_visualizations": True,
     "visualization_every": 1,
@@ -76,10 +79,12 @@ TRAIN_MIM_SECTION_MAP: dict[str, dict[str, str]] = {
         "warmup_epochs": "warmup_epochs",
         "resume": "resume",
         "resume_from": "resume_from",
+        "initialize_from": "initialize_from",
         "log_every": "log_every",
         "save_visualizations": "save_visualizations",
         "visualization_every": "visualization_every",
         "visualization_samples": "visualization_samples",
+        "gradient_accumulation_steps": "gradient_accumulation_steps",
     },
     "model": {
         "model_name": "model_name",
@@ -152,6 +157,7 @@ def build_train_mim_parser(config_defaults: dict[str, Any] | None = None) -> arg
     parser.add_argument("--crop-size", type=int, default=defaults["crop_size"])
     parser.add_argument("--channels", type=int, default=defaults["channels"])
     parser.add_argument("--prefetch-factor", type=int, default=defaults["prefetch_factor"])
+    parser.add_argument("--gradient-accumulation-steps", type=int, default=defaults["gradient_accumulation_steps"])
     parser.add_argument("--model-name", choices=tuple(VIT_CONFIGS), default=defaults["model_name"])
     parser.add_argument(
         "--pretrained-backbone",
@@ -185,6 +191,11 @@ def build_train_mim_parser(config_defaults: dict[str, Any] | None = None) -> arg
     parser.add_argument("--device", default=defaults["device"])
     parser.add_argument("--resume", action=argparse.BooleanOptionalAction, default=defaults["resume"])
     parser.add_argument("--resume-from", default=defaults["resume_from"])
+    parser.add_argument(
+        "--initialize-from",
+        default=defaults["initialize_from"],
+        help="Initialize weights from a previous SSL checkpoint without restoring optimizer state.",
+    )
     parser.add_argument("--log-every", type=int, default=defaults["log_every"])
     parser.add_argument(
         "--save-visualizations",
@@ -258,6 +269,7 @@ def _validate_common_training_args(
         "--crop-size": args.crop_size,
         "--channels": args.channels,
         "--prefetch-factor": args.prefetch_factor,
+        "--gradient-accumulation-steps": args.gradient_accumulation_steps,
         "--log-every": args.log_every,
         "--visualization-every": args.visualization_every,
         "--visualization-samples": args.visualization_samples,
@@ -267,6 +279,8 @@ def _validate_common_training_args(
             parser.error(f"{flag} must be a positive integer.")
     if args.num_workers < 0:
         parser.error("--num-workers cannot be negative.")
+    if int(args.gradient_accumulation_steps) <= 0:
+        parser.error("--gradient-accumulation-steps must be a positive integer.")
     if args.learning_rate <= 0.0:
         parser.error("--learning-rate must be positive.")
     if args.weight_decay < 0.0:
@@ -275,6 +289,8 @@ def _validate_common_training_args(
         parser.error("--warmup-epochs must be between 0 and --epochs.")
     if not 0.0 < args.val_fraction < 1.0:
         parser.error("--val-fraction must be between 0 and 1.")
+    if args.initialize_from not in {None, ""} and (args.resume or args.resume_from not in {None, ""}):
+        parser.error("--initialize-from cannot be combined with --resume or --resume-from.")
     for flag, value in {
         "--drop-rate": args.drop_rate,
         "--attn-drop-rate": args.attn_drop_rate,
@@ -350,6 +366,17 @@ def _resolve_resume_checkpoint(args: argparse.Namespace) -> Path | None:
     return candidate if candidate.exists() else None
 
 
+def _resolve_initialize_checkpoint(args: argparse.Namespace) -> Path | None:
+    if args.initialize_from in {None, ""}:
+        return None
+    candidate = Path(args.initialize_from).expanduser()
+    if candidate.is_dir():
+        nested = candidate / "last.pt"
+        if nested.exists():
+            return nested.resolve()
+    return candidate.resolve()
+
+
 def _build_progress_callback(tag: str):
     def _callback(completed_work: int, total_work: int, *, detail: str = "") -> None:
         if total_work <= 0:
@@ -362,6 +389,7 @@ def _build_progress_callback(tag: str):
 def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = None):
     set_global_seed(args.seed)
     resume_checkpoint = _resolve_resume_checkpoint(args)
+    initialize_checkpoint = _resolve_initialize_checkpoint(args)
     train_loader, val_loader = get_dataloaders(
         args.data_root,
         batch_size=args.batch_size,
@@ -379,7 +407,7 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
         image_size=args.crop_size,
         model_name=args.model_name,
         precision=args.precision,
-        pretrained_backbone=args.pretrained_backbone and resume_checkpoint is None,
+        pretrained_backbone=args.pretrained_backbone and resume_checkpoint is None and initialize_checkpoint is None,
         pretrained_source=args.pretrained_source,
         pretrained_cfg=args.pretrained_cfg,
         mask_ratio=args.mask_ratio,
@@ -388,6 +416,9 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
         attn_drop_rate=args.attn_drop_rate,
         drop_path_rate=args.drop_path_rate,
     )
+    if initialize_checkpoint is not None:
+        checkpoint = load_training_checkpoint(initialize_checkpoint)
+        model.initialize_from_state_dict(checkpoint.get("model_state_dict", checkpoint))
     optimizer = torch.optim.AdamW(
         [parameter for parameter in model.parameters() if parameter.requires_grad],
         lr=args.learning_rate,
@@ -397,9 +428,11 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
     run_config["resolved_resume_checkpoint"] = (
         None if resume_checkpoint is None else str(resume_checkpoint)
     )
+    run_config["initialize_from"] = None if initialize_checkpoint is None else str(initialize_checkpoint)
     run_config["backbone_initialized_from_timm"] = bool(
-        args.pretrained_backbone and resume_checkpoint is None
+        args.pretrained_backbone and resume_checkpoint is None and initialize_checkpoint is None
     )
+    run_config["effective_batch_size"] = int(args.batch_size) * int(args.gradient_accumulation_steps)
     trainer = SSLTrainer(
         model,
         train_loader,
@@ -408,6 +441,7 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
         device=_resolve_device(args.device),
         precision=args.precision,
         epoch_lr_schedule=build_epoch_lr_schedule(warmup_epochs=args.warmup_epochs),
+        gradient_accumulation_steps=args.gradient_accumulation_steps,
         log_every=args.log_every,
         progress_callback=_build_progress_callback("train-mim"),
         save_visualizations=args.save_visualizations,
@@ -427,8 +461,11 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
     manifest["model"]["initialization"] = {
         "pretrained_requested": bool(args.pretrained_backbone),
         "pretrained_source": args.pretrained_source,
-        "timm_pretrained_loaded": bool(args.pretrained_backbone and resume_checkpoint is None),
+        "timm_pretrained_loaded": bool(
+            args.pretrained_backbone and resume_checkpoint is None and initialize_checkpoint is None
+        ),
         "resume_checkpoint": None if resume_checkpoint is None else str(resume_checkpoint),
+        "initialize_from": None if initialize_checkpoint is None else str(initialize_checkpoint),
     }
     manifest_path = write_run_manifest(args.output_dir, manifest)
     print(f"[metadata] Saved run manifest to {manifest_path}")

@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.utils.parametrizations import weight_norm
 
+from ._state_loading import load_compatible_state_dict
 from .official_vit import DEFAULT_PRETRAINED_SOURCE, BandAdapter, RemoteSensingViT, _validate_precision
 
 
@@ -189,6 +190,35 @@ class RemoteSensingDINOModel(nn.Module):
             batch_center.to(device=self.center.device),
             alpha=1.0 - float(center_momentum),
         )
+
+    @torch.no_grad()
+    def _sync_teacher_from_student(self) -> None:
+        self.teacher_adapter.load_state_dict(self.student_adapter.state_dict())
+        self.teacher_backbone.load_state_dict(self.student_backbone.state_dict())
+        self.teacher_head.load_state_dict(self.student_head.state_dict())
+
+    def initialize_from_state_dict(self, state_dict: Mapping[str, Any]) -> None:
+        migrated = OrderedDict()
+        metadata = getattr(state_dict, "_metadata", None)
+        if metadata is not None:
+            migrated._metadata = metadata  # type: ignore[attr-defined]
+
+        prefix_map = (
+            ("adapter.", "student_adapter."),
+            ("backbone.", "student_backbone."),
+            ("student_adapter.", "student_adapter."),
+            ("student_backbone.", "student_backbone."),
+            ("student_head.", "student_head."),
+        )
+        for source_prefix, target_prefix in prefix_map:
+            for key, value in state_dict.items():
+                if key.startswith(source_prefix):
+                    migrated[f"{target_prefix}{key.removeprefix(source_prefix)}"] = value
+        if "center" in state_dict:
+            migrated["center"] = state_dict["center"]
+
+        load_compatible_state_dict(self, migrated, context="DINO")
+        self._sync_teacher_from_student()
 
     def dino_loss(
         self,

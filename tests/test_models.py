@@ -266,3 +266,128 @@ def test_dino_model_migrates_legacy_shared_adapter_checkpoint(fake_timm) -> None
         restored.teacher_adapter.parameters(),
     ):
         assert torch.equal(student_parameter, teacher_parameter)
+
+
+def test_dino_model_can_initialize_from_mim_checkpoint(fake_timm) -> None:
+    fake_timm()
+    source = RemoteSensingMIMModel(
+        in_channels=4,
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        mask_ratio=0.75,
+        pretrained_backbone=False,
+    )
+    with torch.no_grad():
+        source.adapter.proj.weight.fill_(0.25)
+        source.backbone.backbone.patch_embed.proj.weight.fill_(0.5)
+
+    restored = RemoteSensingDINOModel(
+        in_channels=4,
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        pretrained_backbone=False,
+        dino_out_dim=16,
+        dino_hidden_dim=32,
+        dino_bottleneck_dim=8,
+        head_nlayers=2,
+    )
+    restored.initialize_from_state_dict(source.state_dict())
+
+    assert torch.equal(restored.student_adapter.proj.weight, source.adapter.proj.weight)
+    assert torch.equal(
+        restored.student_backbone.backbone.patch_embed.proj.weight,
+        source.backbone.backbone.patch_embed.proj.weight,
+    )
+    for student_parameter, teacher_parameter in zip(
+        restored.student_adapter.parameters(),
+        restored.teacher_adapter.parameters(),
+    ):
+        assert torch.equal(student_parameter, teacher_parameter)
+
+
+def test_dino_initialize_from_mim_checkpoint_rejects_incompatible_shapes(fake_timm) -> None:
+    fake_timm()
+    source = RemoteSensingMIMModel(
+        in_channels=5,
+        image_size=32,
+        model_name="B",
+        precision="fp32",
+        mask_ratio=0.75,
+        pretrained_backbone=False,
+    )
+    restored = RemoteSensingDINOModel(
+        in_channels=3,
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        pretrained_backbone=False,
+        dino_out_dim=16,
+        dino_hidden_dim=32,
+        dino_bottleneck_dim=8,
+        head_nlayers=2,
+    )
+
+    with pytest.raises(ValueError, match="same ViT family.*input channel count"):
+        restored.initialize_from_state_dict(source.state_dict())
+
+
+def test_mim_model_can_initialize_from_dino_checkpoint(fake_timm) -> None:
+    fake_timm()
+    source = RemoteSensingDINOModel(
+        in_channels=4,
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        pretrained_backbone=False,
+        dino_out_dim=16,
+        dino_hidden_dim=32,
+        dino_bottleneck_dim=8,
+        head_nlayers=2,
+    )
+    with torch.no_grad():
+        source.student_adapter.proj.weight.fill_(0.75)
+        source.student_backbone.backbone.patch_embed.proj.weight.fill_(0.125)
+
+    restored = RemoteSensingMIMModel(
+        in_channels=4,
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        mask_ratio=0.75,
+        pretrained_backbone=False,
+    )
+    restored.initialize_from_state_dict(source.state_dict())
+
+    assert torch.equal(restored.adapter.proj.weight, source.student_adapter.proj.weight)
+    assert torch.equal(
+        restored.backbone.backbone.patch_embed.proj.weight,
+        source.student_backbone.backbone.patch_embed.proj.weight,
+    )
+
+
+def test_mim_initialize_from_dino_checkpoint_rejects_incompatible_shapes(fake_timm) -> None:
+    fake_timm()
+    source = RemoteSensingDINOModel(
+        in_channels=4,
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        pretrained_backbone=False,
+        dino_out_dim=16,
+        dino_hidden_dim=32,
+        dino_bottleneck_dim=8,
+        head_nlayers=2,
+    )
+    restored = RemoteSensingMIMModel(
+        in_channels=5,
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        mask_ratio=0.75,
+        pretrained_backbone=False,
+    )
+
+    with pytest.raises(ValueError, match="input channel count"):
+        restored.initialize_from_state_dict(source.state_dict())

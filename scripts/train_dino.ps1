@@ -88,6 +88,7 @@ if ($showUsage) {
 }
 
 $pythonExe = Resolve-PreferredPython -CodeDir $codeDir -RequestedPython $pythonExe
+Assert-PythonModules -PythonExe $pythonExe -Modules @("torch", "timm")
 $pythonScript = Join-Path $scriptDir "ag_foundation.py"
 $commandArgs = @($pythonScript, "train-dino") + @($forwardArgs)
 $env:AG_FOUNDATION_WRAPPER_LOGGING = "1"

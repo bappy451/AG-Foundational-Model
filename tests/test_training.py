@@ -87,6 +87,43 @@ def test_ssl_trainer_fit_writes_checkpoints_metrics_and_sets_epoch(fake_timm, tm
     assert "run_config" in checkpoint
 
 
+def test_ssl_trainer_accumulates_gradients_before_stepping(fake_timm, tmp_path: Path) -> None:
+    fake_timm()
+    batch = _make_batch()
+    train_loader = _SimpleLoader([batch, batch, batch])
+    val_loader = _SimpleLoader([batch])
+    model = RemoteSensingMIMModel(
+        in_channels=4,
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        mask_ratio=0.75,
+        pretrained_backbone=False,
+    )
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+    trainer = SSLTrainer(
+        model,
+        train_loader,
+        optimizer,
+        val_loader=val_loader,
+        device="cpu",
+        precision="fp32",
+        gradient_accumulation_steps=2,
+        log_every=100,
+    )
+
+    summary = trainer.fit(epochs=1, output_dir=tmp_path / "mim-accum")
+
+    metrics = json.loads((tmp_path / "mim-accum" / "metrics.json").read_text(encoding="utf-8"))
+    checkpoint = torch.load(tmp_path / "mim-accum" / "last.pt", map_location="cpu")
+    assert metrics["history"][0]["optimizer_steps"] == 2
+    assert metrics["system_info"]["gradient_accumulation_steps"] == 2
+    assert metrics["system_info"]["optimizer_steps_completed"] == 2
+    assert checkpoint["optimizer_step_count"] == 2
+    assert summary.gradient_accumulation_steps == 2
+    assert summary.optimizer_steps == 2
+
+
 def test_ssl_trainer_resume_continues_history(fake_timm, tmp_path: Path) -> None:
     fake_timm()
     batch = _make_batch()
@@ -259,6 +296,50 @@ def test_dino_trainer_fit_and_resume(fake_timm, tmp_path: Path) -> None:
     assert metrics["system_info"]["starting_epoch"] == 1
     assert metrics["system_info"]["resumed_from"].endswith("last.pt")
     assert resumed_summary.epochs == 2
+
+
+def test_dino_trainer_accumulates_gradients_before_teacher_updates(fake_timm, tmp_path: Path) -> None:
+    fake_timm()
+    batch = _make_batch()
+    train_loader = _SimpleLoader([batch, batch, batch])
+    val_loader = _SimpleLoader([batch])
+    model = RemoteSensingDINOModel(
+        in_channels=4,
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        pretrained_backbone=False,
+        dino_out_dim=16,
+        dino_hidden_dim=32,
+        dino_bottleneck_dim=8,
+        head_nlayers=2,
+    )
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+    output_dir = tmp_path / "dino-accum"
+
+    trainer = DINOTrainer(
+        model,
+        train_loader,
+        optimizer,
+        val_loader=val_loader,
+        device="cpu",
+        precision="fp32",
+        gradient_accumulation_steps=2,
+        log_every=100,
+        num_global_crops=2,
+        num_local_crops=1,
+        student_temperature=0.1,
+    )
+    summary = trainer.fit(epochs=1, output_dir=output_dir)
+
+    metrics = json.loads((output_dir / "metrics.json").read_text(encoding="utf-8"))
+    checkpoint = torch.load(output_dir / "last.pt", map_location="cpu")
+    assert metrics["history"][0]["optimizer_steps"] == 2
+    assert metrics["system_info"]["gradient_accumulation_steps"] == 2
+    assert metrics["system_info"]["optimizer_steps_completed"] == 2
+    assert checkpoint["optimizer_step_count"] == 2
+    assert summary.gradient_accumulation_steps == 2
+    assert summary.optimizer_steps == 2
 
 
 def test_dino_student_and_teacher_receive_identically_augmented_global_views(fake_timm) -> None:

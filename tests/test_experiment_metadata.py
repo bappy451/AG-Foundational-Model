@@ -42,6 +42,7 @@ def test_run_manifest_writes_reproducibility_artifacts(fake_timm, tmp_path: Path
             "data_root": str(tmp_path / "data.zip"),
             "output_dir": str(tmp_path / "run"),
             "channels": 4,
+            "gradient_accumulation_steps": 2,
         },
         model=model,
         train_loader=train_loader,
@@ -68,3 +69,6 @@ def test_run_manifest_writes_reproducibility_artifacts(fake_timm, tmp_path: Path
     assert payload["data"]["val"]["group_count"] == 1
     assert payload["model"]["total_parameters"] > 0
     assert payload["resolved_args"]["channels"] == 4
+    assert payload["resolved_args"]["gradient_accumulation_steps"] == 2
+    assert "cuda" in payload["environment"]
+    assert "distributed" in payload["environment"]

@@ -36,3 +36,31 @@ function Resolve-PreferredPython {
 
     throw "No Python interpreter was found. Create .venv first or pass --python PATH."
 }
+
+function Assert-PythonModules {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PythonExe,
+        [Parameter(Mandatory = $true)]
+        [string[]]$Modules
+    )
+
+    $moduleList = $Modules -join ","
+    $script = @"
+import importlib.util
+import sys
+
+missing = [name for name in sys.argv[1].split(",") if importlib.util.find_spec(name) is None]
+if missing:
+    print(", ".join(missing))
+    raise SystemExit(1)
+"@
+    $output = & $PythonExe -c $script $moduleList 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $missing = ($output | Out-String).Trim()
+        if ([string]::IsNullOrWhiteSpace($missing)) {
+            $missing = $moduleList
+        }
+        throw "Selected Python is missing required module(s): $missing. Python: $PythonExe. Install dependencies with: $PythonExe -m pip install -e '.[dev,ml]'"
+    }
+}

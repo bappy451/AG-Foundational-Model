@@ -33,7 +33,8 @@ Recommended initial experiment:
 - crop divisible by the selected patch size
 - official checkpoint initialization
 - mask ratio 0.75
-- bf16 or fp16 on supported GPUs
+- bf16 on an RTX 4090; fp16 is a fallback
+- batch size 4 to 8 with `gradient_accumulation_steps: 2` or higher as needed
 - 50 to 200 epochs depending on corpus size
 - group-disjoint validation
 - gradient checkpointing when memory-constrained
@@ -49,9 +50,10 @@ bash scripts/train_mim.sh --config configs/my_mim.yaml
 Start from `configs/train_dino.example.yaml`.
 
 The DINO head can consume substantial memory when `dino_out_dim` is 65,536.
-Reduce batch size, enable gradient checkpointing, or begin with a smaller output
-dimension while validating the pipeline. Publication comparisons must report
-the exact head and crop settings.
+Reduce batch size, enable gradient checkpointing, use gradient accumulation, or
+begin with a smaller output dimension while validating the pipeline.
+Publication comparisons must report the exact head, crop, precision, and
+accumulation settings.
 
 ```bash
 bash scripts/train_dino.sh --config configs/my_dino.yaml
@@ -110,9 +112,25 @@ The epoch-level cosine schedule applies a nonzero learning rate to every
 training epoch. For example, a two-epoch run uses base LR and half base LR,
 rather than spending the second epoch at zero LR.
 
+## Continual Pretraining
+
+Use `runtime.initialize_from` or `--initialize-from` when you want to start a
+new MIM or DINO run from an earlier SSL checkpoint without restoring optimizer
+state, history, or epoch counters. This is the recommended path for MIM →
+DINO continual pretraining and for cross-stage ablations.
+
+`resume` is for exact continuation of the same run. `initialize_from` is for
+starting a new run from a previous representation.
+
+The source checkpoint and target run should use compatible model geometry:
+same ViT family, selected patch source/crop divisibility, and input channel
+count. Incompatible handoffs now fail early with a short compatibility message
+instead of a long PyTorch tensor-shape dump.
+
 ## Scaling Guidance
 
 - Establish correctness with ViT-S before allocating ViT-L resources.
+- Use gradient accumulation to raise effective batch size on 24 GB GPUs.
 - Increase crop size before claiming high-resolution behavior.
 - Measure archive I/O utilization before adding GPUs.
 - Use source-balanced or dataset-balanced sampling for heterogeneous corpora.
@@ -124,7 +142,10 @@ rather than spending the second epoch at zero LR.
 
 - Launchers are single-process; distributed samplers activate only when an
   external process group exists.
-- There is no automatic gradient accumulation.
+- Automatic gradient accumulation is supported through
+  `runtime.gradient_accumulation_steps`.
+- Command logging is primary-process aware when launched under distributed
+  environment variables.
 - There is no built-in W&B/TensorBoard backend; local CSV, JSON, PNG, logs, and
   checkpoints are the source of truth.
 - The DINO implementation is DINO-style and still does not attempt the

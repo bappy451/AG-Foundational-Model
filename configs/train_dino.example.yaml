@@ -12,11 +12,13 @@ runtime:
   output_dir: ../runs/train_dino_example
   epochs: 10
   seed: 27
-  precision: fp32
+  precision: bf16
   device: auto
   warmup_epochs: 1
+  gradient_accumulation_steps: 2
   resume: true
   resume_from: null
+  initialize_from: null
   log_every: 10
   save_visualizations: true
   visualization_every: 1

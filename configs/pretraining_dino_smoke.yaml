@@ -15,8 +15,10 @@ runtime:
   precision: fp32
   device: auto
   warmup_epochs: 0
+  gradient_accumulation_steps: 1
   resume: false
   resume_from: null
+  initialize_from: null
   log_every: 10
   save_visualizations: true
   visualization_every: 1

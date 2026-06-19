@@ -61,6 +61,9 @@ The first pretrained run may download official ImageNet, DINOv2, DINOv3, or
 MAE weights through `timm` and Hugging Face Hub. Later runs use the local model
 cache.
 
+For the complete operational sequence, expected outputs, RTX 4090 settings, and
+post-training research checklist, see [Project runbook and audit report](docs/runbook.md).
+
 ### Windows PowerShell
 
 ```powershell
@@ -114,6 +117,15 @@ model:
 `pretrained_source` accepts `imagenet`, `dinov2`, `dinov3`, or `mae`. DINOv2
 uses patch size 14, while ImageNet, DINOv3, and MAE use patch size 16. Pick a
 crop size divisible by the selected patch size.
+
+For a single RTX 4090, start with `precision: bf16`, `batch_size: 4` to `8`,
+`gradient_accumulation_steps: 2` or higher as needed, and
+`gradient_checkpointing: true` for ViT-B or ViT-L runs. The shipped example
+configs already show that pattern.
+
+To continue from a previous SSL stage without resuming optimizer state, set
+`runtime.initialize_from` to the earlier `last.pt`. That is the clean way to do
+MIM → DINO continual pretraining.
 
 ## Input Data
 
@@ -258,6 +270,7 @@ tests/                   Unit and integration-style tests
 
 - [Documentation index](docs/README.md)
 - [Installation and portability](docs/setup.md)
+- [Project runbook and audit report](docs/runbook.md)
 - [Architecture and design choices](docs/architecture.md)
 - [Data formats and catalog contract](docs/data-formats.md)
 - [Configuration reference](docs/configuration.md)

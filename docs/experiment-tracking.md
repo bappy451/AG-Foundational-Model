@@ -40,15 +40,16 @@ does not duplicate the same output.
 - absolute output directory
 - all resolved arguments
 - train/validation sample and batch counts
+- gradient accumulation, effective batch size, and optimizer-step counts
 - data root, group counts, and group previews
 - model type and full string representation
 - total and trainable parameter counts
 - adapter input/output channels
 - official backbone name, embedding size, patch size, and image size
-- requested initialization, actual `timm` loading, and resume checkpoint
+- requested initialization, continual-pretraining source, actual `timm` loading, and resume checkpoint
 - operating system, Python executable, hostname, and working directory
 - Torch, torchvision, and `timm` versions
-- accelerator count
+- CUDA summary and distributed runtime summary
 - Git commit, branch, and dirty status when available
 
 `resolved_config.yaml` is a convenient flat copy of the same resolved arguments.
@@ -114,6 +115,7 @@ grad_scaler_state_dict
 history
 best_metric
 run_config
+optimizer_step_count
 rng_state
 train_loader_generator_state
 ```

@@ -34,8 +34,10 @@ pretrained-weight download begins.
 | `precision` | `fp32`, `fp16`, or `bf16` |
 | `device` | `auto`, `cpu`, `cuda`, or `mps` |
 | `warmup_epochs` | Epoch-level linear warmup before cosine decay |
+| `gradient_accumulation_steps` | Number of microbatches to accumulate before one optimizer step |
 | `resume` | Resume from `<output_dir>/last.pt` if present |
 | `resume_from` | Explicit checkpoint path |
+| `initialize_from` | Initialize model weights from a previous SSL checkpoint without restoring optimizer state |
 | `log_every` | Batch interval for console loss output |
 | `save_visualizations` | Enable model-output figures |
 | `visualization_every` | Figure interval in epochs |
@@ -105,8 +107,10 @@ runtime:
   precision: bf16
   device: auto
   warmup_epochs: 10
+  gradient_accumulation_steps: 2
   resume: true
   resume_from: null
+  initialize_from: null
   log_every: 25
   save_visualizations: true
   visualization_every: 1

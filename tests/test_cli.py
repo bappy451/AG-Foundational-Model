@@ -136,3 +136,31 @@ def test_direct_cli_default_log_follows_current_working_directory(
 def test_direct_cli_rejects_missing_log_file_value() -> None:
     with pytest.raises(SystemExit, match="requires a path"):
         parse_command_logging(["--log-file", "--no-log"])
+
+
+def test_train_wrapper_reports_missing_ml_dependencies(tmp_path: Path) -> None:
+    fake_python = tmp_path / "python"
+    fake_python.write_text("#!/usr/bin/env sh\nprintf 'torch, timm\\n'\nexit 1\n", encoding="utf-8")
+    fake_python.chmod(0o755)
+    project_root = Path(__file__).resolve().parents[1]
+
+    completed = subprocess.run(
+        [
+            "bash",
+            str(project_root / "scripts" / "train_mim.sh"),
+            "--python",
+            str(fake_python),
+            "--data-root",
+            str(tmp_path / "data"),
+            "--output-dir",
+            str(tmp_path / "run"),
+            "--no-log",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode != 0
+    assert "missing required module(s): torch, timm" in completed.stderr
+    assert "pip install -e '.[dev,ml]'" in completed.stderr

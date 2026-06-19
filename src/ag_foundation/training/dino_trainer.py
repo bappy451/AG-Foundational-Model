@@ -9,10 +9,15 @@ from typing import Any, Callable
 
 from ag_foundation.training.artifacts import load_training_checkpoint, save_training_checkpoint
 from ag_foundation.training.ssl_trainer import (
+    SSLTrainer as _BaseSSLTrainer,
+)
+from ag_foundation.training.ssl_trainer import (
     SSLTrainingSummary,
     _build_grad_scaler,
+    _is_accumulation_boundary,
     _move_optimizer_state_to_device,
     _move_ssl_batch_to_device,
+    _optimizer_steps_for_batches,
     _write_training_metrics,
     select_torch_device,
 )
@@ -213,6 +218,7 @@ class DINOTrainer:
         scheduler=None,
         epoch_lr_schedule: Callable[[int, int], float] | None = None,
         grad_clip_norm: float | None = None,
+        gradient_accumulation_steps: int = 1,
         log_every: int = 10,
         progress_callback: Any | None = None,
         num_global_crops: int = 2,
@@ -236,6 +242,7 @@ class DINOTrainer:
         self.scheduler = scheduler
         self.epoch_lr_schedule = epoch_lr_schedule
         self.grad_clip_norm = grad_clip_norm
+        self.gradient_accumulation_steps = max(1, int(gradient_accumulation_steps))
         self.log_every = max(1, int(log_every))
         self.requested_precision = precision
         self.progress_callback = progress_callback
@@ -251,6 +258,7 @@ class DINOTrainer:
             if parameter.requires_grad
         ]
         self.base_lrs = [float(group["lr"]) for group in self.optimizer.param_groups]
+        self.optimizer_step_count = 0
         self.grad_scaler = _build_grad_scaler(
             torch,
             enabled=self.device.type == "cuda" and precision == "fp16",
@@ -344,16 +352,12 @@ class DINOTrainer:
         teacher_adapted = self.model.adapt_teacher(images)
         return self.eval_augmenter(student_adapted), self.eval_augmenter.global_views(teacher_adapted)
 
-    def train_step(self, batch: dict[str, Any], *, teacher_momentum: float) -> dict[str, float]:
-        import torch
-
-        self.model.train()
+    def _forward_train_batch(self, batch: dict[str, Any]):
         self.model.teacher_adapter.eval()
         self.model.teacher_backbone.eval()
         self.model.teacher_head.eval()
         moved_batch = _move_ssl_batch_to_device(batch, self.device)
         images = moved_batch["image"]
-        self.optimizer.zero_grad(set_to_none=True)
         student_views, teacher_views = self._augment_batch(images)
 
         with self._autocast_context():
@@ -365,78 +369,101 @@ class DINOTrainer:
                 student_temperature=self.student_temperature,
             )
 
+        return loss, teacher_outputs
+
+    def train_step(self, batch: dict[str, Any], *, teacher_momentum: float) -> dict[str, float]:
+        import torch
+
+        self.model.train()
+        self.optimizer.zero_grad(set_to_none=True)
+        loss, teacher_outputs = self._forward_train_batch(batch)
         if not torch.isfinite(loss):
             raise FloatingPointError("Encountered a non-finite DINO loss.")
-
-        if self.grad_scaler.is_enabled():
-            self.grad_scaler.scale(loss).backward()
-            self.grad_scaler.unscale_(self.optimizer)
-            self._validate_gradients()
-            if self.grad_clip_norm is not None:
-                torch.nn.utils.clip_grad_norm_(
-                    self._trainable_parameters(),
-                    self.grad_clip_norm,
-                    error_if_nonfinite=True,
-                )
-            self.grad_scaler.step(self.optimizer)
-            self.grad_scaler.update()
-        else:
-            loss.backward()
-            self._validate_gradients()
-            if self.grad_clip_norm is not None:
-                torch.nn.utils.clip_grad_norm_(
-                    self._trainable_parameters(),
-                    self.grad_clip_norm,
-                    error_if_nonfinite=True,
-                )
-            self.optimizer.step()
-
+        _BaseSSLTrainer._backward_loss(self, loss)
+        _BaseSSLTrainer._finalize_optimizer_step(self)
+        self.optimizer_step_count += 1
         self.model.update_teacher(teacher_momentum)
         self.model.update_center(teacher_outputs, self.center_momentum)
-        if self.scheduler is not None:
-            self.scheduler.step()
         return {"loss": float(loss.detach().cpu())}
 
     def train_epoch(self, epoch_index: int, total_epochs: int = 1) -> dict[str, float]:
+        import torch
+
         sampler = getattr(self.train_loader, "sampler", None)
         if sampler is not None and hasattr(sampler, "set_epoch"):
             sampler.set_epoch(epoch_index)
 
+        self.model.train()
+        self.model.teacher_adapter.eval()
+        self.model.teacher_backbone.eval()
+        self.model.teacher_head.eval()
+        self.optimizer.zero_grad(set_to_none=True)
         total_loss = 0.0
         total_batches = 0
         num_batches = len(self.train_loader)
+        num_optimizer_steps = _optimizer_steps_for_batches(num_batches, self.gradient_accumulation_steps)
         last_loss = 0.0
         last_teacher_momentum = self.teacher_momentum_start
+        optimizer_steps = 0
 
-        for step_index, batch in enumerate(self.train_loader):
-            teacher_momentum = self._teacher_momentum(epoch_index, step_index, total_epochs, num_batches)
-            metrics = self.train_step(batch, teacher_momentum=teacher_momentum)
-            current_loss = metrics["loss"]
+        for step_index, batch in enumerate(self.train_loader, start=1):
+            loss, teacher_outputs = self._forward_train_batch(batch)
+            if not torch.isfinite(loss):
+                raise FloatingPointError("Encountered a non-finite DINO loss.")
+            current_loss = float(loss.detach().cpu())
             total_loss += current_loss
             total_batches += 1
             last_loss = current_loss
-            last_teacher_momentum = teacher_momentum
+            _BaseSSLTrainer._backward_loss(self, loss, loss_scale=self.gradient_accumulation_steps)
+            self.model.update_center(teacher_outputs, self.center_momentum)
+            should_step = _is_accumulation_boundary(step_index, num_batches, self.gradient_accumulation_steps)
+            if should_step:
+                teacher_momentum = self._teacher_momentum(
+                    epoch_index,
+                    optimizer_steps,
+                    total_epochs,
+                    num_optimizer_steps,
+                )
+                _BaseSSLTrainer._finalize_optimizer_step(self)
+                self.optimizer_step_count += 1
+                optimizer_steps += 1
+                last_teacher_momentum = teacher_momentum
+                self.model.update_teacher(teacher_momentum)
+                self.optimizer.zero_grad(set_to_none=True)
             if self.progress_callback is not None:
                 total_work = total_epochs * num_batches
-                completed_work = (epoch_index * num_batches) + step_index
+                completed_work = (epoch_index * num_batches) + step_index - 1
                 avg_loss = total_loss / total_batches
                 lr = self._current_learning_rate()
+                accum_position = ((step_index - 1) % self.gradient_accumulation_steps) + 1
                 detail = (
                     f"ep {epoch_index + 1}/{total_epochs} | "
-                    f"batch {step_index + 1}/{num_batches} | "
+                    f"batch {step_index}/{num_batches} | "
+                    f"accum {accum_position}/{self.gradient_accumulation_steps} | "
+                    f"update {optimizer_steps}/{num_optimizer_steps} | "
                     f"loss {last_loss:.4f} (avg {avg_loss:.4f}) | "
-                    f"lr {lr:.6f} | ema {teacher_momentum:.6f}"
+                    f"lr {lr:.6f}"
                 )
+                if should_step:
+                    detail += f" | ema {last_teacher_momentum:.6f}"
                 self.progress_callback(completed_work, total_work, detail=detail)
-            if (step_index + 1) % self.log_every == 0:
-                print(
-                    f"train-dino epoch={epoch_index + 1} step={step_index + 1}/{num_batches} "
+            if step_index % self.log_every == 0:
+                log_message = (
+                    f"train-dino epoch={epoch_index + 1} step={step_index}/{num_batches} "
+                    f"update={optimizer_steps}/{num_optimizer_steps} "
+                    f"accum={self.gradient_accumulation_steps} "
                     f"loss={current_loss:.6f}"
+                )
+                if should_step:
+                    log_message += f" ema={last_teacher_momentum:.6f}"
+                print(
+                    log_message
                 )
 
         return {
             "loss": float(total_loss / total_batches) if total_batches > 0 else float("nan"),
             "batches": total_batches,
+            "optimizer_steps": optimizer_steps,
             "teacher_momentum": float(last_teacher_momentum),
         }
 
@@ -501,6 +528,13 @@ class DINOTrainer:
             self.train_loader,
             checkpoint.get("train_loader_generator_state"),
         )
+        history = list(checkpoint.get("history", []))
+        self.optimizer_step_count = int(
+            checkpoint.get(
+                "optimizer_step_count",
+                sum(int(record.get("optimizer_steps", 0)) for record in history),
+            )
+        )
         return checkpoint
 
     def _save_visualization(self, output_dir: Path, epoch: int) -> list[Path]:
@@ -557,6 +591,9 @@ class DINOTrainer:
             "python_version": platform.python_version(),
             "device": str(self.device),
             "start_time": start_time,
+            "gradient_accumulation_steps": self.gradient_accumulation_steps,
+            "effective_batch_size": _BaseSSLTrainer._effective_batch_size(self),
+            "optimizer_steps_completed": self.optimizer_step_count,
         }
 
         history: list[dict[str, Any]] = []
@@ -604,6 +641,8 @@ class DINOTrainer:
                     "epoch_duration_seconds": epoch_duration,
                     "learning_rate": self._current_learning_rate(),
                     "teacher_momentum": train_metrics["teacher_momentum"],
+                    "optimizer_steps": train_metrics["optimizer_steps"],
+                    "gradient_accumulation_steps": self.gradient_accumulation_steps,
                 }
             )
             print(
@@ -617,6 +656,7 @@ class DINOTrainer:
             if improved:
                 best_metric = metric
             system_info["last_completed_epoch"] = epoch_index + 1
+            system_info["optimizer_steps_completed"] = self.optimizer_step_count
             _write_training_metrics(
                 output_dir,
                 history=history,
@@ -635,6 +675,7 @@ class DINOTrainer:
                 "history": history,
                 "best_metric": best_metric,
                 "run_config": self.run_config,
+                "optimizer_step_count": self.optimizer_step_count,
                 "rng_state": capture_rng_state(),
                 "train_loader_generator_state": capture_loader_generator_state(self.train_loader),
             }
@@ -654,6 +695,8 @@ class DINOTrainer:
             epochs=total_epochs,
             train_batches=len(self.train_loader),
             val_batches=0 if self.val_loader is None else len(self.val_loader),
+            gradient_accumulation_steps=self.gradient_accumulation_steps,
+            optimizer_steps=self.optimizer_step_count,
             final_train_loss=final_train_loss,
             final_val_loss=final_val_loss,
         )

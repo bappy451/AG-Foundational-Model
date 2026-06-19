@@ -26,3 +26,30 @@ resolve_python() {
     return 1
   fi
 }
+
+require_python_modules() {
+  local python_bin="$1"
+  shift
+
+  local missing=""
+  if ! missing="$("${python_bin}" - "$@" <<'PY'
+import importlib.util
+import sys
+
+missing = [name for name in sys.argv[1:] if importlib.util.find_spec(name) is None]
+if missing:
+    print(", ".join(missing))
+    raise SystemExit(1)
+PY
+  )"; then
+    if [[ -z "${missing}" ]]; then
+      missing="$*"
+    fi
+    echo "Error: selected Python is missing required module(s): ${missing}" >&2
+    echo "Python: ${python_bin}" >&2
+    echo "Install project dependencies with:" >&2
+    echo "  ${python_bin} -m pip install -e '.[dev,ml]'" >&2
+    echo "Or pass a prepared interpreter with --python PATH." >&2
+    return 1
+  fi
+}

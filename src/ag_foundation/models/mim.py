@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from collections import OrderedDict
+from collections.abc import Mapping
+
 import torch
 import torch.nn.functional as F
 from torch import nn
 
+from ._state_loading import load_compatible_state_dict
 from .official_vit import (
     DEFAULT_PRETRAINED_SOURCE,
     BandAdapter,
@@ -107,3 +111,21 @@ class RemoteSensingMIMModel(nn.Module):
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         return self.forward_with_intermediates(inputs)["loss"]
+
+    def initialize_from_state_dict(self, state_dict: Mapping[str, object]) -> None:
+        migrated = OrderedDict()
+        metadata = getattr(state_dict, "_metadata", None)
+        if metadata is not None:
+            migrated._metadata = metadata  # type: ignore[attr-defined]
+
+        for source_prefix, target_prefix in (
+            ("adapter.", "adapter."),
+            ("backbone.", "backbone."),
+            ("student_adapter.", "adapter."),
+            ("student_backbone.", "backbone."),
+        ):
+            for key, value in state_dict.items():
+                if key.startswith(source_prefix):
+                    migrated[f"{target_prefix}{key.removeprefix(source_prefix)}"] = value
+
+        load_compatible_state_dict(self, migrated, context="MIM")

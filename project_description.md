@@ -29,6 +29,8 @@ crop, source, geography, and sensor shift.
 - always-present learnable 1x1 band adapter
 - MAE-style masked image modeling
 - DINO-style student-teacher continual pretraining
+- explicit gradient accumulation for 24 GB single-GPU runs
+- initialization from prior SSL checkpoints for MIM → DINO continuation
 - EMA teacher adapter, backbone, and projection head with paired global crops
 - RGB, multiband GeoTIFF, NPY, ZIP, and nested-ZIP input
 - group-disjoint train/validation splitting
@@ -114,5 +116,7 @@ ImageNet/DINOv2/DINOv3/MAE source selection. The current demo and smoke runs
 prove implementation correctness only. Dataset curation, real multispectral
 coverage, distributed scale, downstream benchmarking, and full DINO-style
 paper-scale parity remain research work required for a top-tier submission.
+Single-4090 development is explicitly supported through bf16-friendly defaults,
+gradient accumulation, and gradient checkpointing.
 
 See [docs/README.md](docs/README.md) for the complete technical documentation.

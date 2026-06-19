@@ -15,6 +15,25 @@ from pathlib import Path
 DEFAULT_COMMAND_LOG = Path.cwd() / "command.log"
 
 
+def _is_primary_process() -> bool:
+    rank_env_vars = (
+        "RANK",
+        "LOCAL_RANK",
+        "SLURM_PROCID",
+        "OMPI_COMM_WORLD_RANK",
+        "PMI_RANK",
+    )
+    for env_name in rank_env_vars:
+        value = os.environ.get(env_name)
+        if value is None:
+            continue
+        try:
+            return int(value) == 0
+        except ValueError:
+            continue
+    return True
+
+
 @dataclass(frozen=True)
 class CommandLoggingConfig:
     enabled: bool
@@ -85,7 +104,7 @@ def command_log_context(
     config: CommandLoggingConfig,
     program_name: str = "ag-foundation",
 ) -> Iterator[Path | None]:
-    if not config.enabled:
+    if not config.enabled or not _is_primary_process():
         yield None
         return
 

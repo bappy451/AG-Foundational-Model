@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import platform
 import time
 from dataclasses import asdict, dataclass
@@ -23,6 +24,17 @@ from .state import (
 from .visualization import save_mim_preview, save_training_curves
 
 
+def _optimizer_steps_for_batches(num_batches: int, accumulation_steps: int) -> int:
+    if num_batches <= 0:
+        return 0
+    return math.ceil(num_batches / max(1, int(accumulation_steps)))
+
+
+def _is_accumulation_boundary(step_index: int, num_batches: int, accumulation_steps: int) -> bool:
+    accumulation_steps = max(1, int(accumulation_steps))
+    return step_index % accumulation_steps == 0 or step_index == num_batches
+
+
 def select_torch_device() -> str:
     import torch
 
@@ -39,6 +51,8 @@ class SSLTrainingSummary:
     epochs: int
     train_batches: int
     val_batches: int
+    gradient_accumulation_steps: int
+    optimizer_steps: int
     final_train_loss: float | None
     final_val_loss: float | None
 
@@ -81,6 +95,7 @@ class SSLTrainer:
         scheduler=None,
         epoch_lr_schedule: Callable[[int, int], float] | None = None,
         grad_clip_norm: float | None = None,
+        gradient_accumulation_steps: int = 1,
         log_every: int = 10,
         progress_callback: Any | None = None,
         save_visualizations: bool = True,
@@ -97,6 +112,7 @@ class SSLTrainer:
         self.scheduler = scheduler
         self.epoch_lr_schedule = epoch_lr_schedule
         self.grad_clip_norm = grad_clip_norm
+        self.gradient_accumulation_steps = max(1, int(gradient_accumulation_steps))
         self.log_every = max(1, int(log_every))
         self.requested_precision = precision
         self.progress_callback = progress_callback
@@ -112,6 +128,7 @@ class SSLTrainer:
             if parameter.requires_grad
         ]
         self.base_lrs = [float(group["lr"]) for group in self.optimizer.param_groups]
+        self.optimizer_step_count = 0
         self.grad_scaler = _build_grad_scaler(
             torch,
             enabled=self.device.type == "cuda" and precision == "fp16",
@@ -143,6 +160,39 @@ class SSLTrainer:
     def _current_learning_rate(self) -> float:
         return float(self.optimizer.param_groups[0]["lr"])
 
+    def _compute_loss(self, batch: dict[str, Any]):
+        moved_batch = _move_ssl_batch_to_device(batch, self.device)
+        images = moved_batch["image"]
+        with self._autocast_context():
+            return self.model(images)
+
+    def _backward_loss(self, loss, *, loss_scale: float = 1.0) -> None:
+        scaled_loss = loss / float(loss_scale)
+        if self.grad_scaler.is_enabled():
+            self.grad_scaler.scale(scaled_loss).backward()
+        else:
+            scaled_loss.backward()
+
+    def _finalize_optimizer_step(self) -> None:
+        import torch
+
+        if self.grad_scaler.is_enabled():
+            self.grad_scaler.unscale_(self.optimizer)
+        self._validate_gradients()
+        if self.grad_clip_norm is not None:
+            torch.nn.utils.clip_grad_norm_(
+                self._trainable_parameters(),
+                self.grad_clip_norm,
+                error_if_nonfinite=True,
+            )
+        if self.grad_scaler.is_enabled():
+            self.grad_scaler.step(self.optimizer)
+            self.grad_scaler.update()
+        else:
+            self.optimizer.step()
+        if self.scheduler is not None:
+            self.scheduler.step()
+
     def _apply_epoch_learning_rate(self, epoch_index: int, total_epochs: int) -> None:
         if self.epoch_lr_schedule is None:
             return
@@ -154,65 +204,57 @@ class SSLTrainer:
         import torch
 
         self.model.train()
-        moved_batch = _move_ssl_batch_to_device(batch, self.device)
-        images = moved_batch["image"]
         self.optimizer.zero_grad(set_to_none=True)
-        with self._autocast_context():
-            loss = self.model(images)
+        loss = self._compute_loss(batch)
         if not torch.isfinite(loss):
             raise FloatingPointError("Encountered a non-finite SSL loss.")
-
-        if self.grad_scaler.is_enabled():
-            self.grad_scaler.scale(loss).backward()
-            self.grad_scaler.unscale_(self.optimizer)
-            self._validate_gradients()
-            if self.grad_clip_norm is not None:
-                torch.nn.utils.clip_grad_norm_(
-                    self._trainable_parameters(),
-                    self.grad_clip_norm,
-                    error_if_nonfinite=True,
-                )
-            self.grad_scaler.step(self.optimizer)
-            self.grad_scaler.update()
-        else:
-            loss.backward()
-            self._validate_gradients()
-            if self.grad_clip_norm is not None:
-                torch.nn.utils.clip_grad_norm_(
-                    self._trainable_parameters(),
-                    self.grad_clip_norm,
-                    error_if_nonfinite=True,
-                )
-            self.optimizer.step()
-
-        if self.scheduler is not None:
-            self.scheduler.step()
+        self._backward_loss(loss)
+        self._finalize_optimizer_step()
+        self.optimizer_step_count += 1
         return {"loss": float(loss.detach().cpu())}
 
     def train_epoch(self, epoch_index: int, total_epochs: int = 1) -> dict[str, float]:
+        import torch
+
         sampler = getattr(self.train_loader, "sampler", None)
         if sampler is not None and hasattr(sampler, "set_epoch"):
             sampler.set_epoch(epoch_index)
 
+        self.model.train()
+        self.optimizer.zero_grad(set_to_none=True)
         total_loss = 0.0
         total_batches = 0
         num_batches = len(self.train_loader)
+        num_optimizer_steps = _optimizer_steps_for_batches(num_batches, self.gradient_accumulation_steps)
         last_loss = 0.0
+        optimizer_steps = 0
 
         for step_index, batch in enumerate(self.train_loader, start=1):
-            metrics = self.train_step(batch)
-            current_loss = metrics["loss"]
+            loss = self._compute_loss(batch)
+            if not torch.isfinite(loss):
+                raise FloatingPointError("Encountered a non-finite SSL loss.")
+            current_loss = float(loss.detach().cpu())
             total_loss += current_loss
             total_batches += 1
             last_loss = current_loss
+            self._backward_loss(loss, loss_scale=self.gradient_accumulation_steps)
+            should_step = _is_accumulation_boundary(step_index, num_batches, self.gradient_accumulation_steps)
+            if should_step:
+                self._finalize_optimizer_step()
+                self.optimizer_step_count += 1
+                optimizer_steps += 1
+                self.optimizer.zero_grad(set_to_none=True)
             if self.progress_callback is not None:
                 total_work = total_epochs * num_batches
                 completed_work = (epoch_index * num_batches) + step_index - 1
                 avg_loss = total_loss / total_batches
                 lr = self._current_learning_rate()
+                accum_position = ((step_index - 1) % self.gradient_accumulation_steps) + 1
                 detail = (
                     f"ep {epoch_index + 1}/{total_epochs} | "
                     f"batch {step_index}/{num_batches} | "
+                    f"accum {accum_position}/{self.gradient_accumulation_steps} | "
+                    f"update {optimizer_steps}/{num_optimizer_steps} | "
                     f"loss {last_loss:.4f} (avg {avg_loss:.4f}) | "
                     f"lr {lr:.6f}"
                 )
@@ -220,12 +262,15 @@ class SSLTrainer:
             if step_index % self.log_every == 0:
                 print(
                     f"train-mim epoch={epoch_index + 1} step={step_index}/{num_batches} "
+                    f"update={optimizer_steps}/{num_optimizer_steps} "
+                    f"accum={self.gradient_accumulation_steps} "
                     f"loss={current_loss:.6f}"
                 )
 
         return {
             "loss": float(total_loss / total_batches) if total_batches > 0 else float("nan"),
             "batches": total_batches,
+            "optimizer_steps": optimizer_steps,
         }
 
     def evaluate(self, epoch_index: int) -> dict[str, float]:
@@ -278,7 +323,20 @@ class SSLTrainer:
             self.train_loader,
             checkpoint.get("train_loader_generator_state"),
         )
+        history = list(checkpoint.get("history", []))
+        self.optimizer_step_count = int(
+            checkpoint.get(
+                "optimizer_step_count",
+                sum(int(record.get("optimizer_steps", 0)) for record in history),
+            )
+        )
         return checkpoint
+
+    def _effective_batch_size(self) -> int | None:
+        batch_size = getattr(self.train_loader, "batch_size", None)
+        if isinstance(batch_size, int) and batch_size > 0:
+            return int(batch_size) * self.gradient_accumulation_steps
+        return None
 
     def _save_visualization(self, output_dir: Path, epoch: int) -> list[Path]:
         import torch
@@ -322,6 +380,9 @@ class SSLTrainer:
             "python_version": platform.python_version(),
             "device": str(self.device),
             "start_time": start_time,
+            "gradient_accumulation_steps": self.gradient_accumulation_steps,
+            "effective_batch_size": self._effective_batch_size(),
+            "optimizer_steps_completed": self.optimizer_step_count,
         }
 
         history: list[dict[str, Any]] = []
@@ -368,6 +429,8 @@ class SSLTrainer:
                     "val_loss": final_val_loss,
                     "epoch_duration_seconds": epoch_duration,
                     "learning_rate": self._current_learning_rate(),
+                    "optimizer_steps": train_metrics["optimizer_steps"],
+                    "gradient_accumulation_steps": self.gradient_accumulation_steps,
                 }
             )
             print(
@@ -381,6 +444,7 @@ class SSLTrainer:
             if improved:
                 best_metric = metric
             system_info["last_completed_epoch"] = epoch_index + 1
+            system_info["optimizer_steps_completed"] = self.optimizer_step_count
             _write_training_metrics(
                 output_dir,
                 history=history,
@@ -399,6 +463,7 @@ class SSLTrainer:
                 "history": history,
                 "best_metric": best_metric,
                 "run_config": self.run_config,
+                "optimizer_step_count": self.optimizer_step_count,
                 "rng_state": capture_rng_state(),
                 "train_loader_generator_state": capture_loader_generator_state(self.train_loader),
             }
@@ -418,6 +483,8 @@ class SSLTrainer:
             epochs=total_epochs,
             train_batches=len(self.train_loader),
             val_batches=0 if self.val_loader is None else len(self.val_loader),
+            gradient_accumulation_steps=self.gradient_accumulation_steps,
+            optimizer_steps=self.optimizer_step_count,
             final_train_loss=final_train_loss,
             final_val_loss=final_val_loss,
         )

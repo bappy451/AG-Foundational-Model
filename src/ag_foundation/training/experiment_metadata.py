@@ -43,7 +43,7 @@ def resolve_config_paths(flat_config: Mapping[str, Any], *, config_path: str | P
         return resolved
 
     base_dir = Path(config_path).expanduser().resolve().parent
-    for key in ("data_root", "catalog_path", "output_dir", "resume_from"):
+    for key in ("data_root", "catalog_path", "output_dir", "resume_from", "initialize_from"):
         value = resolved.get(key)
         if value in {None, ""}:
             continue
@@ -76,6 +76,8 @@ def build_run_manifest(
         "hostname": socket.gethostname(),
         "cwd": str(Path.cwd()),
         "device_count": _torch_device_count(),
+        "cuda": _torch_cuda_summary(),
+        "distributed": _torch_distributed_summary(),
         "torch": _torch_version("torch"),
         "torchvision": _torch_version("torchvision"),
         "timm": _torch_version("timm"),
@@ -265,3 +267,43 @@ def _torch_device_count() -> int | None:
     if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         return 1
     return 0
+
+
+def _torch_cuda_summary() -> dict[str, Any]:
+    try:
+        import torch
+    except Exception:
+        return {"available": None}
+
+    available = bool(torch.cuda.is_available())
+    summary: dict[str, Any] = {
+        "available": available,
+        "device_count": int(torch.cuda.device_count()) if available else 0,
+    }
+    if available and summary["device_count"] > 0:
+        properties = torch.cuda.get_device_properties(0)
+        summary.update(
+            {
+                "primary_device_name": torch.cuda.get_device_name(0),
+                "primary_device_capability": list(torch.cuda.get_device_capability(0)),
+                "primary_device_total_memory_bytes": int(properties.total_memory),
+            }
+        )
+    return summary
+
+
+def _torch_distributed_summary() -> dict[str, Any]:
+    try:
+        import torch
+    except Exception:
+        return {"available": None}
+
+    distributed = getattr(torch, "distributed", None)
+    is_available = bool(getattr(distributed, "is_available", lambda: False)())
+    initialized = bool(is_available and distributed is not None and distributed.is_initialized())
+    return {
+        "available": is_available,
+        "initialized": initialized,
+        "rank": int(distributed.get_rank()) if initialized else 0,
+        "world_size": int(distributed.get_world_size()) if initialized else 1,
+    }

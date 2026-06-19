@@ -35,8 +35,10 @@ runtime:
   precision: fp16
   device: auto
   warmup_epochs: 2
+  gradient_accumulation_steps: 4
   resume: true
   resume_from: ../run/last.pt
+  initialize_from: ../init.pt
   log_every: 7
 model:
   model_name: B
@@ -72,8 +74,10 @@ optimizer:
         "precision": "fp16",
         "device": "auto",
         "warmup_epochs": 2,
+        "gradient_accumulation_steps": 4,
         "resume": True,
         "resume_from": str((tmp_path / "run" / "last.pt").resolve()),
+        "initialize_from": str((tmp_path / "init.pt").resolve()),
         "log_every": 7,
         "model_name": "B",
         "pretrained_backbone": True,
@@ -117,6 +121,8 @@ model:
             "5",
             "--epochs",
             "2",
+            "--gradient-accumulation-steps",
+            "3",
             "--resume",
             "--prefetch-factor",
             "5",
@@ -136,6 +142,7 @@ model:
     assert args.precision == "fp16"
     assert args.channels == 5
     assert args.epochs == 2
+    assert args.gradient_accumulation_steps == 3
     assert args.resume is True
     assert args.prefetch_factor == 5
     assert args.model_name == "B"
@@ -158,10 +165,13 @@ def test_parse_train_mim_args_accepts_official_mae_source() -> None:
             "B",
             "--pretrained-source",
             "mae",
+            "--initialize-from",
+            "/tmp/init.pt",
         ]
     )
 
     assert args.pretrained_source == "mae"
+    assert args.initialize_from == "/tmp/init.pt"
 
 
 def test_resolve_device_maps_auto_to_supported_backend(monkeypatch) -> None:
@@ -265,6 +275,8 @@ def test_parse_train_mim_args_rejects_invalid_values(extra_args: list[str]) -> N
                 "/tmp/data",
                 "--output-dir",
                 "/tmp/run",
+                "--gradient-accumulation-steps",
+                "0",
                 *extra_args,
             ]
         )
@@ -303,6 +315,8 @@ def test_parse_train_dino_args_rejects_invalid_values(extra_args: list[str]) -> 
                 "/tmp/data",
                 "--output-dir",
                 "/tmp/run",
+                "--gradient-accumulation-steps",
+                "0",
                 *extra_args,
             ]
         )
@@ -329,8 +343,10 @@ runtime:
   precision: bf16
   device: auto
   warmup_epochs: 1
+  gradient_accumulation_steps: 2
   resume: true
   resume_from: ../run-dino/last.pt
+  initialize_from: ../init-dino.pt
   log_every: 9
 model:
   model_name: S
@@ -378,8 +394,10 @@ optimizer:
         "precision": "bf16",
         "device": "auto",
         "warmup_epochs": 1,
+        "gradient_accumulation_steps": 2,
         "resume": True,
         "resume_from": str((tmp_path / "run-dino" / "last.pt").resolve()),
+        "initialize_from": str((tmp_path / "init-dino.pt").resolve()),
         "log_every": 9,
         "model_name": "S",
         "pretrained_backbone": True,
@@ -434,6 +452,8 @@ model:
             "--global-crop-scale",
             "0.7",
             "1.0",
+            "--gradient-accumulation-steps",
+            "4",
             "--pretrained-backbone",
             "--dino-out-dim",
             "128",
@@ -445,6 +465,7 @@ model:
     assert args.model_name == "B"
     assert args.num_local_crops == 3
     assert args.global_crop_scale == [0.7, 1.0]
+    assert args.gradient_accumulation_steps == 4
     assert args.pretrained_backbone is True
     assert args.pretrained_source == "imagenet"
     assert args.dino_out_dim == 128
@@ -461,7 +482,25 @@ def test_parse_train_dino_args_accepts_official_dinov3_source() -> None:
             "32",
             "--pretrained-source",
             "dinov3",
+            "--initialize-from",
+            "/tmp/init-dino.pt",
         ]
     )
 
     assert args.pretrained_source == "dinov3"
+    assert args.initialize_from == "/tmp/init-dino.pt"
+
+
+def test_parse_train_dino_args_rejects_initialize_from_with_resume() -> None:
+    with pytest.raises(SystemExit):
+        parse_train_dino_args(
+            [
+                "--data-root",
+                "/tmp/data",
+                "--output-dir",
+                "/tmp/run",
+                "--initialize-from",
+                "/tmp/init.pt",
+                "--resume",
+            ]
+        )
