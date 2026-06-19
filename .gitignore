@@ -12,6 +12,7 @@ dist/
 htmlcov/
 
 # Generated artifacts
+Pretraining/
 runs/
 command.log
 data/*
