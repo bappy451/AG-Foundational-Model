@@ -27,11 +27,14 @@ error rather than guessing.
 ## Numeric Normalization
 
 Non-negative integer images are converted to float32 and divided by the maximum
-value of the integer dtype. Negative signed-integer pixels are rejected because
-their physical normalization cannot be inferred safely. Examples:
+value of the integer dtype. Signed integer arrays may carry GIS/GeoTIFF NoData
+values (e.g. `INT32_MIN = -2147483647`). These extreme negative integers are
+automatically clamped to 0 before normalization so the pipeline remains stable
+without discarding valid data. Examples:
 
-- uint8: divide by 255
-- uint16: divide by 65535
+- `uint8`: divide by 255
+- `uint16`: divide by 65535
+- `int32` with NoData: clamp to 0 first, then divide by 2147483647
 
 Floating images must already be finite and within `[0, 1]`. NaN, infinity, or
 out-of-range values raise an error. Sensor-specific percentile clipping,
@@ -40,7 +43,10 @@ before this generic loader when scientifically required.
 
 ## Spatial Rules
 
-- Every image must be at least `crop_size` in height and width.
+- Images smaller than `crop_size` in any dimension are **zero-padded** on the
+  right/bottom to reach the required size.  This preserves small but valid
+  images (e.g. tiny GIS tiles, edge-padded species photos) instead of
+  discarding them.
 - Training uses random crops and flips.
 - MIM RGB training also applies color jitter to three-channel images.
 - Validation uses deterministic center crops.

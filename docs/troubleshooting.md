@@ -37,16 +37,34 @@ Do not silently switch publication experiments to random initialization.
 The configured `data.channels` must equal every sample's band count. For NPY,
 also ensure one axis unambiguously matches that count.
 
+## GeoTIFF NoData Values Causing Crashes
+
+GIS files frequently encode missing pixels as extreme negative integers
+(e.g., `-2147483647` for INT32 NoData).  The loader now **clamps these values
+to 0** automatically before normalization instead of raising a `ValueError`.
+
+If you see unexpected black regions in reconstruction visualizations, this is
+normal — those are NoData pixels rendered as 0 in float space.
+
+For floating-point rasters, the pipeline still rejects NaN or out-of-range
+values.  Apply calibration or clipping upstream for float32 rasters.
+
 ## Floating Raster Outside `[0, 1]`
 
 Calibrate or normalize the raster before training. The loader intentionally
 rejects arbitrary floating ranges because silent min-max scaling can destroy
 cross-scene radiometric meaning.
 
-## Crop Larger Than Image
+## Image Smaller Than `crop_size`
 
-Reduce `crop_size` or tile/resize the source data. The loader does not upscale
-small images automatically.
+Images smaller than `crop_size` are automatically **zero-padded** on the
+right and bottom to match `crop_size`.  Padding is applied before the random
+or center crop, so the padded region may appear as a black border in
+visualization outputs.
+
+If you want to avoid padding entirely:
+- Tile or resize the source data before training.
+- Reduce `crop_size` so it fits within all images.
 
 ## Crop Not Divisible By The Selected Patch Size
 

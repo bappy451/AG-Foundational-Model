@@ -289,6 +289,17 @@ sources:
     estimated_images: 50000
     type: phenotyping
 
+  - id: fair1m
+    name: FAIR1M
+    provider: ISPRS
+    status: downloaded
+    role: pretrain
+    url: https://www.isprs.org/data/fair1m
+    local_path: FAIR1M
+    estimated_images: 15000
+    type: aerial_agriculture
+    notes: "Fine-grained object recognition in high-resolution remote sensing imagery."
+
   # ─────────────────────────────────────────────────────────────────────
   # HELD-OUT EVALUATION — reserved for downstream evaluation only
   # ─────────────────────────────────────────────────────────────────────

@@ -13,15 +13,32 @@ experiments.
 
 ## Local Pretraining Smoke Runs
 
-The current workspace includes two large archives in the sibling
-`Pretraining/` directory. The smoke configs use a portable 64-image catalog:
+The current workspace includes a `Pretraining/` directory with ~40 source
+datasets.  The smoke config runs 2 epochs on the entire multi-source corpus:
 
 ```bash
-bash scripts/train_mim.sh --config configs/pretraining_seedlings_smoke.yaml
-bash scripts/train_dino.sh --config configs/pretraining_dino_smoke.yaml
+# Full-dataset 2-epoch smoke test (RTX 4090 optimized)
+python -m ag_foundation train-dino --config configs/smoke_test.yaml
 ```
 
-After cloning elsewhere, preserve the same sibling layout or edit `data_root`.
+Smoke test settings (`configs/smoke_test.yaml`):
+
+| Setting | Value | Notes |
+| --- | --- | --- |
+| `epochs` | 2 | fast validation cycle |
+| `batch_size` | 8 | safe for 24 GB VRAM |
+| `gradient_accumulation_steps` | 4 | effective batch = 32 |
+| `precision` | bf16 | RTX 4090 optimized |
+| `warmup_epochs` | 1 | 1 of 2 epochs is warmup |
+| `visualization_every` | 1 | visualize after each epoch |
+| `data_root` | `../Pretraining` | all ~40 source datasets |
+
+Alternative quick runs with smaller config:
+
+```bash
+bash scripts/train_mim.sh --config configs/demo_mim.yaml
+bash scripts/train_dino.sh --config configs/demo_dino.yaml
+```
 
 ## Production MIM
 

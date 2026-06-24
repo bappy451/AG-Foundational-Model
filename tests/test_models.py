@@ -391,3 +391,97 @@ def test_mim_initialize_from_dino_checkpoint_rejects_incompatible_shapes(fake_ti
 
     with pytest.raises(ValueError, match="input channel count"):
         restored.initialize_from_state_dict(source.state_dict())
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Tests: RoPE backbone compatibility (4D patch embed + no pos_embed)
+# ─────────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def fake_timm_rope(monkeypatch):
+    """Fake timm that simulates an EVA02/DINOv3 RoPE backbone.
+
+    Key differences from the standard fake:
+    - ``patch_embed`` returns a 4D tensor (B, C, H, W) instead of (B, N, C).
+    - ``pos_embed`` is None (RoPE models have no absolute pos embedding).
+    """
+    import types
+
+    class _RopePatchEmbed(torch.nn.Module):
+        def __init__(self, embed_dim: int, patch_size: int = 16) -> None:
+            super().__init__()
+            self.patch_size = (patch_size, patch_size)
+            self.proj = torch.nn.Conv2d(
+                3, embed_dim, kernel_size=patch_size, stride=patch_size, bias=False
+            )
+            torch.nn.init.xavier_uniform_(self.proj.weight)
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            # RoPE backbones return (B, C, H, W) instead of (B, N, C)
+            return self.proj(x)
+
+    class _RopeBackbone(torch.nn.Module):
+        def __init__(self, embed_dim: int, patch_size: int) -> None:
+            super().__init__()
+            self.num_features = embed_dim
+            self.num_prefix_tokens = 1
+            self.patch_embed = _RopePatchEmbed(embed_dim, patch_size=patch_size)
+            self.cls_token = torch.nn.Parameter(torch.zeros(1, 1, embed_dim))
+            self.pos_embed = None  # <─ critical: no absolute pos embed
+            self.pos_drop = torch.nn.Identity()
+            self.blocks = torch.nn.ModuleList([torch.nn.Identity()])
+            self.norm = torch.nn.Identity()
+            self.pretrained_cfg = {"mean": (0.5, 0.5, 0.5), "std": (0.5, 0.5, 0.5)}
+
+    def install():
+        def create_model(model_name: str, **kwargs):
+            img_size = kwargs.get("img_size", (32, 32))
+            if isinstance(img_size, int):
+                img_size = (img_size, img_size)
+            embed_dim = 384
+            patch_size = 16
+            return _RopeBackbone(embed_dim=embed_dim, patch_size=patch_size)
+
+        fake_module = types.SimpleNamespace(create_model=create_model)
+        monkeypatch.setattr("ag_foundation.models.official_vit._load_timm", lambda: fake_module)
+
+    return install
+
+
+def test_vit_handles_rope_4d_patch_embed_output(fake_timm_rope) -> None:
+    """RemoteSensingViT must handle 4D (B,C,H,W) patch_embed output from RoPE backbones."""
+    fake_timm_rope()
+    model = RemoteSensingViT(
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        pretrained_backbone=False,
+    )
+    inputs = torch.randn(2, 3, 32, 32)
+
+    outputs = model.forward_features(inputs)
+
+    # Should produce (B, num_patches, embed_dim) without crashing
+    assert outputs.ndim == 3
+    assert outputs.shape[0] == 2
+    assert outputs.shape[-1] == 384
+
+
+def test_vit_handles_missing_pos_embed_rope_backbones(fake_timm_rope) -> None:
+    """RemoteSensingViT must forward correctly when backbone.pos_embed is None."""
+    fake_timm_rope()
+    model = RemoteSensingViT(
+        image_size=32,
+        model_name="S",
+        precision="fp32",
+        pretrained_backbone=False,
+    )
+    inputs = torch.randn(1, 3, 32, 32)
+
+    # Must not raise RuntimeError("does not expose positional embeddings")
+    outputs = model.forward_cls_token(inputs)
+
+    assert outputs.ndim == 2
+    assert outputs.shape[0] == 1
+    assert outputs.shape[-1] == 384

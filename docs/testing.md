@@ -27,6 +27,9 @@ Coverage includes:
 - command logging
 - run-manifest generation
 - atomic checkpoints, resume, RNG state, metrics, figures, and attempt manifests
+- **undersized image zero-padding** (images smaller than `crop_size` are padded, not rejected)
+- **GeoTIFF NoData clamping** (signed integers with extreme negatives are clipped to 0)
+- **RoPE backbone compatibility** (4D `patch_embed` output flattening and `pos_embed=None` bypass)
 
 Tests that require optional rasterio support are skipped if it is unavailable.
 
@@ -43,6 +46,19 @@ The workflow runs Ruff and does not download pretrained weights because model
 tests replace `timm` with a deterministic test double.
 
 ## Verified End-To-End Runs
+
+On June 24, 2026, the following additional robustness fixes were validated:
+
+| Fix | Test | Result |
+| --- | --- | --- |
+| Undersized image zero-padding | `test_dataset_pads_undersized_image_to_crop_size` | pass |
+| Single-dimension padding | `test_dataset_pads_undersized_image_only_in_one_dimension` | pass |
+| ZIP archive undersized padding | `test_dataset_zip_undersized_image_is_padded` | pass |
+| NoData INT32 clamping | `test_normalize_image_array_clamps_negative_integers_to_zero` | pass |
+| NoData INT16 clamping | `test_normalize_image_array_clamps_negative_int16_nodata` | pass |
+| Positive integer unchanged | `test_normalize_positive_integers_unchanged` | pass |
+| RoPE 4D patch embed flatten | `test_vit_handles_rope_4d_patch_embed_output` | pass |
+| RoPE missing pos_embed bypass | `test_vit_handles_missing_pos_embed_rope_backbones` | pass |
 
 On June 19, 2026, the following checks completed successfully in this workspace:
 
@@ -63,7 +79,7 @@ The verification also confirmed:
 - complete config and RNG state in both checkpoint types
 - two-epoch resume with nonzero final-epoch learning rate
 - concise compatibility errors for mismatched `initialize_from` checkpoints
-- `82 passed` in a rasterio-capable environment after the audit
+- `124 passed, 1 skipped` after all robustness patches (June 24, 2026)
 
 ## Acceptance Checklist For A New Machine
 

@@ -27,9 +27,8 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(_PROJECT_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT / "src"))
 
-from ag_foundation.data.dataset import AgricultureImageDataset, create_dataset_catalog  # noqa: E402
+from ag_foundation.data.dataset import AgricultureImageDataset  # noqa: E402
 from ag_foundation.data.multi_source_dataset import (  # noqa: E402
-    _is_known_duplicate,
     scan_pretraining_directory,
 )
 

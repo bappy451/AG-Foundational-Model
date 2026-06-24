@@ -12,6 +12,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import torch
+import torch.nn.functional as F
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.distributed import DistributedSampler
@@ -84,9 +85,14 @@ class AgricultureImageDataset(Dataset[dict[str, Any]]):
         image = self._load_image(record)
         actual_channels = int(image.shape[0])
         if self.channels is not None and actual_channels != self.channels:
-            raise ValueError(
-                f"Expected {self.channels} channels for '{record.uri}', found {actual_channels}."
-            )
+            if actual_channels == 1 and self.channels == 3:
+                # Broadcast 1-channel grayscale or single-band GIS data to 3 channels
+                image = image.expand(3, -1, -1)
+                actual_channels = 3
+            else:
+                raise ValueError(
+                    f"Expected {self.channels} channels for '{record.uri}', found {actual_channels}."
+                )
         if self.channels is None and actual_channels != self._expected_channels:
             raise ValueError(
                 "Inconsistent channel count: "
@@ -95,10 +101,13 @@ class AgricultureImageDataset(Dataset[dict[str, Any]]):
 
         _, height, width = image.shape
         if height < self.crop_size or width < self.crop_size:
-            raise ValueError(
-                f"crop_size={self.crop_size} exceeds image dimensions "
-                f"{height}x{width} for '{record.uri}'."
-            )
+            # Zero-pad the image on the right/bottom to reach crop_size.
+            # This preserves small but valid images (e.g. tiny GIS tiles)
+            # instead of discarding them.
+            pad_h = max(0, self.crop_size - height)
+            pad_w = max(0, self.crop_size - width)
+            # F.pad order is (left, right, top, bottom)
+            image = F.pad(image, (0, pad_w, 0, pad_h), mode="constant", value=0.0)
 
         if self.augment:
             image = self._random_crop(image)
@@ -607,11 +616,11 @@ def _normalize_image_array(array: np.ndarray, *, path: str) -> torch.Tensor:
         raise ValueError(f"Image array must be numeric for '{path}', found {array.dtype}.")
     if np.issubdtype(array.dtype, np.integer):
         info = np.iinfo(array.dtype)
-        minimum = int(array.min())
-        if minimum < 0:
-            raise ValueError(
-                f"Integer image values must be non-negative for '{path}'; found minimum {minimum}."
-            )
+        # Signed integer types may carry GIS NoData values encoded as the
+        # minimum integer (e.g. -2147483647 for INT32).  Clamp them to 0
+        # before normalization so the pipeline remains stable.
+        if array.min() < 0:
+            array = np.clip(array, a_min=0, a_max=None)
         normalized = array.astype(np.float32) / float(info.max)
     else:
         normalized = array.astype(np.float32, copy=False)

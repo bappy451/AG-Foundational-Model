@@ -7,7 +7,7 @@ answers three questions:
 2. What should I expect after each command?
 3. What should I do after the project runs correctly?
 
-It reflects the implementation audited on 2026-06-19.
+It reflects the implementation audited on 2026-06-24.
 
 ## Current Project Status
 
@@ -22,6 +22,9 @@ single workstation. It supports:
 - continual pretraining through `initialize_from`
 - gradient accumulation for 24 GB GPUs
 - command logs, manifests, metrics, figures, checkpoints, and diagnostics
+- **zero-padding of undersized images** (small tiles are padded, not rejected)
+- **GeoTIFF NoData handling** (extreme negative integers clamped to 0)
+- **RoPE backbone compatibility** (DINOv3/EVA02 4D patch embed + no absolute pos embed)
 
 The main operational limitation is intentional: `initialize_from` requires a
 compatible checkpoint. The source and target should use the same ViT family,
@@ -166,6 +169,9 @@ Expected result:
 What this proves:
 
 - Data loading works across RGB, NPY, GeoTIFF, ZIP, and nested ZIP.
+- Undersized images are zero-padded instead of rejected.
+- GeoTIFF NoData integers are clamped to 0 instead of crashing.
+- RoPE-based backbones (DINOv3, EVA02) produce valid patch sequences.
 - Config validation and config-relative paths work.
 - Official ViT selection logic works with a deterministic test double.
 - MIM and DINO tensor paths work.
@@ -386,6 +392,71 @@ What to do next:
 - Use this audit every time you add or remove data.
 - Keep dataset composition tables for the paper.
 - Add multispectral/GeoTIFF sources if the current corpus is RGB-heavy.
+
+## Step 10.5: Full-Dataset 2-Epoch Smoke Test (RTX 4090)
+
+Before a long pretraining campaign, run the full-dataset smoke test to confirm
+the entire pipeline works end-to-end on real data.
+
+Activate the environment:
+
+```powershell
+conda activate venv
+cd E:\AG_Dataset\AG-Foundational-Model
+```
+
+Verify CUDA:
+
+```powershell
+python -c "import torch; print(torch.cuda.get_device_name(0))"
+```
+
+Verify dataset sources are detected:
+
+```powershell
+python -c "
+from ag_foundation.data.multi_source_dataset import scan_pretraining_directory
+sources = scan_pretraining_directory('../Pretraining')
+print(f'Detected {len(sources)} source datasets')
+"
+```
+
+Run the 2-epoch smoke test:
+
+```powershell
+python -m ag_foundation train-dino --config configs/smoke_test.yaml
+```
+
+Expected output directory: `E:\AG_Dataset\runs\smoke_test_dino\`
+
+Expected files after completion:
+
+```text
+runs/smoke_test_dino/
+|-- best.pt
+|-- last.pt
+|-- metrics.csv
+|-- manifest.json
+`-- figures/
+    |-- training_metrics.png
+    |-- dino_views_ep1.png
+    `-- dino_views_ep2.png
+```
+
+Key smoke-test config values (`configs/smoke_test.yaml`):
+
+| Setting | Value |
+| --- | --- |
+| epochs | 2 |
+| batch_size | 8 |
+| gradient_accumulation_steps | 4 (effective batch = 32) |
+| precision | bf16 |
+| data_root | ../Pretraining |
+
+If CUDA OOM occurs, reduce `batch_size` to 4 and increase
+`gradient_accumulation_steps` to 8 to keep effective batch = 32.
+
+Resume works automatically: re-running the same command picks up from `last.pt`.
 
 ## Step 11: Prepare Real Data
 
@@ -735,9 +806,17 @@ Expected result from these audit commands:
 
 ## Readiness Summary
 
-The project is ready for controlled pretraining experiments. The next major
-work is scientific, not plumbing:
+The project is ready for controlled pretraining experiments. The test suite
+passes **124 tests** (1 skipped, Windows bash test). All critical robustness
+patches are active:
 
+- undersized image zero-padding (no more ValueError on small tiles)
+- GeoTIFF NoData integer clamping (no more crashes on INT32 minimum)
+- RoPE backbone compatibility (DINOv3/EVA02 work without code changes)
+
+The next major work is scientific, not plumbing:
+
+- run the 2-epoch full-dataset smoke test (Step 10.5)
 - finish dataset balancing and license review
 - add missing multispectral and GeoTIFF coverage
 - run long MIM and DINO pretraining on the RTX 4090
