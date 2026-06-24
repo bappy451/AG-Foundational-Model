@@ -103,6 +103,8 @@ Use `pretrained_source: imagenet`, `dinov2`, `dinov3`, or `mae` in the model
 section of the config. Keep the crop size divisible by the selected source's
 patch size.
 
+**Note on Caching:** The project automatically configures `HF_HOME` and `TORCH_HOME` to point to the local `models/` directory inside the repository root. This keeps downloaded official Hugging Face models local to the project rather than polluting your global `~/.cache`. It also automatically suppresses the Windows Hugging Face symlink warning.
+
 An offline machine must receive the model cache in advance. Disabling pretrained
 weights is supported for tests with `--no-pretrained-backbone`, but it is not the
 intended research setup.

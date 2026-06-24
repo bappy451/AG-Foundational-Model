@@ -18,7 +18,8 @@ Always set `data.channels` for production experiments.
 - RGB uses `channels: 3`.
 - A four-band RGB-NIR product uses `channels: 4`.
 - A five-band sensor uses `channels: 5`.
-- Every sample in one run must expose the same number of channels.
+- **Single-channel sources (e.g. grayscale, single-band GeoTIFFs) are automatically broadcasted to 3 channels if `channels: 3` is requested**. This allows the official Hugging Face ViT ImageNet pretrained model (which strictly expects 3 input channels) to ingest 1-channel data natively without failing or requiring code modification.
+- Every sample in one run must otherwise expose the exact same number of channels as configured.
 
 For NPY data, specifying channels resolves whether the first or last axis is the
 band axis. If both axes match or neither matches, loading fails with an explicit
