@@ -84,6 +84,17 @@ What to do next:
 
 ## Step 2: Create A Clean Python Environment
 
+We strongly recommend using **Conda** to resolve CUDA and spatial dependencies (`rasterio`) smoothly. An `environment.yml` file is provided in the project root.
+
+```bash
+conda env create -f environment.yml
+conda activate ag-foundation
+```
+
+This will install Python 3.12, PyTorch with CUDA 12.1 support, `timm`, `rasterio`, and the project in editable mode (`-e .[dev,ml]`).
+
+Alternatively, if using `venv` or `virtualenv`:
+
 Linux/macOS:
 
 ```bash
@@ -378,15 +389,30 @@ What to do next:
 
 ## Step 11: Prepare Real Data
 
-For folder or ZIP data, create a portable catalog:
+The project now supports **Multi-Source Data Loading**, allowing you to pretrain seamlessly across dozens of different ZIP archives without extracting them. Before training, you need to generate a master catalog that maps all valid images across these ZIPs.
+
+To scan the `Pretraining` directory and build the master pretraining catalog, run:
 
 ```bash
-python -m ag_foundation create-catalog \
-  --data-root /path/to/agriculture_dataset_or_zip \
-  --output-path catalogs/agriculture.csv
+python scripts/build_pretraining_catalog.py \
+  --pretraining-root ../Pretraining \
+  --output-path catalogs/pretraining_master.csv \
+  --exclude-sources "Toxic Plant Classification" "Edible wild plants" \
+      "Pea Plant dataset" "Indian Medicinal Plant Image Dataset" \
+      "Agriculture crop images" "Paddy Doctor- Paddy Disease Classification" \
+      "GeoPlant_ Spatial Plant Species Prediction Dataset-008" \
+      "Pumpkin Leaf Diseases Dataset From Bangladesh" \
+      "PlantSeg_ A Large-Scale In-the-wild Dataset for Plant Disease Segmentation" \
+      "corn-kernel-counting" "longitudinal-nutrient-deficiency"
 ```
 
-For large GeoTIFF scenes, slice them into tiles:
+This script will:
+- Iterate through all ZIP files and directories.
+- Automatically exclude known duplicate ZIP files.
+- Exclude the specified held-out datasets (reserved purely for evaluation).
+- Create a comprehensive `.csv` with `path`, `group`, and `source_dataset` tracking.
+
+For large GeoTIFF scenes, you can slice them into tiles:
 
 ```bash
 python -m ag_foundation slice-geotiffs \
@@ -399,14 +425,14 @@ python -m ag_foundation slice-geotiffs \
 
 Expected result:
 
-- Catalog rows have `path,group`.
+- `catalogs/pretraining_master.csv` contains thousands of rows, balancing data from all sources.
 - GeoTIFF tiles preserve georeferencing when written as `.tif`.
 
 What to do next:
 
+- Review the comprehensive pretraining methodology outlined in `docs/pretraining_implementation_plan.md`.
 - Decide the exact number of channels for each run.
-- Keep separate runs for RGB-only and multispectral experiments if the channel
-  counts differ.
+- Keep separate runs for RGB-only and multispectral experiments if the channel counts differ.
 
 ## Step 12: Configure A Real MIM Run
 
@@ -473,10 +499,10 @@ If memory is too high:
 
 ## Step 13: Configure A Real DINO Run
 
-For direct DINO pretraining:
+For direct DINO pretraining, a fully optimized configuration for an RTX 4090 is provided at `configs/pretraining_full.yaml`. It utilizes `bf16`, gradient accumulation, and handles multiple data roots via the multi-source dataloader.
 
 ```bash
-cp configs/train_dino.example.yaml configs/dino_vit_s_ag.yaml
+cp configs/pretraining_full.yaml configs/dino_vit_s_ag.yaml
 ```
 
 Recommended first DINO config for a 4090:

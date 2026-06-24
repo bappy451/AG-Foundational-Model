@@ -1,8 +1,5 @@
-import os
-import re
-
 dino_runner_path = "src/ag_foundation/training/dino_runner.py"
-with open(dino_runner_path, "r", encoding="utf-8") as f:
+with open(dino_runner_path, encoding="utf-8") as f:
     dino_runner_content = f.read()
 
 # 1. Update run_train_dino signature/body

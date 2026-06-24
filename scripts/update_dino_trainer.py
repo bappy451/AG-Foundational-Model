@@ -1,8 +1,5 @@
-import os
-import re
-
 dino_trainer_path = "src/ag_foundation/training/dino_trainer.py"
-with open(dino_trainer_path, "r", encoding="utf-8") as f:
+with open(dino_trainer_path, encoding="utf-8") as f:
     dino_trainer_content = f.read()
 
 # 1. Add DINOForwardWrapper
@@ -284,7 +281,7 @@ dino_trainer_content = dino_trainer_content.replace(
 # Wrap prints, save_training_checkpoint, _save_visualization, _write_training_metrics
 dino_trainer_content = dino_trainer_content.replace(
     '            print(\n                f"train-dino epoch={epoch_index + 1} summary "',
-    '            if self.is_rank_zero:\n                print(\n                    f"train-dino epoch={epoch_index + 1} summary "'
+    '            if self.is_rank_zero:\n                print(\n                    f"train-dino epoch={epoch_index + 1} summary "'  # noqa: E501
 ).replace(
     '                f"duration={epoch_duration:.2f}s"\n            )',
     '                    f"duration={epoch_duration:.2f}s"\n                )'
@@ -300,21 +297,21 @@ dino_trainer_content = dino_trainer_content.replace(
 
 dino_trainer_content = dino_trainer_content.replace(
     '            curve_path = save_training_curves(history, output_dir, method_name="DINOv3")',
-    '            if self.is_rank_zero:\n                curve_path = save_training_curves(history, output_dir, method_name="DINOv3")'
+    '            if self.is_rank_zero:\n                curve_path = save_training_curves(history, output_dir, method_name="DINOv3")'  # noqa: E501
 ).replace(
     '            save_training_checkpoint(checkpoint, output_dir, improved=improved)',
-    '            if self.is_rank_zero:\n                save_training_checkpoint(checkpoint, output_dir, improved=improved)'
+    '            if self.is_rank_zero:\n                save_training_checkpoint(checkpoint, output_dir, improved=improved)'  # noqa: E501
 ).replace(
     '            visualization_paths = self._save_visualization(output_dir, epoch_index + 1)',
-    '            if self.is_rank_zero:\n                visualization_paths = self._save_visualization(output_dir, epoch_index + 1)'
+    '            if self.is_rank_zero:\n                visualization_paths = self._save_visualization(output_dir, epoch_index + 1)'  # noqa: E501
 ).replace(
     '            print(f"[artifacts] Training curve: {curve_path}")\n            for path in visualization_paths:\n                if not path.name.endswith("_latest.png"):\n                    print(f"[artifacts] Model output: {path}")',
-    '            if self.is_rank_zero:\n                print(f"[artifacts] Training curve: {curve_path}")\n                for path in visualization_paths:\n                    if not path.name.endswith("_latest.png"):\n                        print(f"[artifacts] Model output: {path}")'
+    '            if self.is_rank_zero:\n                print(f"[artifacts] Training curve: {curve_path}")\n                for path in visualization_paths:\n                    if not path.name.endswith("_latest.png"):\n                        print(f"[artifacts] Model output: {path}")'  # noqa: E501
 )
 
 dino_trainer_content = dino_trainer_content.replace(
     '        _write_training_metrics(\n            output_dir,\n            history=history,\n            system_info=system_info,\n            requested_precision=getattr(self.raw_model, "requested_precision", self.requested_precision),\n            resolved_precision=getattr(self.raw_model, "resolved_precision", self.requested_precision),\n            best_metric=best_metric,\n            summary=summary,\n        )',
-    '        if self.is_rank_zero:\n            _write_training_metrics(\n                output_dir,\n                history=history,\n                system_info=system_info,\n                requested_precision=getattr(self.raw_model, "requested_precision", self.requested_precision),\n                resolved_precision=getattr(self.raw_model, "resolved_precision", self.requested_precision),\n                best_metric=best_metric,\n                summary=summary,\n            )'
+    '        if self.is_rank_zero:\n            _write_training_metrics(\n                output_dir,\n                history=history,\n                system_info=system_info,\n                requested_precision=getattr(self.raw_model, "requested_precision", self.requested_precision),\n                resolved_precision=getattr(self.raw_model, "resolved_precision", self.requested_precision),\n                best_metric=best_metric,\n                summary=summary,\n            )'  # noqa: E501
 )
 
 with open(dino_trainer_path, "w", encoding="utf-8") as f:

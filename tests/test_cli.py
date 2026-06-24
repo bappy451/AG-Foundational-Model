@@ -138,6 +138,7 @@ def test_direct_cli_rejects_missing_log_file_value() -> None:
         parse_command_logging(["--log-file", "--no-log"])
 
 
+@pytest.mark.skipif(os.name == "nt", reason="Bash shell script tests behave inconsistently on native Windows")
 def test_train_wrapper_reports_missing_ml_dependencies(tmp_path: Path) -> None:
     fake_python = tmp_path / "python"
     fake_python.write_text("#!/usr/bin/env sh\nprintf 'torch, timm\\n'\nexit 1\n", encoding="utf-8")
@@ -147,18 +148,19 @@ def test_train_wrapper_reports_missing_ml_dependencies(tmp_path: Path) -> None:
     completed = subprocess.run(
         [
             "bash",
-            str(project_root / "scripts" / "train_mim.sh"),
+            "scripts/train_mim.sh",
             "--python",
-            str(fake_python),
+            fake_python.as_posix(),
             "--data-root",
-            str(tmp_path / "data"),
+            (tmp_path / "data").as_posix(),
             "--output-dir",
-            str(tmp_path / "run"),
+            (tmp_path / "run").as_posix(),
             "--no-log",
         ],
         check=False,
         capture_output=True,
         text=True,
+        cwd=project_root,
     )
 
     assert completed.returncode != 0

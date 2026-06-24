@@ -1,199 +1,442 @@
-schema_version: 1
-last_reviewed: 2026-06-15
+schema_version: 2
+last_reviewed: 2026-06-19
 status_values:
   - candidate
   - downloaded
   - audited
   - excluded
+role_values:
+  - pretrain
+  - evaluation
+  - candidate
 
 sources:
+  # ─────────────────────────────────────────────────────────────────────
+  # PRETRAINING POOL — downloaded datasets used for self-supervised SSL
+  # ─────────────────────────────────────────────────────────────────────
+
   - id: plantvillage
     name: PlantVillage Dataset
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/abdallahalidev/plantvillage-dataset
+    local_path: PlantVillage Dataset-019.zip
+    estimated_images: 162000
+    type: plant_disease
 
   - id: plants_leafs
     name: Plants Leafs Dataset
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/hadyahmed00/plants-leafs-dataset
+    local_path: Plants leafs Dataset-022.zip
+    estimated_images: 190000
+    type: species_classification
 
   - id: plantifydr
     name: PlantifyDr Dataset
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/lavaman151/plantifydr-dataset
+    local_path: PlantifyDr Dataset-014.zip
+    estimated_images: 125000
+    type: plant_disease
 
   - id: v2_plant_seedlings
     name: V2 Plant Seedlings Dataset
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/vbookshelf/v2-plant-seedlings-dataset
+    local_path: V2 Plant Seedlings Dataset-020.zip
+    estimated_images: 11078
+    type: seedling_classification
 
   - id: plant_disease_detection_karagwaan
     name: Plant Disease Detection
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/karagwaanntreasure/plant-disease-detection
+    local_path: Plant Disease Detection.zip
+    estimated_images: 35725
+    type: plant_disease
 
   - id: plant_disease_expert
     name: Plant Disease Expert
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/sadmansakibmahi/plant-disease-expert
+    local_path: Plant Disease Expert-016.zip
+    estimated_images: 200000
+    type: plant_disease
+    notes: "Duplicate exists as 'Plant Disease Expert.zip' (identical size). Use -016 version only."
 
   - id: wheat_plant_diseases
     name: Wheat Plant Diseases
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/kushagra3204/wheat-plant-diseases
+    local_path: Wheat Plant Diseases-021.zip
+    estimated_images: 16000
+    type: plant_disease
 
   - id: plant_pathogen
     name: Plant Pathogen Dataset
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/kanishk3813/pathogen-dataset
+    local_path: Plant Pathogen Dataset.zip
+    estimated_images: 10000
+    type: plant_disease
 
   - id: rice_plant
     name: Rice Plant Dataset
     provider: Kaggle
     status: candidate
+    role: candidate
     url: https://www.kaggle.com/datasets/rajkumar898/rice-plant-dataset
+    notes: "Not found locally in Pretraining folder."
 
   - id: house_plant_species
     name: House Plant Species
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/kacpergregorowicz/house-plant-species
+    local_path: House Plant Species-006.zip
+    estimated_images: 30000
+    type: species_classification
 
   - id: rice_plant_diseases
     name: Rice Plant Diseases Dataset
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/jay7080dev/rice-plant-diseases-dataset
+    local_path: Rice Plant diseases dataset.zip
+    estimated_images: 4684
+    type: plant_disease
 
   - id: plants_type
     name: Plants Type Datasets
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/yudhaislamisulistya/plants-type-datasets
+    local_path: Plants Type Datasets.zip
+    estimated_images: 30000
+    type: species_classification
 
   - id: plant_leaves_classification
     name: Plant Leaves for Image Classification
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/csafrit2/plant-leaves-for-image-classification
-
-  - id: toxic_plant_classification
-    name: Toxic Plant Classification
-    provider: Kaggle
-    status: candidate
-    url: https://www.kaggle.com/datasets/hanselliott/toxic-plant-classification
+    local_path: Plant Leaves for Image Classification-004.zip
+    estimated_images: 4500
+    type: species_classification
+    notes: "Duplicate exists as 'Plant Leaves for Image Classification.zip' (identical size). Use -004 version only."
 
   - id: cotton_plant_disease
     name: Cotton Plant Disease
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/dhamur/cotton-plant-disease
+    local_path: "Cotton plant disease \U0001F331\U0001F342\U0001F342\U0001F331-003.zip"
+    estimated_images: 12000
+    type: plant_disease
 
   - id: chili_plant_disease
     name: Chili Plant Disease Detection
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/shuvokumarbasak4004/chili-plant-disease-detection
-
-  - id: edible_wild_plants
-    name: Edible Wild Plants
-    provider: Kaggle
-    status: candidate
-    url: https://www.kaggle.com/datasets/gverzea/edible-wild-plants
+    local_path: Chili Plant Disease Detection.zip
+    estimated_images: 200
+    type: plant_disease
 
   - id: soybean_weed_detection
     name: Weed Detection in Soybean Crops
     provider: Kaggle and Mendeley Data
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/fpeccia/weed-detection-in-soybean-crops
     alternate_url: https://data.mendeley.com/datasets/3fmjm7ncc6/2
+    local_path: Weed Detection in Soybean Crops-012.zip
+    estimated_images: 15000
+    type: weed_detection
 
   - id: rice_leaf_diseases_kaggle
     name: Rice Leaf Diseases Dataset
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/vbookshelf/rice-leaf-diseases
+    local_path: Rice Leaf Diseases Dataset.zip
+    estimated_images: 120
+    type: plant_disease
 
   - id: paddy_leaf_stress
     name: Plant Stress Identification - Paddy Leaves
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/ritikbompilwar/plantstressidentification
-
-  - id: pea_plant
-    name: Pea Plant Dataset
-    provider: Kaggle
-    status: candidate
-    url: https://www.kaggle.com/datasets/zunorain/pea-plant-dataset
+    local_path: "Plant Stress Identification (Paddy Leaves).zip"
+    estimated_images: 500
+    type: plant_disease
 
   - id: plant_disease_detection_ironwolf
     name: Plant Disease Detection Dataset
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/ironwolf437/plant-disease-detection-dataset
+    local_path: plant disease detection - dataset.zip
+    estimated_images: 20000
+    type: plant_disease
 
   - id: ghana_crop_disease
     name: Ghana Crop Disease Detection Dataset
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/ohagwucollinspatrick/ghana-crop-disease
-
-  - id: indian_medicinal_plants
-    name: Indian Medicinal Plant Image Dataset
-    provider: Kaggle
-    status: candidate
-    url: https://www.kaggle.com/datasets/warcoder/indian-medicinal-plant-image-dataset
+    local_path: Ghana Crop Disease Detection Dataset-013.zip
+    estimated_images: 50000
+    type: plant_disease
 
   - id: plant_disease_rashid
     name: Plant Disease Dataset
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/rashidthihan/plant-disease-dataset
-
-  - id: agriculture_crop_images
-    name: Agriculture Crop Images
-    provider: Kaggle
-    status: candidate
-    url: https://www.kaggle.com/datasets/aman2000jaiswal/agriculture-crop-images
+    local_path: Plant Disease Dataset-009.zip
+    estimated_images: 50000
+    type: plant_disease
 
   - id: cotton_weed_det3
     name: CottonWeedDet3
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: pretrain
     url: https://www.kaggle.com/datasets/yuzhenlu/cottonweeddet3
+    local_path: CottonWeedDet3-002.zip
+    estimated_images: 20000
+    type: weed_detection
+
+  - id: plantnet_300k
+    name: PlantNet 300K Species Classification
+    provider: Kaggle
+    status: downloaded
+    role: pretrain
+    url: https://www.kaggle.com/datasets/google/plantnet-300k
+    local_path: plantnet_300K-018.zip
+    estimated_images: 306146
+    type: species_classification
+    notes: "Largest species classification dataset. 1081 species."
+
+  - id: deepweeds
+    name: DeepWeeds - A Multiclass Weed Species Image Dataset
+    provider: Kaggle
+    status: downloaded
+    role: pretrain
+    url: https://www.kaggle.com/datasets/imsparsh/deepweeds
+    local_path: "DeepWeeds- A Multiclass Weed Species Image Dataset for Deep Learning.zip"
+    estimated_images: 17509
+    type: weed_detection
+
+  - id: chili_plant_disease_alt
+    name: Chili Plant Disease (alternate)
+    provider: Kaggle
+    status: downloaded
+    role: pretrain
+    url: https://www.kaggle.com/datasets/shuvokumarbasak4004/chili-plant-disease-detection
+    local_path: Chili Plant Disease.zip
+    estimated_images: 500
+    type: plant_disease
+    notes: "Possibly different version of chili_plant_disease."
+
+  - id: oppd
+    name: Open Plant Phenotyping Database (OPPD)
+    provider: GitHub
+    status: downloaded
+    role: pretrain
+    url: https://github.com/OpenPlantPhenotyping/OPPD
+    local_path: OPPD
+    estimated_images: 47000
+    type: phenotyping
+    notes: "Extracted directory. Contains 46+ EPPO-coded species subdirectories with annotations."
+
+  - id: unl_cppd
+    name: UNL Comprehensive Plant Phenotyping Database
+    provider: Kaggle
+    status: downloaded
+    role: pretrain
+    url: https://www.kaggle.com/datasets/university-of-nebraska-lincoln/unl-cppd
+    local_path: UNL-CPPD-005.zip
+    estimated_images: 50000
+    type: phenotyping
+
+  # ─────────────────────────────────────────────────────────────────────
+  # HELD-OUT EVALUATION — reserved for downstream evaluation only
+  # ─────────────────────────────────────────────────────────────────────
+
+  - id: toxic_plant_classification
+    name: Toxic Plant Classification
+    provider: Kaggle
+    status: downloaded
+    role: evaluation
+    url: https://www.kaggle.com/datasets/hanselliott/toxic-plant-classification
+    local_path: Toxic Plant Classification.zip
+    estimated_images: 9952
+    type: species_classification
+    evaluation_tasks: [classification, few_shot, domain_generalization]
+
+  - id: edible_wild_plants
+    name: Edible Wild Plants
+    provider: Kaggle
+    status: downloaded
+    role: evaluation
+    url: https://www.kaggle.com/datasets/gverzea/edible-wild-plants
+    local_path: Edible wild plants.zip
+    estimated_images: 6878
+    type: species_classification
+    evaluation_tasks: [classification, few_shot, domain_generalization]
+
+  - id: pea_plant
+    name: Pea Plant Dataset
+    provider: Kaggle
+    status: downloaded
+    role: evaluation
+    url: https://www.kaggle.com/datasets/zunorain/pea-plant-dataset
+    local_path: Pea Plant dataset.zip
+    estimated_images: 1000
+    type: crop_classification
+    evaluation_tasks: [classification, few_shot, unseen_crop]
+
+  - id: indian_medicinal_plants
+    name: Indian Medicinal Plant Image Dataset
+    provider: Kaggle
+    status: downloaded
+    role: evaluation
+    url: https://www.kaggle.com/datasets/warcoder/indian-medicinal-plant-image-dataset
+    local_path: Indian Medicinal Plant Image Dataset.zip
+    estimated_images: 5945
+    type: species_classification
+    evaluation_tasks: [classification, few_shot, unseen_domain]
+
+  - id: agriculture_crop_images
+    name: Agriculture Crop Images
+    provider: Kaggle
+    status: downloaded
+    role: evaluation
+    url: https://www.kaggle.com/datasets/aman2000jaiswal/agriculture-crop-images
+    local_path: Agriculture crop images.zip
+    estimated_images: 1106
+    type: crop_classification
+    evaluation_tasks: [classification, few_shot]
 
   - id: paddy_doctor
     name: Paddy Doctor - Paddy Disease Classification
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: evaluation
     url: https://www.kaggle.com/competitions/paddy-disease-classification/data
+    local_path: "Paddy Doctor- Paddy Disease Classification.zip"
+    estimated_images: 10000
+    type: plant_disease
+    evaluation_tasks: [classification, cross_domain_disease]
 
   - id: geoplant
     name: GeoPlant - Spatial Plant Species Prediction Dataset
     provider: Kaggle
-    status: candidate
+    status: downloaded
+    role: evaluation
     url: https://www.kaggle.com/datasets/picekl/geoplant
+    local_path: "GeoPlant_ Spatial Plant Species Prediction Dataset-008.zip"
+    estimated_images: 188000
+    type: geospatial_species
+    evaluation_tasks: [geospatial_classification]
+    notes: "39.38 GB. May contain non-standard image formats. Reserve for evaluation."
 
   - id: pumpkin_leaf_diseases_bangladesh
     name: Pumpkin Leaf Diseases Dataset From Bangladesh
     provider: Mendeley Data
-    status: candidate
+    status: downloaded
+    role: evaluation
     version: 1
     doi: 10.17632/wtxcw8wpxb.1
     url: https://data.mendeley.com/datasets/wtxcw8wpxb/1
+    local_path: Pumpkin Leaf Diseases Dataset From Bangladesh.zip
+    estimated_images: 3000
+    type: plant_disease
+    evaluation_tasks: [classification, unseen_crop, cross_domain_disease]
 
   - id: rice_leaf_diseases_mendeley
     name: Rice Leaf Diseases Dataset
     provider: Mendeley Data
-    status: candidate
+    status: downloaded
+    role: pretrain
     version: 1
     doi: 10.17632/dwtn3c6w6p.1
     url: https://data.mendeley.com/datasets/dwtn3c6w6p/1
+    local_path: "rice+leaf+diseases.zip"
+    estimated_images: 120
+    type: plant_disease
+
+  - id: plantseg
+    name: PlantSeg - Plant Disease Segmentation
+    provider: Kaggle
+    status: downloaded
+    role: evaluation
+    url: https://www.kaggle.com/datasets/plantdoc/plantseg
+    local_path: "PlantSeg_ A Large-Scale In-the-wild Dataset for Plant Disease Segmentation.zip"
+    estimated_images: 15000
+    type: disease_segmentation
+    evaluation_tasks: [segmentation]
+
+  - id: agriculture_vision_2021
+    name: Agriculture Vision 2021
+    provider: Kaggle
+    status: downloaded
+    role: pretrain
+    url: https://www.kaggle.com/datasets/agriculture-vision-2021
+    local_path: Agriculture-Vision-2021.tar.gz
+    estimated_images: 94000
+    type: aerial_agriculture
+    notes: "tar.gz format (not ZIP). Requires tar.gz extraction or adapter for loading."
+
+  - id: corn_kernel_counting
+    name: Corn Kernel Counting Dataset
+    provider: CyVerse
+    status: downloaded
+    role: evaluation
+    url: https://cyverse.org
+    local_path: corn-kernel-counting
+    estimated_images: 2000
+    type: counting_regression
+    evaluation_tasks: [regression, counting]
+
+  - id: longitudinal_nutrient_deficiency
+    name: Longitudinal Nutrient Deficiency Dataset
+    provider: CyVerse
+    status: downloaded
+    role: evaluation
+    url: https://cyverse.org
+    local_path: longitudinal-nutrient-deficiency
+    estimated_images: 5000
+    type: nutrient_deficiency
+    evaluation_tasks: [temporal, nutrient_classification]
+    notes: "Published at AAAI 2021."

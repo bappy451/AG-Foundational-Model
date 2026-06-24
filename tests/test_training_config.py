@@ -96,12 +96,12 @@ optimizer:
 def test_parse_train_mim_args_lets_cli_override_yaml_values(tmp_path: Path) -> None:
     config_path = tmp_path / "train.yaml"
     config_path.write_text(
-        """
+        f"""
 data:
-  data_root: /tmp/from-config.zip
+  data_root: {tmp_path / 'from-config.zip'}
   channels: 3
 runtime:
-  output_dir: /tmp/output
+  output_dir: {tmp_path / 'output'}
   precision: fp16
 model:
   model_name: B
@@ -138,7 +138,7 @@ model:
 
     assert args.config == str(config_path)
     assert args.data_root == "/tmp/from-cli.zip"
-    assert args.output_dir == "/tmp/output"
+    assert args.output_dir == str(tmp_path / "output")
     assert args.precision == "fp16"
     assert args.channels == 5
     assert args.epochs == 2
@@ -428,11 +428,11 @@ optimizer:
 def test_parse_train_dino_args_lets_cli_override_yaml_values(tmp_path: Path) -> None:
     config_path = tmp_path / "train_dino.yaml"
     config_path.write_text(
-        """
+        f"""
 data:
-  data_root: /tmp/from-config.zip
+  data_root: {tmp_path / 'from-config.zip'}
 runtime:
-  output_dir: /tmp/output-dino
+  output_dir: {tmp_path / 'output-dino'}
 model:
   model_name: B
   num_local_crops: 1
@@ -461,7 +461,7 @@ model:
     )
 
     assert args.data_root == "/tmp/from-cli.zip"
-    assert args.output_dir == "/tmp/output-dino"
+    assert args.output_dir == str(tmp_path / "output-dino")
     assert args.model_name == "B"
     assert args.num_local_crops == 3
     assert args.global_crop_scale == [0.7, 1.0]

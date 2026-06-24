@@ -1,0 +1,16 @@
+name: ag-foundation
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pytorch>=2.2
+  - torchvision>=0.17
+  - pytorch-cuda=12.1
+  - rasterio>=1.3
+  - pandas>=2.2
+  - pip
+  - pip:
+      - -e .[dev,ml]

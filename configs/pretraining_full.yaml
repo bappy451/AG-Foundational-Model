@@ -1,0 +1,60 @@
+# Full pretraining configuration for RTX 4090 (24 GB VRAM, 64 GB RAM)
+# Optimized for single-GPU training with gradient accumulation.
+#
+# Effective batch size = batch_size × gradient_accumulation_steps = 8 × 4 = 32
+#
+# Usage:
+#   python -m ag_foundation train-dino --config configs/pretraining_full.yaml
+
+data:
+  data_root: ../Pretraining
+  catalog_path: null
+  crop_size: 224
+  channels: 3
+  batch_size: 8
+  num_workers: 8
+  prefetch_factor: 2
+  val_fraction: 0.2
+
+runtime:
+  output_dir: ../runs/pretraining_full_dino
+  epochs: 50
+  seed: 27
+  precision: bf16
+  device: auto
+  warmup_epochs: 5
+  gradient_accumulation_steps: 4
+  resume: true
+  resume_from: null
+  initialize_from: null
+  log_every: 50
+  save_visualizations: true
+  visualization_every: 5
+  visualization_samples: 8
+
+model:
+  model_name: S
+  pretrained_backbone: true
+  pretrained_source: dinov3
+  pretrained_cfg: null
+  dino_out_dim: 65536
+  dino_hidden_dim: 2048
+  dino_bottleneck_dim: 256
+  head_nlayers: 3
+  num_global_crops: 2
+  num_local_crops: 4
+  global_crop_scale: [0.6, 1.0]
+  local_crop_scale: [0.3, 0.6]
+  student_temperature: 0.1
+  teacher_temperature: 0.04
+  teacher_momentum_start: 0.996
+  teacher_momentum_end: 1.0
+  center_momentum: 0.9
+  gradient_checkpointing: false
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.1
+
+optimizer:
+  learning_rate: 0.0005
+  weight_decay: 0.04
