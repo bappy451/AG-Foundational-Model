@@ -9,14 +9,20 @@
 ## Data
 
 - `data/dataset.py`: discovery, archive URIs, loading, normalization, catalogs,
-  augmentation, splitting, and DataLoaders
+  augmentation, splitting, and DataLoaders; **undersized images are zero-padded;
+  GeoTIFF NoData (signed integer min values) are clamped to 0 before normalization**
+- `data/multi_source_dataset.py`: multi-source pretraining dataset spanning many
+  ZIP archives and directories simultaneously; source-balanced weighted sampling;
+  duplicate detection; catalog-based and root-scan-based discovery
 - `data/geotiff.py`: tiled read/write and GeoTIFF stitching
 - `data/demo.py`: deterministic RGB and multispectral fixtures
 
 ## Models
 
 - `models/official_vit.py`: supported official ViTs, band adapter, pretrained
-  normalization, positional interpolation, and token encoding
+  normalization, positional interpolation, and token encoding; **RoPE backbone
+  support: 4D patch embed auto-flattened to (B,N,C); absolute pos embed skipped
+  when `backbone.pos_embed is None` (EVA02, DINOv3)**
 - `models/mim.py`: mask generation, reconstruction head, and masked loss
 - `models/dino.py`: student/teacher backbones, heads, EMA, centering, and loss
 - `models/vit.py`: compatibility exports for supported ViT configuration

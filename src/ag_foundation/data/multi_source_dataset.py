@@ -9,14 +9,13 @@ tracking while reusing all existing image-loading infrastructure.
 from __future__ import annotations
 
 import math
-import random
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
 from .dataset import (
@@ -180,7 +179,6 @@ class MultiSourcePretrainingDataset(Dataset[dict[str, Any]]):
                 # Skip sources with no supported images or other issues
                 continue
 
-                continue
             indices = []
             for record in dataset.records:
                 idx = len(all_records)
@@ -297,16 +295,15 @@ class MultiSourcePretrainingDataset(Dataset[dict[str, Any]]):
         # Use the underlying dataset's loading infrastructure
         ds = self._datasets.get(source_name)
         if ds is not None:
-            # Find the record in the underlying dataset and load it
-            image = ds._load_image(record)
+            # Load the image using the underlying dataset's image loader
             image = ds._load_image(record)
 
             _, height, width = image.shape
             if height < self.crop_size or width < self.crop_size:
-                raise ValueError(
-                    f"crop_size={self.crop_size} exceeds image dimensions "
-                    f"{height}x{width} for '{record.uri}'."
-                )
+                # Zero-pad undersized images (same logic as AgricultureImageDataset)
+                pad_h = max(0, self.crop_size - height)
+                pad_w = max(0, self.crop_size - width)
+                image = F.pad(image, (0, pad_w, 0, pad_h), mode="constant", value=0.0)
 
             from .dataset import PRECISION_DTYPES, _color_jitter, _random_bool
 

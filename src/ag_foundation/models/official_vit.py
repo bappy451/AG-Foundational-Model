@@ -367,6 +367,20 @@ class RemoteSensingViT(nn.Module):
         )
         normalized_inputs = normalized_inputs / self._input_std.to(device=inputs.device, dtype=compute_dtype)
         patch_tokens = self.backbone.patch_embed(normalized_inputs)
+
+        # Handle RoPE-style backbones (e.g. EVA02, DINOv3) whose patch_embed
+        # returns a 4D spatial map. We normalize to (B, N, C) here so
+        # the rest of the pipeline is architecture-agnostic.
+        if patch_tokens.ndim == 4:
+            if patch_tokens.shape[-1] == self.embed_dim:
+                # (B, H, W, C) -> (B, H*W, C)
+                patch_tokens = patch_tokens.flatten(1, 2)
+            elif patch_tokens.shape[1] == self.embed_dim:
+                # (B, C, H, W) -> (B, H*W, C)
+                patch_tokens = patch_tokens.flatten(2).transpose(1, 2)
+            else:
+                raise ValueError(f"Unrecognized 4D patch_embed shape: {patch_tokens.shape}")
+
         grid_size = (inputs.shape[2] // self.patch_size[0], inputs.shape[3] // self.patch_size[1])
         return patch_tokens, grid_size
 
@@ -388,6 +402,12 @@ class RemoteSensingViT(nn.Module):
             tokens = torch.cat((cls_token, patch_tokens), dim=1)
         else:
             tokens = patch_tokens
+
+        # RoPE-based backbones (EVA02, DINOv3) set pos_embed = None because
+        # they encode position via rotary embeddings inside attention.  In
+        # that case we skip the absolute positional embedding step entirely.
+        if self.backbone.pos_embed is None:
+            return self.backbone.pos_drop(tokens)
 
         pos_embed = self._resize_pos_embed(grid_size, device=patch_tokens.device, dtype=patch_tokens.dtype)
         if include_cls_token:

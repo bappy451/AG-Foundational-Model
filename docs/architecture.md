@@ -32,6 +32,23 @@ The configured crop size must be divisible by the selected patch size.
 Positional embeddings are interpolated to the runtime patch grid, so the
 backbone can train at compatible resolutions other than 224.
 
+### RoPE Backbone Support
+
+DINOv3 and EVA02 backbones use **Rotary Position Embeddings (RoPE)** instead
+of absolute positional embeddings.  Their `patch_embed` module returns a 4D
+tensor `(B, C, H, W)` instead of the standard `(B, N, C)` sequence, and
+`backbone.pos_embed` is `None`.
+
+`RemoteSensingViT` detects these cases automatically:
+
+- If `patch_embed` output is 4-dimensional, it is flattened to `(B, N, C)`.
+- If `backbone.pos_embed is None`, the absolute positional embedding step is
+  skipped entirely.  Rotary embeddings inside the attention blocks provide
+  positional signal instead.
+
+No configuration is required.  Simply select `pretrained_source: dinov3` and
+the pipeline adapts.
+
 ## Official Initialization
 
 `timm.create_model` constructs the official backbone with:

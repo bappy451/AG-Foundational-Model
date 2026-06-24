@@ -305,12 +305,12 @@ dino_trainer_content = dino_trainer_content.replace(
     '            visualization_paths = self._save_visualization(output_dir, epoch_index + 1)',
     '            if self.is_rank_zero:\n                visualization_paths = self._save_visualization(output_dir, epoch_index + 1)'  # noqa: E501
 ).replace(
-    '            print(f"[artifacts] Training curve: {curve_path}")\n            for path in visualization_paths:\n                if not path.name.endswith("_latest.png"):\n                    print(f"[artifacts] Model output: {path}")',
+    '            print(f"[artifacts] Training curve: {curve_path}")\n            for path in visualization_paths:\n                if not path.name.endswith("_latest.png"):\n                    print(f"[artifacts] Model output: {path}")',  # noqa: E501
     '            if self.is_rank_zero:\n                print(f"[artifacts] Training curve: {curve_path}")\n                for path in visualization_paths:\n                    if not path.name.endswith("_latest.png"):\n                        print(f"[artifacts] Model output: {path}")'  # noqa: E501
 )
 
 dino_trainer_content = dino_trainer_content.replace(
-    '        _write_training_metrics(\n            output_dir,\n            history=history,\n            system_info=system_info,\n            requested_precision=getattr(self.raw_model, "requested_precision", self.requested_precision),\n            resolved_precision=getattr(self.raw_model, "resolved_precision", self.requested_precision),\n            best_metric=best_metric,\n            summary=summary,\n        )',
+    '        _write_training_metrics(\n            output_dir,\n            history=history,\n            system_info=system_info,\n            requested_precision=getattr(self.raw_model, "requested_precision", self.requested_precision),\n            resolved_precision=getattr(self.raw_model, "resolved_precision", self.requested_precision),\n            best_metric=best_metric,\n            summary=summary,\n        )',  # noqa: E501
     '        if self.is_rank_zero:\n            _write_training_metrics(\n                output_dir,\n                history=history,\n                system_info=system_info,\n                requested_precision=getattr(self.raw_model, "requested_precision", self.requested_precision),\n                resolved_precision=getattr(self.raw_model, "resolved_precision", self.requested_precision),\n                best_metric=best_metric,\n                summary=summary,\n            )'  # noqa: E501
 )
 

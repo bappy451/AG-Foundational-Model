@@ -13,6 +13,7 @@ torch = pytest.importorskip("torch")
 from ag_foundation.data.dataset import (
     AgricultureImageDataset,
     ImageRecord,
+    _normalize_image_array,
     _split_records_by_group,
     create_dataset_catalog,
     get_dataloaders,
@@ -321,3 +322,86 @@ def test_group_split_targets_sample_fraction_for_uneven_groups(tmp_path: Path) -
     assert {record.group for record in train_records}.isdisjoint(
         {record.group for record in val_records}
     )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Tests: undersized image zero-padding
+# ─────────────────────────────────────────────────────────────────────
+
+
+def test_dataset_pads_undersized_image_to_crop_size(tmp_path: Path) -> None:
+    """Images smaller than crop_size must be zero-padded instead of raising."""
+    _write_rgb(tmp_path / "source" / "small.jpg", size=(8, 8))
+
+    dataset = AgricultureImageDataset(tmp_path, crop_size=32, augment=False)
+    sample = dataset[0]
+
+    assert sample["image"].shape == (3, 32, 32)
+    # Top-left 8×8 region should contain the original image values
+    assert float(sample["image"].max()) > 0.0
+
+
+def test_dataset_pads_undersized_image_only_in_one_dimension(tmp_path: Path) -> None:
+    """Only the dimension(s) smaller than crop_size are padded."""
+    # 40 wide but only 10 tall → only height needs padding
+    path = tmp_path / "source" / "narrow.jpg"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    array = np.full((10, 40, 3), 100, dtype=np.uint8)
+    Image.fromarray(array, mode="RGB").save(path)
+
+    dataset = AgricultureImageDataset(tmp_path, crop_size=32, augment=False)
+    sample = dataset[0]
+
+    assert sample["image"].shape == (3, 32, 32)
+
+
+def test_dataset_zip_undersized_image_is_padded(tmp_path: Path) -> None:
+    """Undersized images inside ZIP archives are also zero-padded."""
+    archive_path = tmp_path / "tiles.zip"
+    _write_rgb_zip(
+        archive_path,
+        [("source/small.png", np.full((8, 8, 3), 60, dtype=np.uint8))],
+    )
+
+    dataset = AgricultureImageDataset(archive_path, crop_size=32, augment=False)
+    sample = dataset[0]
+
+    assert sample["image"].shape == (3, 32, 32)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Tests: GeoTIFF NoData (extreme negative integer) clamping
+# ─────────────────────────────────────────────────────────────────────
+
+
+def test_normalize_image_array_clamps_negative_integers_to_zero() -> None:
+    """Extreme negative values (GIS NoData) must be clipped to 0, not raise."""
+    # Simulate a GeoTIFF int32 band where NoData = INT32_MIN
+    array = np.array([[[-2147483647, 0, 500]], [[0, 1000, 2000]]], dtype=np.int32)
+    tensor = _normalize_image_array(array, path="fake_nodata.tif")
+
+    assert tensor.shape == (2, 1, 3)
+    # NoData pixel should become 0.0 after clamp + normalize
+    assert float(tensor[0, 0, 0]) == pytest.approx(0.0)
+    # Normal pixel should be positive
+    assert float(tensor[0, 0, 1]) == pytest.approx(0.0)
+    assert float(tensor[0, 0, 2]) > 0.0
+
+
+def test_normalize_image_array_clamps_negative_int16_nodata() -> None:
+    """int16 NoData values (-32768) should be clipped to 0 cleanly."""
+    array = np.array([[[np.iinfo(np.int16).min, 1000, 32767]]], dtype=np.int16)
+    tensor = _normalize_image_array(array, path="fake_nodata16.tif")
+
+    assert float(tensor[0, 0, 0]) == pytest.approx(0.0)
+    assert float(tensor[0, 0, 2]) == pytest.approx(1.0)
+
+
+def test_normalize_positive_integers_unchanged() -> None:
+    """Arrays with only non-negative integers are normalized identically to before."""
+    array = np.array([[[0, 128, 255]]], dtype=np.uint8)
+    tensor = _normalize_image_array(array, path="normal.png")
+
+    assert float(tensor[0, 0, 0]) == pytest.approx(0.0)
+    assert float(tensor[0, 0, 1]) == pytest.approx(128 / 255, abs=1e-4)
+    assert float(tensor[0, 0, 2]) == pytest.approx(1.0)
