@@ -34,8 +34,9 @@ Do not silently switch publication experiments to random initialization.
 
 ## Channel Mismatch
 
-The configured `data.channels` must equal every sample's band count. For NPY,
-also ensure one axis unambiguously matches that count.
+The configured `data.channels` must exactly match the number of bands present in the imagery. For NPY arrays, ensure one axis unambiguously matches that count. 
+
+**Exception:** If you configure `channels: 3` (e.g. to use standard RGB pretrained models), but you pass a single-channel image (like a grayscale image or a 1-band climatic GeoTIFF), the loader will automatically broadcast the 1 channel to 3 channels. This allows you to use official Hugging Face ImageNet ViT weights on single-band GIS data without encountering shape errors.
 
 ## GeoTIFF NoData Values Causing Crashes
 

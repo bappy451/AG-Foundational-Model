@@ -58,8 +58,8 @@ python -m pytest -q
 ```
 
 The first pretrained run may download official ImageNet, DINOv2, DINOv3, or
-MAE weights through `timm` and Hugging Face Hub. Later runs use the local model
-cache.
+MAE weights through `timm` and Hugging Face Hub. Later runs use the project's local
+`models/` cache instead of your global system cache.
 
 For the complete operational sequence, expected outputs, RTX 4090 settings, and
 post-training research checklist, see [Project runbook and audit report](docs/runbook.md).
