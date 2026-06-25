@@ -390,6 +390,7 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
     set_global_seed(args.seed)
     resume_checkpoint = _resolve_resume_checkpoint(args)
     initialize_checkpoint = _resolve_initialize_checkpoint(args)
+    print("[train-mim] Scanning dataset directories and catalog (this may take several minutes on slow storage)...", flush=True)
     train_loader, val_loader = get_dataloaders(
         args.data_root,
         batch_size=args.batch_size,
@@ -401,7 +402,10 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
         num_workers=args.num_workers,
         prefetch_factor=args.prefetch_factor,
         catalog_path=args.catalog_path,
+        train_augment=True,
+        val_augment=False,
     )
+    print(f"[train-mim] Constructing RemoteSensingMIMModel (ViT-{args.model_name}) and loading weights...", flush=True)
     model = RemoteSensingMIMModel(
         in_channels=args.channels,
         image_size=args.crop_size,
@@ -433,6 +437,7 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
         args.pretrained_backbone and resume_checkpoint is None and initialize_checkpoint is None
     )
     run_config["effective_batch_size"] = int(args.batch_size) * int(args.gradient_accumulation_steps)
+    print("[train-mim] Assembling trainer, optimizers, and schedulers...", flush=True)
     trainer = SSLTrainer(
         model,
         train_loader,

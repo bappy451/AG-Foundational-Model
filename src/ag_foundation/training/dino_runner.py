@@ -367,6 +367,7 @@ def run_train_dino(args: argparse.Namespace, *, command_argv: list[str] | None =
     set_global_seed(args.seed)
     resume_checkpoint = _resolve_resume_checkpoint(args)
     initialize_checkpoint = _resolve_initialize_checkpoint(args)
+    print("[train-dino] Scanning dataset directories and catalog (this may take several minutes on slow storage)...", flush=True)
     train_loader, val_loader = get_dataloaders(
         args.data_root,
         batch_size=args.batch_size,
@@ -388,6 +389,7 @@ def run_train_dino(args: argparse.Namespace, *, command_argv: list[str] | None =
         global_crop_scale=_pair(args.global_crop_scale),
         local_crop_scale=_pair(args.local_crop_scale),
     )
+    print(f"[train-dino] Constructing RemoteSensingDINOModel (ViT-{args.model_name}) and loading weights...", flush=True)
     model = RemoteSensingDINOModel(
         in_channels=args.channels,
         image_size=args.crop_size,
@@ -423,6 +425,7 @@ def run_train_dino(args: argparse.Namespace, *, command_argv: list[str] | None =
         args.pretrained_backbone and resume_checkpoint is None and initialize_checkpoint is None
     )
     run_config["effective_batch_size"] = int(args.batch_size) * int(args.gradient_accumulation_steps)
+    print("[train-dino] Assembling trainer, optimizers, and schedulers...", flush=True)
     trainer = DINOTrainer(
         model,
         train_loader,
