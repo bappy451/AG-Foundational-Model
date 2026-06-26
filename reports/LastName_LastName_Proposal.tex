@@ -1,0 +1,36 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{cvpr}
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+
+\title{Sensor-Adaptive Agricultural Vision Foundation Models}
+
+\author{
+First Author LastName
+\and
+Second Author LastName
+}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+This project investigates whether continual self-supervised pretraining can transform official pretrained vision transformers into robust agricultural foundation models that transfer across crops, image sources, acquisition scales, and sensing modalities. The problem is significant because agricultural labels are expensive to collect, available datasets are fragmented across narrow tasks, and standard vision transformers assume three-channel RGB input even though practical agricultural pipelines increasingly include multispectral and geospatial imagery. A successful model would reduce annotation requirements and provide stronger representations for downstream agricultural analysis under real domain shift.
+
+\section{Problem Statement}
+We propose a sensor-adaptive pretraining pipeline built on official ViT-S, ViT-B, and ViT-L backbones initialized from ImageNet, DINOv2, DINOv3, or MAE checkpoints. The current repository already implements two complementary objectives: masked image modeling (MIM) and DINO-style student-teacher continual pretraining. Our method uses the existing codebase as the baseline implementation and introduces a learnable $1 \times 1$ band adapter so the same backbone can ingest RGB data now and extend to multispectral data later. We will compare ImageNet-only initialization, MIM-only continual pretraining, DINO-only continual pretraining, and sequential MIM-to-DINO training. We expect agricultural continual pretraining to improve transfer performance, especially in low-label settings and on held-out domains, while adapter-based sensor alignment should outperform naive RGB-only reuse once real multispectral data are included.
+
+\section{Data}
+The current local corpus contains more than 70 agricultural sources and approximately 1.87 million RGB images, with strong coverage of plant disease, species identification, weeds, and seedlings. This corpus is sufficient for an initial RGB pretraining stage, but the repository documentation also identifies an important gap: true GeoTIFF, near-infrared, and multispectral agricultural data remain underrepresented. Accordingly, we will first curate and freeze a provenance-aware RGB corpus, then extend it with field-scale UAV, Sentinel-2, Landsat, or other georeferenced agricultural imagery that includes additional spectral bands. We will document licenses, versions, dataset provenance, and train-validation-test boundaries before large-scale experiments.
+
+\section{Background Reading}
+To ground the project, we will study the original Vision Transformer work, MAE, DINOv2, and DINOv3, together with recent research on agricultural foundation models, remote-sensing representation learning, and data-governance practices for cross-domain evaluation. This reading will guide both the pretraining design and the evaluation protocol, particularly for questions involving transfer under crop, geography, and sensor shift.
+
+\section{Evaluation}
+Qualitatively, we expect stable training curves, meaningful reconstruction figures for MIM, and coherent student-teacher similarity diagnostics for DINO-style training. Quantitatively, we will evaluate the pretrained representations through linear probing, few-shot transfer, and full fine-tuning on downstream agricultural tasks. Planned metrics include accuracy and macro-F1 for classification, with mAP or IoU added if detection or segmentation benchmarks are incorporated. To measure generalization rigorously, we will hold out entire crops, datasets, farms, geographies, seasons, or sensors rather than relying only on random image splits. Where compute permits, we will report mean and standard deviation across multiple seeds.
+
+\section{Timeline}
+\textbf{Week 1:} finalize corpus curation, verify provenance, and identify missing multispectral or geospatial sources. \textbf{Week 2:} run ViT-S MIM and DINO baseline recipe selection on the curated RGB corpus. \textbf{Week 3:} incorporate true multispectral or GeoTIFF sources and execute adapter-focused ablations. \textbf{Week 4:} evaluate transfer under low-label and held-out-domain protocols. \textbf{Week 5:} repeat critical experiments where feasible, consolidate figures and analysis, and prepare the midterm report and presentation.
+
+\end{document}
