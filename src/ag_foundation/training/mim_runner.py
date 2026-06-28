@@ -31,7 +31,7 @@ TRAIN_MIM_DEFAULTS: dict[str, Any] = {
     "seed": 27,
     "crop_size": 224,
     "channels": 3,
-    "prefetch_factor": 2,
+    "prefetch_factor": 4,
     "gradient_accumulation_steps": 1,
     "model_name": "S",
     "pretrained_backbone": True,
@@ -42,8 +42,9 @@ TRAIN_MIM_DEFAULTS: dict[str, Any] = {
     "drop_rate": 0.0,
     "attn_drop_rate": 0.0,
     "drop_path_rate": 0.0,
-    "precision": "fp32",
-    "num_workers": 0,
+    "precision": "bf16",
+    "num_workers": 8,
+    "compile": False,
     "learning_rate": 1e-4,
     "weight_decay": 1e-4,
     "warmup_epochs": 0,
@@ -185,6 +186,7 @@ def build_train_mim_parser(config_defaults: dict[str, Any] | None = None) -> arg
     parser.add_argument("--drop-path-rate", type=float, default=defaults["drop_path_rate"])
     parser.add_argument("--precision", choices=("fp32", "fp16", "bf16"), default=defaults["precision"])
     parser.add_argument("--num-workers", type=int, default=defaults["num_workers"])
+    parser.add_argument("--compile", action=argparse.BooleanOptionalAction, default=defaults.get("compile", False), help="Compile model using torch.compile")
     parser.add_argument("--learning-rate", type=float, default=defaults["learning_rate"])
     parser.add_argument("--weight-decay", type=float, default=defaults["weight_decay"])
     parser.add_argument("--warmup-epochs", type=int, default=defaults["warmup_epochs"])
@@ -423,6 +425,11 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
     if initialize_checkpoint is not None:
         checkpoint = load_training_checkpoint(initialize_checkpoint)
         model.initialize_from_state_dict(checkpoint.get("model_state_dict", checkpoint))
+        
+    if getattr(args, "compile", False):
+        print(f"[train-mim] Compiling model with torch.compile...", flush=True)
+        model = torch.compile(model)
+        
     optimizer = torch.optim.AdamW(
         [parameter for parameter in model.parameters() if parameter.requires_grad],
         lr=args.learning_rate,
@@ -436,6 +443,7 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
     run_config["backbone_initialized_from_timm"] = bool(
         args.pretrained_backbone and resume_checkpoint is None and initialize_checkpoint is None
     )
+    run_config["compile"] = getattr(args, "compile", False)
     run_config["effective_batch_size"] = int(args.batch_size) * int(args.gradient_accumulation_steps)
     print("[train-mim] Assembling trainer, optimizers, and schedulers...", flush=True)
     trainer = SSLTrainer(

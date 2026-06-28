@@ -133,6 +133,9 @@ class SSLTrainer:
             torch,
             enabled=self.device.type == "cuda" and precision == "fp16",
         )
+        if self.device.type == "cuda":
+            torch.set_float32_matmul_precision("high")
+            torch.backends.cudnn.benchmark = True
 
     def _autocast_context(self):
         import contextlib

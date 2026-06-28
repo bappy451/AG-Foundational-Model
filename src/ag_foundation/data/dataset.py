@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import functools
 import io
 import math
 import random
+import tarfile
 import zipfile
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -16,14 +18,44 @@ import torch.nn.functional as F
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.distributed import DistributedSampler
+import warnings
+
+try:
+    from rasterio.errors import NotGeoreferencedWarning
+    warnings.filterwarnings("ignore", category=NotGeoreferencedWarning)
+except ImportError:
+    pass
 
 SUPPORTED_IMAGE_EXTENSIONS = frozenset({".jpg", ".jpeg", ".png", ".tif", ".tiff", ".npy"})
 SUPPORTED_ARCHIVE_EXTENSIONS = frozenset({".zip"})
+SUPPORTED_TAR_EXTENSIONS = frozenset({".tar", ".tar.gz", ".tgz"})
+
+# Path tokens that identify ground-truth masks / label maps — excluded from training.
+_GT_TOKENS = (
+    "/masks/", "/mask/", "_mask.", "_masks.", "mask.",
+    "/labels/", "/label/", "_label.", "label.",
+    "_gt.", "_groundtruth.", "/gt/", "/annotations/",
+    "_boundary.", "_plant.", "_weed.",
+)
+
+
+def _is_ground_truth_path(path: str) -> bool:
+    """Return True if *path* looks like a mask, label, or ground-truth file."""
+    p = path.lower().replace("\\", "/")
+    return any(tok in p for tok in _GT_TOKENS)
 PRECISION_DTYPES = {
     "fp32": torch.float32,
     "fp16": torch.float16,
     "bf16": torch.bfloat16,
 }
+
+
+@functools.lru_cache(maxsize=1024)
+def _resolve_source_path(source_text: str, base_dir_str: str) -> Path:
+    source_path = Path(source_text).expanduser()
+    if not source_path.is_absolute():
+        source_path = (Path(base_dir_str) / source_path).resolve()
+    return source_path
 
 
 @dataclass(frozen=True)
@@ -81,7 +113,12 @@ class AgricultureImageDataset(Dataset[dict[str, Any]]):
         return len(self.records)
 
     def __getitem__(self, index: int) -> dict[str, Any]:
-        record = self.records[index]
+        item = self.records[index]
+        if type(item) is tuple:
+            record = self._record_from_uri(item[0], item[1]) # type: ignore
+        else:
+            record = item # type: ignore
+            
         image = self._load_image(record)
         actual_channels = int(image.shape[0])
         if self.channels is not None and actual_channels != self.channels:
@@ -142,32 +179,33 @@ class AgricultureImageDataset(Dataset[dict[str, Any]]):
 
     def _resolve_records(
         self,
-        files: Sequence[ImageRecord | str | Path] | None,
-    ) -> list[ImageRecord]:
+        files: Sequence[ImageRecord | tuple[str, str] | str | Path] | None,
+    ) -> list[ImageRecord | tuple[str, str]]:
         if files is not None:
-            records = [self._coerce_record(item) for item in files]
+            records: list[ImageRecord | tuple[str, str]] = [self._coerce_record(item) for item in files]
         elif self.catalog_path is not None:
             if not self.catalog_path.exists():
                 raise FileNotFoundError(f"Catalog file not found: {self.catalog_path}")
             frame = pd.read_csv(self.catalog_path)
             if "path" not in frame.columns:
                 raise ValueError(f"Catalog CSV {self.catalog_path} must contain a 'path' column.")
-            groups = frame["group"].tolist() if "group" in frame.columns else [None] * len(frame)
-            records = [
-                self._record_from_uri(str(uri), group=None if group is None or pd.isna(group) else str(group))
-                for uri, group in zip(frame["path"].tolist(), groups)
-            ]
+            frame["group"] = frame["group"].fillna("unknown")
+            # Convert paths and groups directly to tuples to save ~30GB of RAM and massive startup delays
+            records = list(zip(frame["path"].astype(str).tolist(), frame["group"].astype(str).tolist()))
         else:
             records = self._scan_root()
 
-        records = sorted(records, key=lambda record: record.uri)
+        # Sort only if it's not a tuple list (catalog is already sorted/randomized by builder)
+        if records and isinstance(records[0], ImageRecord):
+            records = sorted(records, key=lambda record: record.uri) # type: ignore
+
         if not records:
             supported = ", ".join(sorted(SUPPORTED_IMAGE_EXTENSIONS))
             raise ValueError(f"No supported imagery found under {self.root}. Supported: {supported}")
         return records
 
-    def _coerce_record(self, item: ImageRecord | str | Path) -> ImageRecord:
-        if isinstance(item, ImageRecord):
+    def _coerce_record(self, item: ImageRecord | tuple[str, str] | str | Path) -> ImageRecord | tuple[str, str]:
+        if isinstance(item, (ImageRecord, tuple)):
             return item
         return self._record_from_uri(str(item))
 
@@ -177,10 +215,8 @@ class AgricultureImageDataset(Dataset[dict[str, Any]]):
         if source_text == "" and self.root.is_file():
             source_path = self.root
         else:
-            source_path = Path(source_text).expanduser()
-            if not source_path.is_absolute():
-                base_dir = self.root if self.root.is_dir() else self.root.parent
-                source_path = (base_dir / source_path).resolve()
+            base_dir = self.root if self.root.is_dir() else self.root.parent
+            source_path = _resolve_source_path(source_text, str(base_dir))
         archive_chain = tuple(parts[1:])
         if group is None:
             group = _derive_group(source_path, archive_chain, root=self.root)
@@ -256,7 +292,9 @@ class AgricultureImageDataset(Dataset[dict[str, Any]]):
                     )
         return records
 
-    def _inspect_channel_count(self, record: ImageRecord) -> int:
+    def _inspect_channel_count(self, record: Any) -> int:
+        if type(record) is tuple:
+            record = self._record_from_uri(record[0], record[1])
         suffix = record.suffix
         if suffix in {".jpg", ".jpeg", ".png"}:
             return 3
@@ -300,6 +338,14 @@ class AgricultureImageDataset(Dataset[dict[str, Any]]):
         if not record.archive_chain:
             return record.source_path.read_bytes()
 
+        archive_name = record.source_path.name.lower()
+        inner_path = record.archive_chain[-1]  # The path inside the archive
+
+        # TAR / TAR.GZ archives (PlantCLEF 2024/2025 and Agriculture-Vision)
+        if archive_name.endswith(".tar.gz") or archive_name.endswith(".tar"):
+            return _read_tar_member(record.source_path, inner_path)
+
+        # ZIP archives (legacy path — nested ZIP supported)
         current_bytes: bytes | None = None
         current_archive_path = record.source_path
         for depth, member_name in enumerate(record.archive_chain):
@@ -460,14 +506,15 @@ def _seed_worker(worker_id: int) -> None:
 
 
 def _split_records_by_group(
-    records: Sequence[ImageRecord],
+    records: Sequence[Any],
     *,
     val_fraction: float,
     seed: int,
-) -> tuple[list[ImageRecord], list[ImageRecord]]:
-    grouped: dict[str, list[ImageRecord]] = {}
+) -> tuple[list[Any], list[Any]]:
+    grouped: dict[str, list[Any]] = {}
     for record in records:
-        grouped.setdefault(record.group, []).append(record)
+        group = record.group if isinstance(record, ImageRecord) else record[1]
+        grouped.setdefault(group, []).append(record)
     groups = sorted(grouped)
     if len(groups) < 2:
         raise ValueError("At least two source groups are required for a train/validation split.")
@@ -500,11 +547,11 @@ def _split_records_by_group(
         val_samples += len(grouped[best_group])
     train_records = sorted(
         (record for group, items in grouped.items() if group not in val_groups for record in items),
-        key=lambda record: record.uri,
+        key=lambda record: record.uri if isinstance(record, ImageRecord) else record[0],
     )
     val_records = sorted(
         (record for group, items in grouped.items() if group in val_groups for record in items),
-        key=lambda record: record.uri,
+        key=lambda record: record.uri if isinstance(record, ImageRecord) else record[0],
     )
     return train_records, val_records
 
@@ -734,6 +781,21 @@ def _uniform(low: float, high: float) -> float:
 
 def _should_skip_member_name(member_name: str) -> bool:
     return _should_skip_member_parts(PurePosixPath(member_name).parts)
+
+
+def _read_tar_member(archive_path: Path, inner_path: str) -> bytes:
+    """Extract a single member from a TAR or TAR.GZ archive by path.
+
+    Uses streaming mode (``r:`` / ``r:gz``) which does not require seeking
+    and works correctly on files stored sequentially without a central index.
+    """
+    mode = "r:gz" if archive_path.name.lower().endswith(".tar.gz") else "r:"
+    with tarfile.open(archive_path, mode) as tf:
+        member = tf.getmember(inner_path)
+        fobj = tf.extractfile(member)
+        if fobj is None:
+            raise OSError(f"Cannot extract '{inner_path}' from '{archive_path}'.")
+        return fobj.read()
 
 
 def _should_skip_member_parts(parts: Sequence[str]) -> bool:

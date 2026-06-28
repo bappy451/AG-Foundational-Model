@@ -7,7 +7,7 @@ answers three questions:
 2. What should I expect after each command?
 3. What should I do after the project runs correctly?
 
-It reflects the implementation audited on 2026-06-24.
+It reflects the implementation audited on 2026-06-28.
 
 ## Current Project Status
 
@@ -16,7 +16,7 @@ single workstation. It supports:
 
 - official `timm` ViT-S, ViT-B, and ViT-L backbones
 - ImageNet, DINOv2, DINOv3, and MAE checkpoint initialization
-- RGB, GeoTIFF, multispectral NPY, folder, ZIP, and nested-ZIP inputs
+- RGB, GeoTIFF, multispectral NPY, folder, ZIP, TAR, TAR.GZ, and nested-ZIP inputs
 - a learnable 1x1 band adapter before the official RGB ViT backbone
 - MIM and DINO-style pretraining
 - continual pretraining through `initialize_from`
@@ -458,52 +458,45 @@ If CUDA OOM occurs, reduce `batch_size` to 4 and increase
 
 Resume works automatically: re-running the same command picks up from `last.pt`.
 
-## Step 11: Prepare Real Data
+## Step 11: Build Or Rebuild The Pretraining Catalog
 
-The project now supports **Multi-Source Data Loading**, allowing you to pretrain seamlessly across dozens of different ZIP archives without extracting them. Before training, you need to generate a master catalog that maps all valid images across these ZIPs.
+The clean pretraining catalog (`Pretraining/catalog.csv`) indexes all **5,175,016** images
+across 37 ZIP archives, 4 TAR archives (including 3 PlantCLEF TARs totalling ~655 GB),
+and extracted directories such as OPPD. It automatically excludes:
 
-To scan the `Pretraining` directory and build the master pretraining catalog, run:
+- Ground-truth / mask files (paths matching `_mask`, `/labels/`, `/gt/`, etc.)
+- The `Pretraining/Evaluation/` directory (reserved for downstream benchmarks)
+- Known duplicate ZIP archives (3 pairs de-duplicated automatically)
 
-```bash
-python scripts/build_pretraining_catalog.py \
-  --pretraining-root ../Pretraining \
-  --output-path catalogs/pretraining_master.csv \
-  --exclude-sources "Toxic Plant Classification" "Edible wild plants" \
-      "Pea Plant dataset" "Indian Medicinal Plant Image Dataset" \
-      "Agriculture crop images" "Paddy Doctor- Paddy Disease Classification" \
-      "GeoPlant_ Spatial Plant Species Prediction Dataset-008" \
-      "Pumpkin Leaf Diseases Dataset From Bangladesh" \
-      "PlantSeg_ A Large-Scale In-the-wild Dataset for Plant Disease Segmentation" \
-      "corn-kernel-counting" "longitudinal-nutrient-deficiency"
+To regenerate the catalog from scratch (e.g. after adding new datasets):
+
+```powershell
+conda activate ag-foundation
+cd E:\AG_Dataset\AG-Foundational-Model
+$env:PYTHONIOENCODING="utf-8"; $env:PYTHONUTF8="1"
+python -u scripts/build_pretraining_catalog.py
 ```
 
-This script will:
-- Iterate through all ZIP files and directories.
-- Automatically exclude known duplicate ZIP files.
-- Exclude the specified held-out datasets (reserved purely for evaluation).
-- Create a comprehensive `.csv` with `path`, `group`, and `source_dataset` tracking.
+The script will print live progress as it streams through each archive.  Expected runtime:
+30–90 minutes for the full ~1 TB of archives.
 
-For large GeoTIFF scenes, you can slice them into tiles:
+Verify the output:
 
-```bash
-python -m ag_foundation slice-geotiffs \
-  --input-path /path/to/geotiff_scenes \
-  --output-dir /path/to/geotiff_tiles \
-  --tile-size 224 \
-  --stride 224 \
-  --output-format tif
+```powershell
+python -c "
+import csv
+with open(r'..\Pretraining\catalog.csv') as f:
+    rows = list(csv.reader(f))
+print(f'Total rows (incl. header): {len(rows):,}')
+print('First row:', rows[1])
+"
 ```
 
-Expected result:
+Expected: approximately **5,175,016** data rows.
 
-- `catalogs/pretraining_master.csv` contains thousands of rows, balancing data from all sources.
-- GeoTIFF tiles preserve georeferencing when written as `.tif`.
-
-What to do next:
-
-- Review the comprehensive pretraining methodology outlined in `docs/pretraining_implementation_plan.md`.
-- Decide the exact number of channels for each run.
-- Keep separate runs for RGB-only and multispectral experiments if the channel counts differ.
+The catalog is loaded in the DataLoader via the `catalog_path` config key — the dataset
+class parses it, resolves each `archive.zip::inner/path.jpg` or `archive.tar::inner/path.jpg`
+reference, and opens images on demand without pre-extracting anything to disk.
 
 ## Step 12: Configure A Real MIM Run
 
@@ -518,12 +511,12 @@ Edit the important fields:
 ```yaml
 data:
   data_root: ../Pretraining
-  catalog_path: null
+  catalog_path: ../Pretraining/catalog.csv
   crop_size: 224
   channels: 3
   batch_size: 4
-  num_workers: 4
-  val_fraction: 0.1
+  num_workers: 8
+  val_fraction: 0.05
 
 runtime:
   output_dir: ../runs/mim_vit_b_ag
@@ -581,12 +574,12 @@ Recommended first DINO config for a 4090:
 ```yaml
 data:
   data_root: ../Pretraining
-  catalog_path: null
+  catalog_path: ../Pretraining/catalog.csv
   crop_size: 224
   channels: 3
   batch_size: 4
-  num_workers: 4
-  val_fraction: 0.1
+  num_workers: 8
+  val_fraction: 0.05
 
 runtime:
   output_dir: ../runs/dino_vit_s_ag

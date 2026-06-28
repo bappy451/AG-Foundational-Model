@@ -75,7 +75,23 @@ is `None`.  Both caused shape errors or `RuntimeError` crashes.
 
 ---
 
-### 4. Multi-Source Dataset Bug Fixes ✅
+### 4. TAR Archive and 5.17M Catalog Integration ✅
+
+**Problem:** The 3 large PlantCLEF datasets were distributed as nested TAR/TAR.GZ archives containing over 3 million images, which `dataset.py` natively did not support. The data loading relied purely on crawling ZIPs, omitting 655GB of valid imagery. Furthermore, ground-truth masks were implicitly getting read into the training loader.
+
+**Solution:** 
+1. Added a `scripts/build_pretraining_catalog.py` workflow to index all images without extraction, generating a `catalog.csv` of 5,175,016 validated images.
+2. Filtered out all `_mask`, `labels`, and `Evaluation/` directories in the catalog generator, and double-filtered in `dataset.py`'s catalog loading routine.
+3. Added `_read_tar_member` using `tarfile` streaming to `dataset.py` allowing instant random-access to TAR elements for PlantCLEF support.
+
+**Files changed:**
+- `src/ag_foundation/data/dataset.py` — added `tarfile` streaming support and tight `_is_ground_truth_path` filters.
+- `scripts/build_pretraining_catalog.py` — new index builder script.
+- All configs (`smoke_test.yaml`, `pretraining_full.yaml`, etc.) updated to use the new catalog.
+
+---
+
+### 5. Multi-Source Dataset Bug Fixes ✅
 
 Several latent bugs in `multi_source_dataset.py` were also corrected:
 
@@ -85,6 +101,36 @@ Several latent bugs in `multi_source_dataset.py` were also corrected:
 | Duplicate `_load_image(record)` call | `__getitem__` line 302 | Removed second call |
 | Unused `random` import | top-level | Removed |
 | Unused `numpy` import | top-level | Replaced with `F` import |
+
+---
+
+### 6. DataLoader Memory & I/O Bottleneck Fix (5.17M Items) ✅
+
+**Problem:** Scaling to 5.17 million images caused the initialization script to allocate millions of heavy Python `ImageRecord` objects, skyrocketing system RAM usage over 30 GB and causing the garbage collector to thrash. In addition, 5.17 million absolute path resolutions using `Path.resolve()` created a severe Windows I/O lock, stalling initialization for an hour.
+
+**Solution:** 
+1. Rewrote the `_resolve_records` logic to store lightweight `tuple[str, str]` primitives directly from pandas, drastically dropping RAM to <1GB.
+2. The `__getitem__` method now instantiates `ImageRecord` lazily on-the-fly.
+3. Path resolution was accelerated by grouping archives and caching via `@functools.lru_cache`.
+
+**Files changed:**
+- `src/ag_foundation/data/dataset.py`
+
+---
+
+### 7. RTX 4090 / PyTorch Resource Optimization ✅
+
+**Problem:** Default arguments severely bottlenecked GPU utilization (`num_workers=0`, `precision=fp32`), leaving 24 logical CPU cores idle and wasting GPU VRAM. Standard fp32 computation also leaves Ada Lovelace Tensor Cores heavily underutilized.
+
+**Solution:**
+1. Altered runner defaults to `num_workers=8`, `prefetch_factor=4`, and `precision=bf16`.
+2. Injected `torch.set_float32_matmul_precision("high")` and `torch.backends.cudnn.benchmark = True` in the base `SSLTrainer` to ensure operations utilize native hardware tensor cores efficiently.
+3. Added a `--compile` flag to allow optional PyTorch 2.0 graph compilation.
+
+**Files changed:**
+- `src/ag_foundation/training/mim_runner.py`
+- `src/ag_foundation/training/dino_runner.py`
+- `src/ag_foundation/training/ssl_trainer.py`
 
 ---
 

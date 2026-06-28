@@ -50,7 +50,7 @@ Recommended initial experiment:
 - crop divisible by the selected patch size
 - official checkpoint initialization
 - mask ratio 0.75
-- bf16 on an RTX 4090; fp16 is a fallback
+- `bf16` on an RTX 4090 (this is the new default).
 - batch size 4 to 8 with `gradient_accumulation_steps: 2` or higher as needed
 - 50 to 200 epochs depending on corpus size
 - group-disjoint validation
@@ -59,7 +59,7 @@ Recommended initial experiment:
 Run:
 
 ```bash
-bash scripts/train_mim.sh --config configs/my_mim.yaml
+bash scripts/train_mim.sh --config configs/my_mim.yaml --compile
 ```
 
 ## Production DINO
@@ -73,7 +73,7 @@ Publication comparisons must report the exact head, crop, precision, and
 accumulation settings.
 
 ```bash
-bash scripts/train_dino.sh --config configs/my_dino.yaml
+bash scripts/train_dino.sh --config configs/my_dino.yaml --compile
 ```
 
 ## Continual Pretraining Meaning
@@ -119,7 +119,8 @@ Explicit:
 python -m ag_foundation train-dino \
   --config configs/my_dino.yaml \
   --epochs 100 \
-  --resume-from runs/my_run/last.pt
+  --resume-from runs/my_run/last.pt \
+  --compile
 ```
 
 If the checkpoint completed epoch 40 and `epochs` is 100, training continues at

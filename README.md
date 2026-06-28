@@ -118,10 +118,11 @@ model:
 uses patch size 14, while ImageNet, DINOv3, and MAE use patch size 16. Pick a
 crop size divisible by the selected patch size.
 
-For a single RTX 4090, start with `precision: bf16`, `batch_size: 4` to `8`,
+For a single RTX 4090, start with `precision: bf16` (the new default), `batch_size: 4` to `8`,
 `gradient_accumulation_steps: 2` or higher as needed, and
 `gradient_checkpointing: true` for ViT-B or ViT-L runs. The shipped example
-configs already show that pattern.
+configs already show that pattern. For additional performance, append the `--compile` flag 
+to enable PyTorch 2.0 graph compilation, which utilizes TF32 and CuDNN autotuning globally.
 
 To continue from a previous SSL stage without resuming optimizer state, set
 `runtime.initialize_from` to the earlier `last.pt`. That is the clean way to do
@@ -173,8 +174,7 @@ python scripts/analyze_pretraining_dataset.py \
 
 The audit writes Markdown, JSON, and CSV reports with local image counts, format
 mix, manifest coverage, likely image/task types, missing sources, and recommended
-dataset additions. The current audit found 412,454 image-like files across 13
-local ZIP datasets, with no local GeoTIFF/NPY multispectral files detected.
+dataset additions. The current pretraining catalog successfully indexes **5,175,016 validated images** across ~1 TB of ZIP and TAR archives.
 
 ## Live Metrics And Outputs
 
@@ -292,7 +292,7 @@ automatically verifies installation and tests on Linux, macOS, and Windows.
 The repository has been tested with:
 
 - package installation through `pip install -e .`
-- `64 passed` in the full automated test suite with rasterio available
+- `124 passed` in the full automated test suite with rasterio available
 - official pretrained ViT-S MIM on five-band NPY input
 - official pretrained ViT-S DINO on RGB and five-band NPY input
 - two-epoch checkpoint resume for both objectives
