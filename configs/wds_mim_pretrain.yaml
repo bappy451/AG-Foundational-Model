@@ -1,30 +1,30 @@
-# High-Performance DINO Pretraining Configuration (WebDataset)
+# High-Performance MIM Pretraining Configuration (WebDataset)
 # Uses the massive 650GB dataset sharded into 1GB tarballs.
 #
 # Usage (Google Colab / Linux):
-#   python -m ag_foundation train-dino --config configs/wds_dino_pretrain.yaml --use-dali
+#   python -m ag_foundation train-mim --config configs/wds_mim_pretrain.yaml --use-dali
 #
 # Usage (Windows Local CPU-based WDS):
-#   python -m ag_foundation train-dino --config configs/wds_dino_pretrain.yaml
+#   python -m ag_foundation train-mim --config configs/wds_mim_pretrain.yaml
 
 data:
   data_root: 'E:\AG_Dataset\shards\dataset-*.tar'
   catalog_path: null
   crop_size: 224
   channels: 3
-  batch_size: 16
+  batch_size: 96
   num_workers: 12
   prefetch_factor: 2
   val_fraction: 0.05
 
 runtime:
-  output_dir: ../runs/wds_dino_pretraining
+  output_dir: ../runs/wds_mim_pretraining
   epochs: 2
   seed: 27
   precision: bf16
   device: auto
   warmup_epochs: 1
-  gradient_accumulation_steps: 8
+  gradient_accumulation_steps: 2
   resume: true
   resume_from: null
   initialize_from: null
@@ -38,19 +38,7 @@ model:
   pretrained_backbone: true
   pretrained_source: dinov3
   pretrained_cfg: null
-  dino_out_dim: 65536
-  dino_hidden_dim: 2048
-  dino_bottleneck_dim: 256
-  head_nlayers: 3
-  num_global_crops: 2
-  num_local_crops: 8
-  global_crop_scale: [0.6, 1.0]
-  local_crop_scale: [0.3, 0.6]
-  student_temperature: 0.1
-  teacher_temperature: 0.04
-  teacher_momentum_start: 0.996
-  teacher_momentum_end: 1.0
-  center_momentum: 0.9
+  mask_ratio: 0.75
   gradient_checkpointing: false
   drop_rate: 0.0
   attn_drop_rate: 0.0

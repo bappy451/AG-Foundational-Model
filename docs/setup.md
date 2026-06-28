@@ -3,9 +3,17 @@
 ## Supported Platforms
 
 - Linux with CPU or CUDA
+- Google Colab (Linux + CUDA 12 + NVIDIA DALI)
 - macOS with CPU or Apple MPS
 - Windows with CPU or CUDA
 - Python 3.9 or newer; Python 3.11 is recommended
+
+## Google Colab (DALI)
+When deploying to Google Colab, you can supercharge data loading with NVIDIA DALI. Ensure you have a GPU runtime selected (T4, L4, or A100).
+Run this in a cell to install DALI before executing the training script:
+```bash
+!pip install --extra-index-url https://developer.download.nvidia.com/compute/redist --upgrade nvidia-dali-cuda120
+```
 
 ## Fresh Clone
 

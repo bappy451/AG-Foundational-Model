@@ -232,7 +232,16 @@ class SSLTrainer:
         last_loss = 0.0
         optimizer_steps = 0
 
-        for step_index, batch in enumerate(self.train_loader, start=1):
+        from tqdm import tqdm
+
+        pbar = tqdm(
+            self.train_loader,
+            desc=f"train-mim epoch={epoch_index + 1}/{total_epochs}",
+            leave=False,
+            dynamic_ncols=True,
+        )
+
+        for step_index, batch in enumerate(pbar, start=1):
             loss = self._compute_loss(batch)
             if not torch.isfinite(loss):
                 raise FloatingPointError("Encountered a non-finite SSL loss.")
@@ -247,27 +256,23 @@ class SSLTrainer:
                 self.optimizer_step_count += 1
                 optimizer_steps += 1
                 self.optimizer.zero_grad(set_to_none=True)
+            avg_loss = total_loss / total_batches
+            lr = self._current_learning_rate()
+
             if self.progress_callback is not None:
-                total_work = total_epochs * num_batches
-                completed_work = (epoch_index * num_batches) + step_index - 1
-                avg_loss = total_loss / total_batches
-                lr = self._current_learning_rate()
-                accum_position = ((step_index - 1) % self.gradient_accumulation_steps) + 1
-                detail = (
-                    f"ep {epoch_index + 1}/{total_epochs} | "
-                    f"batch {step_index}/{num_batches} | "
-                    f"accum {accum_position}/{self.gradient_accumulation_steps} | "
-                    f"update {optimizer_steps}/{num_optimizer_steps} | "
-                    f"loss {last_loss:.4f} (avg {avg_loss:.4f}) | "
-                    f"lr {lr:.6f}"
-                )
-                self.progress_callback(completed_work, total_work, detail=detail)
+                # Update TQDM postfix instead of printing
+                pbar.set_postfix({
+                    "loss": f"{last_loss:.4f}",
+                    "avg_loss": f"{avg_loss:.4f}",
+                    "lr": f"{lr:.6f}"
+                })
             if step_index % self.log_every == 0:
-                print(
-                    f"train-mim epoch={epoch_index + 1} step={step_index}/{num_batches} "
-                    f"update={optimizer_steps}/{num_optimizer_steps} "
-                    f"accum={self.gradient_accumulation_steps} "
-                    f"loss={current_loss:.6f}"
+                pbar.write(
+                    f"train-mim epoch={epoch_index + 1}/{total_epochs} | "
+                    f"batch={step_index}/{num_batches} | "
+                    f"update={optimizer_steps}/{num_optimizer_steps} | "
+                    f"loss={current_loss:.6f} (avg={avg_loss:.6f}) | "
+                    f"lr={lr:.6f}"
                 )
 
         return {
@@ -283,9 +288,16 @@ class SSLTrainer:
             return {"loss": float("nan"), "batches": 0}
 
         self.model.eval()
+        from tqdm import tqdm
+
         losses: list[float] = []
         with torch.no_grad():
-            for batch in self.val_loader:
+            for batch in tqdm(
+                self.val_loader,
+                desc=f"val-mim epoch={epoch_index + 1}",
+                leave=False,
+                dynamic_ncols=True,
+            ):
                 moved_batch = _move_ssl_batch_to_device(batch, self.device)
                 with self._autocast_context():
                     loss = self.model(moved_batch["image"])

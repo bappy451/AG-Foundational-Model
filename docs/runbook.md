@@ -7,11 +7,7 @@ answers three questions:
 2. What should I expect after each command?
 3. What should I do after the project runs correctly?
 
-<<<<<<< HEAD
 It reflects the implementation audited on 2026-06-28.
-=======
-It reflects the implementation audited on 2026-06-24.
->>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
 
 ## Current Project Status
 
@@ -398,8 +394,7 @@ What to do next:
 - Add multispectral/GeoTIFF sources if the current corpus is RGB-heavy.
 
 ## Step 10.5: Full-Dataset 2-Epoch Smoke Test (RTX 4090)
-<<<<<<< HEAD
-=======
+## Step 10.5: Full-Dataset 2-Epoch Smoke Test (RTX 4090)
 
 Before a long pretraining campaign, run the full-dataset smoke test to confirm
 the entire pipeline works end-to-end on real data.
@@ -464,81 +459,10 @@ If CUDA OOM occurs, reduce `batch_size` to 4 and increase
 
 Resume works automatically: re-running the same command picks up from `last.pt`.
 
-## Step 11: Prepare Real Data
->>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
+## Step 11: Build Pretraining Data Structures
 
-Before a long pretraining campaign, run the full-dataset smoke test to confirm
-the entire pipeline works end-to-end on real data.
-
-Activate the environment:
-
-```powershell
-conda activate venv
-cd E:\AG_Dataset\AG-Foundational-Model
-```
-
-Verify CUDA:
-
-```powershell
-python -c "import torch; print(torch.cuda.get_device_name(0))"
-```
-
-Verify dataset sources are detected:
-
-```powershell
-python -c "
-from ag_foundation.data.multi_source_dataset import scan_pretraining_directory
-sources = scan_pretraining_directory('../Pretraining')
-print(f'Detected {len(sources)} source datasets')
-"
-```
-
-Run the 2-epoch smoke test:
-
-```powershell
-python -m ag_foundation train-dino --config configs/smoke_test.yaml
-```
-
-Expected output directory: `E:\AG_Dataset\runs\smoke_test_dino\`
-
-Expected files after completion:
-
-```text
-runs/smoke_test_dino/
-|-- best.pt
-|-- last.pt
-|-- metrics.csv
-|-- manifest.json
-`-- figures/
-    |-- training_metrics.png
-    |-- dino_views_ep1.png
-    `-- dino_views_ep2.png
-```
-
-Key smoke-test config values (`configs/smoke_test.yaml`):
-
-| Setting | Value |
-| --- | --- |
-| epochs | 2 |
-| batch_size | 8 |
-| gradient_accumulation_steps | 4 (effective batch = 32) |
-| precision | bf16 |
-| data_root | ../Pretraining |
-
-If CUDA OOM occurs, reduce `batch_size` to 4 and increase
-`gradient_accumulation_steps` to 8 to keep effective batch = 32.
-
-Resume works automatically: re-running the same command picks up from `last.pt`.
-
-## Step 11: Build Or Rebuild The Pretraining Catalog
-
-The clean pretraining catalog (`Pretraining/catalog.csv`) indexes all **5,175,016** images
-across 37 ZIP archives, 4 TAR archives (including 3 PlantCLEF TARs totalling ~655 GB),
-and extracted directories such as OPPD. It automatically excludes:
-
-- Ground-truth / mask files (paths matching `_mask`, `/labels/`, `/gt/`, etc.)
-- The `Pretraining/Evaluation/` directory (reserved for downstream benchmarks)
-- Known duplicate ZIP archives (3 pairs de-duplicated automatically)
+For smaller datasets, the clean pretraining catalog (`Pretraining/catalog.csv`) can index the images
+across your archives.
 
 To regenerate the catalog from scratch (e.g. after adding new datasets):
 
@@ -549,26 +473,16 @@ $env:PYTHONIOENCODING="utf-8"; $env:PYTHONUTF8="1"
 python -u scripts/build_pretraining_catalog.py
 ```
 
-The script will print live progress as it streams through each archive.  Expected runtime:
-30–90 minutes for the full ~1 TB of archives.
-
-Verify the output:
+### High-Performance WebDataset Shards (Recommended)
+For massive datasets (~1 TB), we heavily recommend building WebDataset (`.tar`) shards for maximum I/O performance on Linux and Google Colab.
 
 ```powershell
-python -c "
-import csv
-with open(r'..\Pretraining\catalog.csv') as f:
-    rows = list(csv.reader(f))
-print(f'Total rows (incl. header): {len(rows):,}')
-print('First row:', rows[1])
-"
+python src\ag_foundation\data\build_wds_shards.py \
+  --input-dir "E:\AG_Dataset\AG-Foundational-Model\Pretraining" \
+  --output-prefix "E:\AG_Dataset\shards\dataset" \
+  --max-size 1000000000
 ```
-
-Expected: approximately **5,175,016** data rows.
-
-The catalog is loaded in the DataLoader via the `catalog_path` config key — the dataset
-class parses it, resolves each `archive.zip::inner/path.jpg` or `archive.tar::inner/path.jpg`
-reference, and opens images on demand without pre-extracting anything to disk.
+This generates ~1GB `.tar` shards which can be sequentially streamed across the network directly into GPU memory using DALI.
 
 ## Step 12: Configure A Real MIM Run
 
@@ -889,3 +803,21 @@ The next major work is scientific, not plumbing:
 - collect ablations and external-domain results
 - prepare a reproducible experiment package for CVPR or Computers and
   Electronics in Agriculture style review
+
+## Advanced: Google Colab & NVIDIA DALI
+
+For cloud deployments (like Google Colab instances running Ubuntu), you can leverage NVIDIA DALI for ultra-fast GPU-accelerated JPEG decoding. DALI decodes WebDataset `.tar` shards directly into GPU memory via `nvJPEG`, entirely bypassing CPU bottlenecks.
+
+1. Install DALI on Colab (Ensure a T4, L4, or A100 runtime is selected):
+```bash
+!pip install --extra-index-url https://developer.download.nvidia.com/compute/redist --upgrade nvidia-dali-cuda120
+```
+
+2. Run Pretraining with the `--use-dali` flag:
+```bash
+# MIM
+python -m ag_foundation train-mim --config configs/wds_mim_pretrain.yaml --use-dali
+
+# DINO
+python -m ag_foundation train-dino --config configs/wds_dino_pretrain.yaml --use-dali
+```

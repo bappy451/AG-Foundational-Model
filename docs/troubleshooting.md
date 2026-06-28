@@ -67,6 +67,11 @@ If you want to avoid padding entirely:
 - Tile or resize the source data before training.
 - Reduce `crop_size` so it fits within all images.
 
+## WebDataset Tarball Corrupted Image Errors
+
+If you encounter a `webdataset.autodecode.DecodingError` or `PIL.UnidentifiedImageError` when running training over WebDataset Tarballs, this means an image inside the tarball is truncated or corrupted. 
+Our WebDataset loader is configured to use `wds.warn_and_continue`, which gracefully ignores the corrupted image and continues training without crashing. You will see a warning in the terminal, but it will not halt your run.
+
 ## Crop Not Divisible By The Selected Patch Size
 
 Use a crop that matches the selected backbone family. Examples:
@@ -84,7 +89,8 @@ meaningful `group` column or reorganize the directory hierarchy.
 
 ## Out Of Memory
 
-- reduce batch size
+If you encounter `torch.OutOfMemoryError: CUDA out of memory`:
+- **Reduce `batch_size` and increase `gradient_accumulation_steps`** (e.g., if batch size drops from 64 to 16, increase accumulation steps by 4x to maintain the same effective batch size without exceeding VRAM).
 - use fp16 or bf16 on supported hardware
 - enable gradient checkpointing
 - use ViT-S before ViT-B/L

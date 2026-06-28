@@ -52,14 +52,21 @@ Recommended initial experiment:
 - mask ratio 0.75
 - `bf16` on an RTX 4090 (this is the new default).
 - batch size 4 to 8 with `gradient_accumulation_steps: 2` or higher as needed
+- `epoch_batches` configured if using WebDataset Tarballs.
 - 50 to 200 epochs depending on corpus size
 - group-disjoint validation
 - gradient checkpointing when memory-constrained
 
-Run:
+Run (Local WDS/CPU loader):
 
 ```bash
-bash scripts/train_mim.sh --config configs/my_mim.yaml --compile
+python -m ag_foundation train-mim --config configs/my_mim.yaml --compile
+```
+
+Run (Colab/Linux NVIDIA DALI loader):
+
+```bash
+python -m ag_foundation train-mim --config configs/my_mim.yaml --use-dali --compile
 ```
 
 ## Production DINO
@@ -72,8 +79,16 @@ begin with a smaller output dimension while validating the pipeline.
 Publication comparisons must report the exact head, crop, precision, and
 accumulation settings.
 
+Run (Local WDS/CPU loader):
+
 ```bash
-bash scripts/train_dino.sh --config configs/my_dino.yaml --compile
+python -m ag_foundation train-dino --config configs/my_dino.yaml --compile
+```
+
+Run (Colab/Linux NVIDIA DALI loader):
+
+```bash
+python -m ag_foundation train-dino --config configs/my_dino.yaml --use-dali --compile
 ```
 
 ## Continual Pretraining Meaning

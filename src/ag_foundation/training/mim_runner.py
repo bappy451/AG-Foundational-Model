@@ -57,6 +57,8 @@ TRAIN_MIM_DEFAULTS: dict[str, Any] = {
     "visualization_every": 1,
     "visualization_samples": 4,
     "val_fraction": 0.2,
+    "epoch_batches": 100000,
+    "use_dali": False,
 }
 
 
@@ -70,6 +72,8 @@ TRAIN_MIM_SECTION_MAP: dict[str, dict[str, str]] = {
         "num_workers": "num_workers",
         "prefetch_factor": "prefetch_factor",
         "val_fraction": "val_fraction",
+        "epoch_batches": "epoch_batches",
+        "use_dali": "use_dali",
     },
     "runtime": {
         "output_dir": "output_dir",
@@ -207,6 +211,10 @@ def build_train_mim_parser(config_defaults: dict[str, Any] | None = None) -> arg
     parser.add_argument("--visualization-every", type=int, default=defaults["visualization_every"])
     parser.add_argument("--visualization-samples", type=int, default=defaults["visualization_samples"])
     parser.add_argument("--val-fraction", type=float, default=defaults["val_fraction"])
+    parser.add_argument("--epoch-batches", type=int, default=defaults["epoch_batches"], help="Number of batches per epoch for WebDataset.")
+    parser.add_argument("--use-dali", action="store_true", help="Use NVIDIA DALI for WebDataset decoding (Colab/Linux only).")
+    parser.add_argument("--no-use-dali", action="store_false", dest="use_dali")
+    parser.set_defaults(use_dali=defaults["use_dali"])
     return parser
 
 
@@ -392,21 +400,70 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
     set_global_seed(args.seed)
     resume_checkpoint = _resolve_resume_checkpoint(args)
     initialize_checkpoint = _resolve_initialize_checkpoint(args)
-    print("[train-mim] Scanning dataset directories and catalog (this may take several minutes on slow storage)...", flush=True)
-    train_loader, val_loader = get_dataloaders(
-        args.data_root,
-        batch_size=args.batch_size,
-        val_fraction=args.val_fraction,
-        seed=args.seed,
-        crop_size=args.crop_size,
-        channels=args.channels,
-        precision=args.precision,
-        num_workers=args.num_workers,
-        prefetch_factor=args.prefetch_factor,
-        catalog_path=args.catalog_path,
-        train_augment=True,
-        val_augment=False,
-    )
+    data_root_str = str(args.data_root)
+    if "*" in data_root_str and data_root_str.endswith(".tar"):
+        import glob
+        import os
+        import sys
+
+        resolved_tars = []
+        if "*" in data_root_str or "?" in data_root_str:
+            resolved_tars.extend(glob.glob(data_root_str))
+        else:
+            resolved_tars.append(data_root_str)
+
+        if not resolved_tars:
+            raise ValueError(f"No tar files found matching: {data_root_str}")
+
+        if sys.platform == "win32":
+            from webdataset.gopen import gopen_schemes
+
+            gopen_schemes["winfile"] = lambda url, mode="rb", bufsize=8192, **kw: open(
+                url.replace("winfile://", ""), mode, buffering=bufsize
+            )
+            resolved_tars = [
+                f"winfile://{os.path.abspath(t).replace(os.sep, '/')}" for t in resolved_tars
+            ]
+
+        if args.use_dali:
+            print("[train-mim] Detected WebDataset tarballs. Using NVIDIA DALI GPU loader.", flush=True)
+            from ag_foundation.data.dali_wds_loader import build_dali_wds_dataloader
+
+            train_loader = build_dali_wds_dataloader(
+                tar_urls=resolved_tars,
+                batch_size=args.batch_size,
+                num_workers=args.num_workers,
+                epoch_batches=args.epoch_batches,
+                crop_size=args.crop_size,
+            )
+        else:
+            print("[train-mim] Detected WebDataset tarballs in config. Using high-performance WDS CPU loader.", flush=True)
+            from ag_foundation.data.wds_loader import build_wds_dataloader
+
+            train_loader = build_wds_dataloader(
+                tar_urls=resolved_tars,
+                batch_size=args.batch_size,
+                num_workers=args.num_workers,
+                epoch_batches=args.epoch_batches,
+                crop_size=args.crop_size,
+            )
+        val_loader = None
+    else:
+        print("[train-mim] Scanning dataset directories and catalog (this may take several minutes on slow storage)...", flush=True)
+        train_loader, val_loader = get_dataloaders(
+            args.data_root,
+            batch_size=args.batch_size,
+            val_fraction=args.val_fraction,
+            seed=args.seed,
+            crop_size=args.crop_size,
+            channels=args.channels,
+            precision=args.precision,
+            num_workers=args.num_workers,
+            prefetch_factor=args.prefetch_factor,
+            catalog_path=args.catalog_path,
+            train_augment=True,
+            val_augment=False,
+        )
     print(f"[train-mim] Constructing RemoteSensingMIMModel (ViT-{args.model_name}) and loading weights...", flush=True)
     model = RemoteSensingMIMModel(
         in_channels=args.channels,

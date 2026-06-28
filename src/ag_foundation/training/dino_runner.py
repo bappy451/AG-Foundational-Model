@@ -377,48 +377,52 @@ def run_train_dino(args: argparse.Namespace, *, command_argv: list[str] | None =
     set_global_seed(args.seed)
     resume_checkpoint = _resolve_resume_checkpoint(args)
     initialize_checkpoint = _resolve_initialize_checkpoint(args)
-<<<<<<< HEAD
     data_root_str = str(args.data_root)
     if "*" in data_root_str and data_root_str.endswith(".tar"):
-        print("[train-dino] Detected WebDataset tarballs in config. Using high-performance WDS CPU loader.", flush=True)
-        from ag_foundation.data.wds_loader import build_wds_dataloader
         import glob
-        import sys
         import os
-        
+        import sys
+
         resolved_tars = []
-        if '*' in data_root_str or '?' in data_root_str:
+        if "*" in data_root_str or "?" in data_root_str:
             resolved_tars.extend(glob.glob(data_root_str))
         else:
             resolved_tars.append(data_root_str)
-            
+
         if not resolved_tars:
             raise ValueError(f"No tar files found matching: {data_root_str}")
-            
-        if sys.platform == 'win32':
-            import webdataset as wds
+
+        if sys.platform == "win32":
             from webdataset.gopen import gopen_schemes
-            gopen_schemes['winfile'] = lambda url, mode='rb', bufsize=8192, **kw: open(url.replace('winfile://', ''), mode, buffering=bufsize)
-            resolved_tars = [f"winfile://{os.path.abspath(t).replace(os.sep, '/')}" for t in resolved_tars]
+
+            gopen_schemes["winfile"] = lambda url, mode="rb", bufsize=8192, **kw: open(
+                url.replace("winfile://", ""), mode, buffering=bufsize
+            )
+            resolved_tars = [
+                f"winfile://{os.path.abspath(t).replace(os.sep, '/')}" for t in resolved_tars
+            ]
 
         if args.use_dali:
             print("[train-dino] Detected WebDataset tarballs. Using NVIDIA DALI GPU loader.", flush=True)
             from ag_foundation.data.dali_wds_loader import build_dali_wds_dataloader
+
             train_loader = build_dali_wds_dataloader(
                 tar_urls=resolved_tars,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
                 epoch_batches=args.epoch_batches,
-                crop_size=args.crop_size
+                crop_size=args.crop_size,
             )
         else:
             print("[train-dino] Detected WebDataset tarballs in config. Using high-performance WDS CPU loader.", flush=True)
             from ag_foundation.data.wds_loader import build_wds_dataloader
+
             train_loader = build_wds_dataloader(
                 tar_urls=resolved_tars,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
-                epoch_batches=args.epoch_batches
+                epoch_batches=args.epoch_batches,
+                crop_size=args.crop_size,
             )
         val_loader = None
     else:
@@ -437,23 +441,6 @@ def run_train_dino(args: argparse.Namespace, *, command_argv: list[str] | None =
             train_augment=False,
             val_augment=False,
         )
-=======
-    print("[train-dino] Scanning dataset directories and catalog (this may take several minutes on slow storage)...", flush=True)
-    train_loader, val_loader = get_dataloaders(
-        args.data_root,
-        batch_size=args.batch_size,
-        val_fraction=args.val_fraction,
-        seed=args.seed,
-        crop_size=args.crop_size,
-        channels=args.channels,
-        precision=args.precision,
-        num_workers=args.num_workers,
-        prefetch_factor=args.prefetch_factor,
-        catalog_path=args.catalog_path,
-        train_augment=False,
-        val_augment=False,
-    )
->>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
     augmentation_config = DINOAugmentationConfig(
         image_size=(args.crop_size, args.crop_size),
         num_global_crops=args.num_global_crops,

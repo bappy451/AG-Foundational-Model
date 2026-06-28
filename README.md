@@ -9,7 +9,8 @@ RGB/GeoTIFF/multispectral inputs, and reproducible MIM and DINO training pipelin
 - Official `timm` ViT-S, ViT-B, and ViT-L backbones
 - Selectable ImageNet, DINOv2, DINOv3, and MAE official checkpoints
 - Learnable 1x1 input adapter on every model
-- RGB, multiband GeoTIFF, NPY, folder, ZIP, and nested-ZIP loading
+- RGB, multiband GeoTIFF, NPY, folder, ZIP, nested-ZIP loading, and WebDataset Tarballs (`.tar`)
+- High-Performance Google Colab GPU-accelerated decoding via NVIDIA DALI
 - MAE-style masked image modeling
 - DINO-style student-teacher continual pretraining from official checkpoints
 - Live batch and epoch metrics in the terminal
@@ -135,7 +136,7 @@ Supported payloads:
 - RGB: `.jpg`, `.jpeg`, `.png`
 - GeoTIFF: `.tif`, `.tiff`, including arbitrary band counts
 - Arrays: `.npy` in `C,H,W` or `H,W,C` layout
-- Containers: directories, `.zip`, and nested `.zip`
+- Containers: directories, `.zip`, nested `.zip`, and `.tar` WebDataset shards
 
 Set `data.channels` to the exact input band count. Non-negative integer rasters
 are scaled by their dtype range. Floating rasters must already be finite and
@@ -147,6 +148,15 @@ Create a portable catalog:
 python -m ag_foundation create-catalog \
   --data-root /data/agriculture.zip \
   --output-path catalogs/agriculture.csv
+```
+
+Or, for maximum I/O performance on massive datasets (>500GB), convert to WebDataset Tarballs:
+
+```bash
+python -m ag_foundation.data.build_wds_shards \
+  --input-dir /data/Pretraining \
+  --output-prefix /data/shards/dataset \
+  --max-size 1000000000
 ```
 
 Slice large GeoTIFF scenes into georeferenced tiles:
