@@ -41,6 +41,44 @@ The sibling `Pretraining/` directory currently contains a diverse set of local Z
 - **Specialty/Other:** `Toxic Plant Classification`, `Indian Medicinal Plants`, `House Plant Species`, and `Edible wild plants`.
 - **Seedlings/Growth Stages:** `V2 Plant Seedlings` and `pretraining_seedlings` subsets.
 
+## Processed WebDataset Shards
+
+The final `shards/` directory contains the highly optimized `.tar` WebDataset archives ingested by the dataloader during the training loop. This dataset was built from the local corpus and enforces our data-filtering constraints.
+
+### Shard Volume
+| Metric | Value |
+| :--- | ---: |
+| Total WebDataset Archives | 329 Shards |
+| Total Pretraining Images | 2,023,499 |
+
+### Modalities (Formats)
+The dataset is heavily dominated by JPEG images, but contains a notable amount of lossless PNGs and multi-spectral/high-bit-depth TIFFs.
+
+| Extension | Count | Percentage |
+| :--- | ---: | ---: |
+| **`.jpg`** | 1,760,094 | ~87.0% |
+| **`.jpeg`** | 191,429 | ~9.5% |
+| **`.png`** | 40,304 | ~2.0% |
+| **`.tif`** / **`.tiff`** | 31,672 | ~1.5% |
+
+### Image Resolutions (Sampled Distribution)
+The shards contain an extreme variety of resolutions ranging from small web-scraped square crops to massive 24+ megapixel RAW/TIFF resolutions. 
+
+*Note: The dataloader effortlessly handles resizing these to the standard `224x224` during the pretraining loop via dynamic random cropping.*
+
+| Resolution | Frequency | Notes |
+| :--- | ---: | :--- |
+| **`256x256`** | 26.7% | Most common, likely pre-processed thumbnails/crops. |
+| **`4096x3000`** | 13.4% | Standard 12MP smartphone / point-and-shoot camera resolution. |
+| **`8143x5467`** | 7.9% | Massive ~44MP resolution (likely high-end DSLR or drone imagery). |
+| **`600x600`** | 7.4% | Web/catalog square crops. |
+| **`128x128`** | 5.5% | Small thumbnail crops. |
+| **`6000x4000`** | 5.4% | Standard 24MP APS-C / Full Frame DSLR resolution. |
+| **`2454x2056`** | 1.8% | Uncommon ~5MP resolution. |
+| **`4080x3060`** | 1.4% | Standard 12.5MP resolution. |
+| **`506x506`** | 1.2% | Arbitrary square crop. |
+| **`512x512`** | 0.9% | Standard power-of-two square crop. |
+
 ## Current Coverage
 
 Strengths:

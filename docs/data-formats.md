@@ -45,6 +45,8 @@ before this generic loader when scientifically required.
 
 ## Spatial Rules
 
+The corpus contains an extreme variety of resolutions ranging from `128x128` thumbnails to massive `8143x5467` high-resolution imagery. The dataloader handles this natively via dynamic cropping and scaling.
+
 - Images smaller than `crop_size` in any dimension are **zero-padded** on the
   right/bottom to reach the required size.  This preserves small but valid
   images (e.g. tiny GIS tiles, edge-padded species photos) instead of
