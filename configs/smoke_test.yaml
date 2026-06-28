@@ -1,23 +1,39 @@
+<<<<<<< HEAD
 # Smoke-test configuration for RTX 4090 — ViT-S DINO
 # Runs 2 epochs over the full 5.17M-image pretraining catalog.
 #
 # Usage (PowerShell):
 #   conda activate ag-foundation
 #   cd E:\AG_Dataset\AG-Foundational-Model
+=======
+# Smoke test configuration for RTX 4090
+# Usage:
+>>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
 #   python -m ag_foundation train-dino --config configs/smoke_test.yaml
 
 data:
   data_root: ../Pretraining
+<<<<<<< HEAD
   catalog_path: ../Pretraining/catalog.csv
+=======
+  catalog_path: null
+>>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
   crop_size: 224
   channels: 3
   batch_size: 128
   num_workers: 8
   prefetch_factor: 2
+<<<<<<< HEAD
   val_fraction: 0.05
 
 runtime:
   output_dir: ../runs/smoke_test_dino_s
+=======
+  val_fraction: 0.2
+
+runtime:
+  output_dir: ../runs/smoke_test_dino
+>>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
   epochs: 2
   seed: 27
   precision: bf16

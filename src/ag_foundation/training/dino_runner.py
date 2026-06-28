@@ -377,6 +377,7 @@ def run_train_dino(args: argparse.Namespace, *, command_argv: list[str] | None =
     set_global_seed(args.seed)
     resume_checkpoint = _resolve_resume_checkpoint(args)
     initialize_checkpoint = _resolve_initialize_checkpoint(args)
+<<<<<<< HEAD
     data_root_str = str(args.data_root)
     if "*" in data_root_str and data_root_str.endswith(".tar"):
         print("[train-dino] Detected WebDataset tarballs in config. Using high-performance WDS CPU loader.", flush=True)
@@ -436,6 +437,23 @@ def run_train_dino(args: argparse.Namespace, *, command_argv: list[str] | None =
             train_augment=False,
             val_augment=False,
         )
+=======
+    print("[train-dino] Scanning dataset directories and catalog (this may take several minutes on slow storage)...", flush=True)
+    train_loader, val_loader = get_dataloaders(
+        args.data_root,
+        batch_size=args.batch_size,
+        val_fraction=args.val_fraction,
+        seed=args.seed,
+        crop_size=args.crop_size,
+        channels=args.channels,
+        precision=args.precision,
+        num_workers=args.num_workers,
+        prefetch_factor=args.prefetch_factor,
+        catalog_path=args.catalog_path,
+        train_augment=False,
+        val_augment=False,
+    )
+>>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
     augmentation_config = DINOAugmentationConfig(
         image_size=(args.crop_size, args.crop_size),
         num_global_crops=args.num_global_crops,

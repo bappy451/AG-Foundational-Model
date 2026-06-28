@@ -7,7 +7,11 @@ answers three questions:
 2. What should I expect after each command?
 3. What should I do after the project runs correctly?
 
+<<<<<<< HEAD
 It reflects the implementation audited on 2026-06-28.
+=======
+It reflects the implementation audited on 2026-06-24.
+>>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
 
 ## Current Project Status
 
@@ -394,6 +398,74 @@ What to do next:
 - Add multispectral/GeoTIFF sources if the current corpus is RGB-heavy.
 
 ## Step 10.5: Full-Dataset 2-Epoch Smoke Test (RTX 4090)
+<<<<<<< HEAD
+=======
+
+Before a long pretraining campaign, run the full-dataset smoke test to confirm
+the entire pipeline works end-to-end on real data.
+
+Activate the environment:
+
+```powershell
+conda activate venv
+cd E:\AG_Dataset\AG-Foundational-Model
+```
+
+Verify CUDA:
+
+```powershell
+python -c "import torch; print(torch.cuda.get_device_name(0))"
+```
+
+Verify dataset sources are detected:
+
+```powershell
+python -c "
+from ag_foundation.data.multi_source_dataset import scan_pretraining_directory
+sources = scan_pretraining_directory('../Pretraining')
+print(f'Detected {len(sources)} source datasets')
+"
+```
+
+Run the 2-epoch smoke test:
+
+```powershell
+python -m ag_foundation train-dino --config configs/smoke_test.yaml
+```
+
+Expected output directory: `E:\AG_Dataset\runs\smoke_test_dino\`
+
+Expected files after completion:
+
+```text
+runs/smoke_test_dino/
+|-- best.pt
+|-- last.pt
+|-- metrics.csv
+|-- manifest.json
+`-- figures/
+    |-- training_metrics.png
+    |-- dino_views_ep1.png
+    `-- dino_views_ep2.png
+```
+
+Key smoke-test config values (`configs/smoke_test.yaml`):
+
+| Setting | Value |
+| --- | --- |
+| epochs | 2 |
+| batch_size | 8 |
+| gradient_accumulation_steps | 4 (effective batch = 32) |
+| precision | bf16 |
+| data_root | ../Pretraining |
+
+If CUDA OOM occurs, reduce `batch_size` to 4 and increase
+`gradient_accumulation_steps` to 8 to keep effective batch = 32.
+
+Resume works automatically: re-running the same command picks up from `last.pt`.
+
+## Step 11: Prepare Real Data
+>>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
 
 Before a long pretraining campaign, run the full-dataset smoke test to confirm
 the entire pipeline works end-to-end on real data.

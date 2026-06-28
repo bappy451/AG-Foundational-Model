@@ -75,6 +75,7 @@ is `None`.  Both caused shape errors or `RuntimeError` crashes.
 
 ---
 
+<<<<<<< HEAD
 ### 4. TAR Archive and 5.17M Catalog Integration ✅
 
 **Problem:** The 3 large PlantCLEF datasets were distributed as nested TAR/TAR.GZ archives containing over 3 million images, which `dataset.py` natively did not support. The data loading relied purely on crawling ZIPs, omitting 655GB of valid imagery. Furthermore, ground-truth masks were implicitly getting read into the training loader.
@@ -92,6 +93,9 @@ is `None`.  Both caused shape errors or `RuntimeError` crashes.
 ---
 
 ### 5. Multi-Source Dataset Bug Fixes ✅
+=======
+### 4. Multi-Source Dataset Bug Fixes ✅
+>>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
 
 Several latent bugs in `multi_source_dataset.py` were also corrected:
 
@@ -104,6 +108,7 @@ Several latent bugs in `multi_source_dataset.py` were also corrected:
 
 ---
 
+<<<<<<< HEAD
 ### 6. DataLoader Memory & I/O Bottleneck Fix (5.17M Items) ✅
 
 **Problem:** Scaling to 5.17 million images caused the initialization script to allocate millions of heavy Python `ImageRecord` objects, skyrocketing system RAM usage over 30 GB and causing the garbage collector to thrash. In addition, 5.17 million absolute path resolutions using `Path.resolve()` created a severe Windows I/O lock, stalling initialization for an hour.
@@ -134,6 +139,8 @@ Several latent bugs in `multi_source_dataset.py` were also corrected:
 
 ---
 
+=======
+>>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
 ## Test Results
 
 ```

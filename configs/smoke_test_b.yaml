@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Smoke-test configuration for RTX 4090 — ViT-B DINO
 # Runs 2 epochs over the full 5.17M-image pretraining catalog.
 # Uses gradient checkpointing + small batch to fit 24 GB VRAM.
@@ -10,15 +11,31 @@
 data:
   data_root: ../Pretraining
   catalog_path: ../Pretraining/catalog.csv
+=======
+# Smoke test configuration for RTX 4090
+# Usage:
+#   python -m ag_foundation train-dino --config configs/smoke_test.yaml
+
+data:
+  data_root: ../Pretraining
+  catalog_path: null
+>>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
   crop_size: 224
   channels: 3
   batch_size: 8
   num_workers: 8
   prefetch_factor: 2
+<<<<<<< HEAD
   val_fraction: 0.05
 
 runtime:
   output_dir: ../runs/smoke_test_dino_b
+=======
+  val_fraction: 0.2
+
+runtime:
+  output_dir: ../runs/smoke_test_dino
+>>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
   epochs: 2
   seed: 27
   precision: bf16

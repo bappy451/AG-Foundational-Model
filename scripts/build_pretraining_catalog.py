@@ -59,6 +59,7 @@ from pathlib import Path
 # Constants
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp"}
 
 # Lower-cased substrings that identify masks / labels / ground-truth
@@ -74,6 +75,11 @@ EXCLUDE_TOKENS = (
     "/annotations/",   "\\annotations\\",
     # Agriculture-Vision segmentation channel images
     "_boundary.",      "_plant.",          "_weed.",
+=======
+from ag_foundation.data.dataset import AgricultureImageDataset  # noqa: E402
+from ag_foundation.data.multi_source_dataset import (  # noqa: E402
+    scan_pretraining_directory,
+>>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
 )
 
 # Known exact-duplicate archive stems. Key = skip; Value = keep instead.
