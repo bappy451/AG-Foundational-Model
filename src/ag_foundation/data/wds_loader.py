@@ -19,7 +19,6 @@ if sys.platform == "win32":
         url.replace("winfile://", ""), mode, buffering=bufsize
     )
 
-
 class SizedWebDataset(IterableDataset):
     """Wraps a WebDataset pipeline so that it reports a finite ``__len__``."""
 
@@ -32,7 +31,6 @@ class SizedWebDataset(IterableDataset):
 
     def __len__(self) -> int:
         return self.length
-
 
 def build_wds_dataloader(
     tar_urls: list[str],
@@ -66,7 +64,11 @@ def build_wds_dataloader(
     )
 
     pipeline = (
-        wds.WebDataset(tar_urls, resampled=True)
+        wds.WebDataset(
+            tar_urls,
+            nodesplitter=wds.split_by_node,
+            workersplitter=wds.split_by_worker,
+        )
         .shuffle(1000)
         .decode("pil", handler=wds.warn_and_continue)
         .rename(image="jpg;png;jpeg;tif;tiff", handler=wds.warn_and_continue)
