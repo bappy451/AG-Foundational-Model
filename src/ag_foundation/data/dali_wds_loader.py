@@ -74,13 +74,15 @@ def build_dali_wds_dataloader(
         """
         DALI pipeline: read → GPU decode → resize → CHW float32 [0, 1].
         """
-        jpegs, _ = fn.readers.webdataset(
+        jpegs = fn.readers.webdataset(
             paths=tar_paths,
-            ext=["jpg", "png", "jpeg", "tif", "tiff"],
+            ext=["jpg;jpeg;png;tif;tiff"],
             missing_component_behavior="skip",
             random_shuffle=True,
             initial_fill=1000,
         )
+        if isinstance(jpegs, (list, tuple)):
+            jpegs = jpegs[0]
         images = fn.decoders.image(jpegs, device="mixed", output_type=types.RGB)
         images = fn.resize(
             images,
