@@ -8,23 +8,24 @@
 #   python -m ag_foundation train-mim --config configs/wds_mim_pretrain.yaml
 
 data:
-  data_root: 'E:\AG_Dataset\shards\dataset-*.tar'
+  data_root: 'E:\AG_Dataset\shards\dataset-*.tar' # NOTE: Change to Colab path when migrating (e.g., /content/drive/MyDrive/.../dataset-*.tar)
   catalog_path: null
   crop_size: 224
   channels: 3
-  batch_size: 96
-  num_workers: 12
+  batch_size: 64
+  epoch_batches: 50000 # Added: Explicitly define epoch length to save checkpoints more frequently
+  num_workers: 12      # NOTE: Reduce to 2 or 4 on Colab
   prefetch_factor: 2
   val_fraction: 0.05
 
 runtime:
-  output_dir: ../runs/wds_mim_pretraining
-  epochs: 2
+  output_dir: ../runs/wds_mim_pretraining_B
+  epochs: 40 # MAE optimal convergence (matches 1600 ImageNet epochs compute)
   seed: 27
   precision: bf16
-  device: auto
-  warmup_epochs: 1
-  gradient_accumulation_steps: 2
+  device: cuda
+  warmup_epochs: 2 # Scaled down for 40 epochs
+  gradient_accumulation_steps: 4
   resume: true
   resume_from: null
   initialize_from: null
@@ -34,16 +35,16 @@ runtime:
   visualization_samples: 8
 
 model:
-  model_name: S
+  model_name: B
   pretrained_backbone: true
-  pretrained_source: dinov3
+  pretrained_source: imagenet
   pretrained_cfg: null
   mask_ratio: 0.75
-  gradient_checkpointing: false
+  gradient_checkpointing: true
   drop_rate: 0.0
   attn_drop_rate: 0.0
-  drop_path_rate: 0.1
+  drop_path_rate: 0.0 # Disabled for pretraining (only used in downstream finetuning)
 
 optimizer:
-  learning_rate: 0.0005
+  learning_rate: 0.00015 # MAE standard: base_lr = 1.5e-4 per 256 effective batch size (64 * 4)
   weight_decay: 0.04

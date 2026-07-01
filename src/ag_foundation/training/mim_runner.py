@@ -387,16 +387,7 @@ def _resolve_initialize_checkpoint(args: argparse.Namespace) -> Path | None:
     return candidate.resolve()
 
 
-def _build_progress_callback(tag: str):
-    def _callback(completed_work: int, total_work: int, *, detail: str = "") -> None:
-        if total_work <= 0:
-            return
-        print(f"[{tag}] progress {completed_work + 1}/{total_work} | {detail}")
-
-    return _callback
-
-
-def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = None):
+def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = None, progress_callback = None):
     set_global_seed(args.seed)
     resume_checkpoint = _resolve_resume_checkpoint(args)
     initialize_checkpoint = _resolve_initialize_checkpoint(args)
@@ -487,10 +478,22 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
         print(f"[train-mim] Compiling model with torch.compile...", flush=True)
         model = torch.compile(model)
         
+    decay_params = []
+    no_decay_params = []
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+        if param.ndim <= 1 or name.endswith(".bias"):
+            no_decay_params.append(param)
+        else:
+            decay_params.append(param)
+
     optimizer = torch.optim.AdamW(
-        [parameter for parameter in model.parameters() if parameter.requires_grad],
+        [
+            {"params": decay_params, "weight_decay": args.weight_decay},
+            {"params": no_decay_params, "weight_decay": 0.0},
+        ],
         lr=args.learning_rate,
-        weight_decay=args.weight_decay,
     )
     run_config = dict(vars(args))
     run_config["resolved_resume_checkpoint"] = (
@@ -513,7 +516,7 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
         epoch_lr_schedule=build_epoch_lr_schedule(warmup_epochs=args.warmup_epochs),
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         log_every=args.log_every,
-        progress_callback=_build_progress_callback("train-mim"),
+        progress_callback=progress_callback,
         save_visualizations=args.save_visualizations,
         visualization_every=args.visualization_every,
         visualization_samples=args.visualization_samples,
@@ -548,5 +551,8 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
 
 def main(argv: list[str] | None = None) -> None:
     args = parse_train_mim_args(argv)
-    summary = run_train_mim(args, command_argv=list(argv or []))
-    print(summary)
+    from ag_foundation.progress import command_progress_context
+    with command_progress_context(argv) as progress:
+        progress_cb = progress.update if progress else None
+        summary = run_train_mim(args, command_argv=list(argv or []), progress_callback=progress_cb)
+        print(summary)

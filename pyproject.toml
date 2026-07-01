@@ -13,6 +13,7 @@ dependencies = [
   "pandas>=2.2",
   "Pillow>=10.0",
   "PyYAML>=6.0",
+  "rich>=13.0",
 ]
 
 [project.scripts]

@@ -20,14 +20,26 @@ if sys.platform == "win32":
     )
 
 class SizedWebDataset(IterableDataset):
-    """Wraps a WebDataset pipeline so that it reports a finite ``__len__``."""
+    """Wraps a WebDataset pipeline so that it reports a finite ``__len__``.
+
+    The ``__iter__`` method enforces the epoch boundary by stopping after
+    exactly ``length`` batches, regardless of how many workers are running.
+    This avoids the PyTorch DataLoader warning about IterableDataset length
+    mismatch that occurs when ``with_epoch`` cuts off per-worker rather than
+    globally.
+    """
 
     def __init__(self, pipeline, length: int) -> None:
         self.pipeline = pipeline
         self.length = length
 
     def __iter__(self):
-        return iter(self.pipeline)
+        count = 0
+        for batch in self.pipeline:
+            if count >= self.length:
+                return
+            yield batch
+            count += 1
 
     def __len__(self) -> int:
         return self.length
@@ -64,11 +76,7 @@ def build_wds_dataloader(
     )
 
     pipeline = (
-        wds.WebDataset(
-            tar_urls,
-            nodesplitter=wds.split_by_node,
-            workersplitter=wds.split_by_worker,
-        )
+        wds.WebDataset(tar_urls, resampled=True)
         .shuffle(1000)
         .decode("pil", handler=wds.warn_and_continue)
         .rename(image="jpg;png;jpeg;tif;tiff", handler=wds.warn_and_continue)
@@ -77,8 +85,7 @@ def build_wds_dataloader(
     )
 
     if epoch_batches is not None:
-        pipeline = pipeline.with_epoch(epoch_batches)
-        dataset = SizedWebDataset(pipeline, epoch_batches)
+        dataset: IterableDataset = SizedWebDataset(pipeline, epoch_batches)
     else:
         dataset = pipeline
 

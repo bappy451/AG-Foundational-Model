@@ -7,12 +7,12 @@ answers three questions:
 2. What should I expect after each command?
 3. What should I do after the project runs correctly?
 
-It reflects the implementation audited on 2026-06-28.
+It reflects the implementation audited and patched through 2026-06-29.
 
 ## Current Project Status
 
 The project is ready for engineering-scale self-supervised pretraining runs on a
-single workstation. It supports:
+single workstation and on Google Colab with an A100/T4 GPU. It supports:
 
 - official `timm` ViT-S, ViT-B, and ViT-L backbones
 - ImageNet, DINOv2, DINOv3, and MAE checkpoint initialization
@@ -25,6 +25,10 @@ single workstation. It supports:
 - **zero-padding of undersized images** (small tiles are padded, not rejected)
 - **GeoTIFF NoData handling** (extreme negative integers clamped to 0)
 - **RoPE backbone compatibility** (DINOv3/EVA02 4D patch embed + no absolute pos embed)
+- **WebDataset epoch boundary enforcement** (exact per-epoch batch count regardless of `num_workers`)
+- **Windows multiprocessing safety** (fully pickleable `SizedWebDataset` wrapper)
+- **DALI multi-format support** (semicolon-separated `ext` for single-image multi-format shards)
+- **Google Colab GPU training** via NVIDIA DALI (`--use-dali` flag)
 
 The main operational limitation is intentional: `initialize_from` requires a
 compatible checkpoint. The source and target should use the same ViT family,
@@ -483,6 +487,67 @@ python src\ag_foundation\data\build_wds_shards.py \
   --max-size 1000000000
 ```
 This generates ~1GB `.tar` shards which can be sequentially streamed across the network directly into GPU memory using DALI.
+
+## Step 11.5: Google Colab GPU Training (A100 / T4)
+
+The project supports training directly in Google Colab using the NVIDIA DALI GPU
+loader for maximum throughput. Your WebDataset shards must be accessible from
+Colab (e.g., mounted from Google Drive).
+
+### Setup in Colab
+
+```python
+# 1. Mount Google Drive (if your shards are stored there)
+from google.colab import drive
+drive.mount('/content/drive')
+
+# 2. Navigate to your project directory
+import os
+os.chdir('/content/drive/MyDrive/Colab_Projects/AG-Foundational-Model')
+
+# 3. Install the package in editable mode
+!pip install -e .[ml]
+
+# 4. Verify NVIDIA DALI is installed (included in the ml extras)
+!python -c "import nvidia.dali; print('DALI OK')"
+```
+
+### Run MIM Pretraining on Colab
+
+```python
+!python -m ag_foundation train-mim \
+    --config configs/wds_mim_pretrain.yaml \
+    --use-dali
+```
+
+### Run DINO Pretraining on Colab
+
+```python
+!python -m ag_foundation train-dino \
+    --config configs/wds_dino_pretrain.yaml \
+    --use-dali
+```
+
+### Expected DALI Startup Messages (Safe to Ignore)
+
+When training starts, DALI will print two informational messages that are completely safe:
+
+```
+Warning: Please set `reader_name` and don't set last_batch_padded and size manually...
+[webdataset_loader.cc] Index file not provided, it may take some time to infer it from the tar file
+```
+
+The first warning is because we manually set the epoch size. The second means DALI
+is scanning tar headers to build an index — this is a one-time cost at startup.
+Training will proceed normally after the scan completes.
+
+### Colab Config Tips
+
+- Set `data.num_workers: 2` on Colab (CPU workers for prefetching are shared).
+- Set `runtime.precision: bf16` on A100 for maximum speed.
+- Set `runtime.precision: fp16` on T4.
+- Set `data.epoch_batches` to limit each epoch to a manageable number of batches
+  (e.g., `50000`) so checkpoints are saved frequently.
 
 ## Step 12: Configure A Real MIM Run
 

@@ -406,16 +406,7 @@ class DINOTrainer:
         last_teacher_momentum = self.teacher_momentum_start
         optimizer_steps = 0
 
-        from tqdm import tqdm
-
-        pbar = tqdm(
-            self.train_loader,
-            desc=f"train-dino epoch={epoch_index + 1}/{total_epochs}",
-            leave=False,
-            dynamic_ncols=True,
-        )
-
-        for step_index, batch in enumerate(pbar, start=1):
+        for step_index, batch in enumerate(self.train_loader, start=1):
             loss, teacher_outputs = self._forward_train_batch(batch)
             if not torch.isfinite(loss):
                 raise FloatingPointError("Encountered a non-finite DINO loss.")
@@ -443,16 +434,14 @@ class DINOTrainer:
             lr = self._current_learning_rate()
 
             if self.progress_callback is not None:
-                # Update TQDM postfix instead of printing
-                pbar.set_postfix({
-                    "loss": f"{last_loss:.4f}",
-                    "avg_loss": f"{avg_loss:.4f}",
-                    "lr": f"{lr:.6f}",
-                    "ema": f"{last_teacher_momentum:.6f}"
-                })
-
-            if step_index % self.log_every == 0:
-                pbar.write(
+                self.progress_callback(
+                    step_index, 
+                    num_batches, 
+                    description=f"train-dino Epoch [{epoch_index + 1}/{total_epochs}]",
+                    detail=f"loss: {last_loss:.4f} | avg: {avg_loss:.4f} | lr: {lr:.6f} | ema: {last_teacher_momentum:.6f}"
+                )
+            elif step_index % self.log_every == 0:
+                print(
                     f"train-dino epoch={epoch_index + 1}/{total_epochs} | "
                     f"batch={step_index}/{num_batches} | "
                     f"update={optimizer_steps}/{num_optimizer_steps} | "

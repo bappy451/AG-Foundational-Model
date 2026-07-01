@@ -1,11 +1,18 @@
 # Troubleshooting
 
-## `No module named ag_foundation`
+## `No module named ag_foundation` (Google Colab / Linux)
 
-Install the repository package inside the active environment:
+The package is not installed in the active Python environment. Run this in a
+Colab cell **before** any training command:
 
-```bash
-python -m pip install -e '.[dev,ml]'
+```python
+!pip install -e .[ml]
+```
+
+Alternatively, set `PYTHONPATH` inline for a one-off run:
+
+```python
+!PYTHONPATH=src python -m ag_foundation train-dino --config configs/wds_dino_pretrain.yaml --use-dali
 ```
 
 The scripts can import directly from `src`, but the public
@@ -123,3 +130,74 @@ over many epochs.
 Early one-epoch reconstructions are expected to be poor, especially on tiny
 32 x 32 verification crops with only four patches. Judge MIM output after a
 proper training schedule and resolution.
+
+---
+
+## DALI: `ValueError: too many values to unpack (expected 2)`
+
+**Symptom:** Training crashes immediately after `[train-dino] Detected WebDataset tarballs. Using NVIDIA DALI GPU loader.` with:
+```
+ValueError: too many values to unpack (expected 2)
+```
+
+**Cause:** `fn.readers.webdataset` in NVIDIA DALI interprets each item in the `ext` list as a **separate output channel** (one per file type). If you pass `ext=["jpg", "png", "jpeg", "tif", "tiff"]`, DALI expects every sample to contain five distinct files (e.g., an image, a label, a depth map, etc.) and tries to unpack them into five variables. When the code only accepts two (`jpegs, _`), it crashes.
+
+**Fix:** Combine alternative extensions using a **semicolon-separated single string** so DALI knows they are all alternatives for the same single image output:
+```python
+# Correct — one output, multiple accepted formats
+ext=["jpg;jpeg;png;tif;tiff"]
+
+# Wrong — DALI treats each as a separate output channel
+ext=["jpg", "png", "jpeg", "tif", "tiff"]
+```
+This is already fixed in `src/ag_foundation/data/dali_wds_loader.py`.
+
+---
+
+## DALI: `Warning: Please set reader_name and don't set last_batch_padded and size manually`
+
+This is a safe informational warning. The DALI iterator is configured with a manual epoch size instead of letting DALI auto-calculate it from the dataset. For large-scale pretraining where a few dropped tail samples per epoch are irrelevant, this warning can be ignored.
+
+---
+
+## DALI: `Index file not provided, it may take some time to infer it from the tar file`
+
+This is a safe informational message from the DALI WebDataset loader. DALI is scanning the `.tar` shard headers to build an in-memory index before the first batch is delivered. This is a **one-time cost** at the start of each training run. Once the scan is complete, the GPU loader streams at full speed.
+
+To eliminate this startup delay, you can pre-generate `.idx` index files alongside your `.tar` shards using DALI's `webdataset_writer` utilities. This is optional for most use cases.
+
+---
+
+## Windows: `_pickle.PicklingError: Can't pickle <class 'abc.WebDataset_Length'>`
+
+**Symptom:** Training crashes immediately with a multiprocessing pickling error:
+```
+_pickle.PicklingError: Can't pickle <class 'abc.WebDataset_Length'>: attribute lookup WebDataset_Length on abc failed
+```
+
+**Cause:** Windows uses `spawn` (not `fork`) for multiprocessing. Every object passed to a PyTorch DataLoader worker must be fully pickleable. The native WebDataset `.with_length()` method dynamically generates an anonymous class under the hood (`abc.WebDataset_Length`) that Python's `pickle` module refuses to serialize.
+
+**Fix:** The codebase uses a custom `SizedWebDataset` wrapper class instead of `.with_length()`. This class is a plain `IterableDataset` subclass that is fully pickleable on Windows. Do not replace it with `.with_length()` calls.
+
+---
+
+## DataLoader Warning: `Length of IterableDataset ... was reported to be N but M samples have been fetched`
+
+**Symptom:** Training appears to run 2× longer than expected (e.g., 203,000 batches for a 100,000-batch epoch), and the terminal floods with:
+```
+UserWarning: Length of IterableDataset <SizedWebDataset> was reported to be 100000 but 203001 samples have been fetched.
+```
+
+**Cause:** When `num_workers > 1`, PyTorch spawns multiple independent worker processes. WebDataset's `.with_epoch(N)` applies the epoch boundary **per worker**, not globally. With 12 workers, each worker independently delivers N batches, resulting in `12 × N` total batches delivered.
+
+**Fix (already applied):** The `SizedWebDataset.__iter__` method enforces the epoch boundary by counting batches and hard-stopping with `return` after exactly `epoch_batches` items:
+```python
+def __iter__(self):
+    count = 0
+    for batch in self.pipeline:
+        if count >= self.length:
+            return
+        yield batch
+        count += 1
+```
+Additionally, the training loop in `ssl_trainer.py` contains a hard `break` after `num_batches` steps as a safety net. The pipeline uses `resampled=True` for correct infinite streaming behavior, which is the canonical pattern for large-scale WebDataset training.

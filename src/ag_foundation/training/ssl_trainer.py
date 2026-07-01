@@ -232,16 +232,12 @@ class SSLTrainer:
         last_loss = 0.0
         optimizer_steps = 0
 
-        from tqdm import tqdm
-
-        pbar = tqdm(
-            self.train_loader,
-            desc=f"train-mim epoch={epoch_index + 1}/{total_epochs}",
-            leave=False,
-            dynamic_ncols=True,
-        )
-
-        for step_index, batch in enumerate(pbar, start=1):
+        for step_index, batch in enumerate(self.train_loader, start=1):
+            # Hard epoch boundary guard: stop exactly at epoch_batches regardless
+            # of how many items the IterableDataset actually yields. This is the
+            # canonical pattern for WebDataset + PyTorch multiprocessing workers.
+            if num_batches > 0 and step_index > num_batches:
+                break
             loss = self._compute_loss(batch)
             if not torch.isfinite(loss):
                 raise FloatingPointError("Encountered a non-finite SSL loss.")
@@ -260,14 +256,14 @@ class SSLTrainer:
             lr = self._current_learning_rate()
 
             if self.progress_callback is not None:
-                # Update TQDM postfix instead of printing
-                pbar.set_postfix({
-                    "loss": f"{last_loss:.4f}",
-                    "avg_loss": f"{avg_loss:.4f}",
-                    "lr": f"{lr:.6f}"
-                })
-            if step_index % self.log_every == 0:
-                pbar.write(
+                self.progress_callback(
+                    step_index, 
+                    num_batches, 
+                    description=f"train-mim Epoch [{epoch_index + 1}/{total_epochs}]",
+                    detail=f"loss: {last_loss:.4f} | avg: {avg_loss:.4f} | lr: {lr:.6f}"
+                )
+            elif step_index % self.log_every == 0:
+                print(
                     f"train-mim epoch={epoch_index + 1}/{total_epochs} | "
                     f"batch={step_index}/{num_batches} | "
                     f"update={optimizer_steps}/{num_optimizer_steps} | "
