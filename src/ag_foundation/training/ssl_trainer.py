@@ -284,16 +284,9 @@ class SSLTrainer:
             return {"loss": float("nan"), "batches": 0}
 
         self.model.eval()
-        from tqdm import tqdm
-
         losses: list[float] = []
         with torch.no_grad():
-            for batch in tqdm(
-                self.val_loader,
-                desc=f"val-mim epoch={epoch_index + 1}",
-                leave=False,
-                dynamic_ncols=True,
-            ):
+            for batch in self.val_loader:
                 moved_batch = _move_ssl_batch_to_device(batch, self.device)
                 with self._autocast_context():
                     loss = self.model(moved_batch["image"])

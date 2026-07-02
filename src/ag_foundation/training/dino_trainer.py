@@ -467,16 +467,9 @@ class DINOTrainer:
         self.model.teacher_adapter.eval()
         self.model.teacher_backbone.eval()
         self.model.teacher_head.eval()
-        from tqdm import tqdm
-        
         losses: list[float] = []
         with torch.no_grad():
-            for batch in tqdm(
-                self.val_loader,
-                desc=f"val-dino epoch={epoch_index + 1}",
-                leave=False,
-                dynamic_ncols=True,
-            ):
+            for batch in self.val_loader:
                 moved_batch = _move_ssl_batch_to_device(batch, self.device)
                 images = moved_batch["image"]
                 student_views, teacher_views = self._eval_views(images)

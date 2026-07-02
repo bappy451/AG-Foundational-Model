@@ -1,0 +1,23 @@
+\section{Introduction}
+\label{sec:intro}
+
+Precision agriculture has emerged as a critical domain for ensuring global food security and environmental sustainability. By monitoring crop health, predicting yields, and mapping agricultural boundaries, computational tools can drastically optimize farming workflows. In recent years, the primary modality for these tasks has shifted from low-resolution satellite data to high-resolution aerial and drone imagery, providing unprecedented spatial detail of agricultural landscapes. However, extracting actionable insights from this massive influx of visual data remains a profound challenge for the computer vision community.
+
+Historically, agricultural remote sensing has relied heavily on supervised deep learning models. This approach suffers from a severe bottleneck: acquiring dense, pixel-perfect annotations for agricultural tasks (e.g., segmenting individual weed boundaries or counting corn kernels) requires extensive domain expertise and is prohibitively expensive to scale. Consequently, researchers have increasingly turned to Self-Supervised Learning (SSL) to leverage vast repositories of unannotated data.
+
+Despite the promise of SSL, applying standard Vision Foundation Models (VFMs) like DINOv2~\cite{oquab2023dinov2} or MAE~\cite{he2022masked} directly to agricultural data exposes a critical domain gap. Natural images (e.g., ImageNet~\cite{deng2009imagenet}) feature centralized, highly structured semantic objects captured strictly in 3-channel (RGB) format. Conversely, agricultural and remote sensing data is wildly heterogeneous. It lacks central object biases, features immense variations in Ground Sample Distance (GSD), and crucially, relies heavily on multi-spectral imaging (incorporating Near-Infrared, Red-Edge, and Thermal bands) to differentiate vegetation health. Standard ViT architectures~\cite{dosovitskiy2020image} rigidly expect a 3-channel input, forcing researchers to either abandon valuable multi-spectral channels or completely discard powerful off-the-shelf initialization weights to train $N$-channel models from scratch. 
+
+To bridge this gap, we introduce \textit{AG-Foundation}, a massive-scale, continually pretrained vision foundation model strictly tailored for heterogeneous agricultural data. 
+At the core of our methodology is the \textbf{Universal Band Adapter}, a parameter-efficient architectural component that seamlessly projects arbitrary multi-spectral inputs into the standard embedding dimension. This elegantly allows our model to ingest 1-band to $N$-band GeoTIFFs while flawlessly preserving state-of-the-art pre-trained weights (e.g., DINOv3). 
+
+Furthermore, we demonstrate that standard monolithic SSL paradigms are insufficient for the noisy, unstructured nature of agricultural remote sensing. Instead, we propose a two-stage continual pretraining pipeline. In Stage 1, the model is forced to reconstruct heavily masked agricultural scenes via Masked Image Modeling (MIM), yielding a profound understanding of low-level multi-spectral textures. In Stage 2, we initialize a self-distillation (DINO) phase using the learned MIM weights, which successfully groups these physical textures into high-level, linearly separable semantic clusters (e.g., distinct crop rows vs. weeds). 
+
+To ensure supreme robustness and scalability, we constructed an unprecedented pretraining corpus: curating, standardizing, and sharding over 1.5 Terabytes of remote sensing data (comprising over 2 million diverse images across 40 datasets) into a high-performance WebDataset pipeline capable of dynamic zero-padding and NoData artifact mitigation. 
+
+In summary, our main contributions are:
+\begin{itemize}
+    \item We propose a Universal Band Adapter that harmonizes highly heterogeneous, arbitrary-channel agricultural imagery, enabling the direct utilization of powerful off-the-shelf ViT weights without retraining patch embeddings from scratch.
+    \item We introduce an empirical two-stage continual pretraining pipeline (\text{MIM} $\rightarrow$ \text{DINO}) proven to learn superior structural and semantic representations on unstructured geographic data.
+    \item We aggregate and release the AG-Foundation dataset, a strictly curated 1.5 TB corpus of over 2 million agricultural images spanning diverse geographical regions, resolutions, and multi-spectral modalities.
+    \item We achieve state-of-the-art downstream performance across a comprehensive suite of agricultural tasks, including disease classification, yield counting, and dense weed segmentation.
+\end{itemize}

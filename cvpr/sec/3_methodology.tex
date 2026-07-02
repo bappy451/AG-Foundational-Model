@@ -1,0 +1,50 @@
+\section{Methodology}
+\label{sec:methodology}
+
+The core objective of \textit{AG-Foundation} is to establish a unified representation space for highly heterogeneous agricultural remote sensing imagery. 
+Standard monolithic pretraining paradigms frequently fail in this domain due to strict channel constraints (e.g., assuming 3-band RGB inputs) and a reliance on central semantic objects that are absent in overhead agricultural imagery.
+To overcome this domain gap, we propose a scalable architecture centered around a universal Band Adapter (Sec.~\ref{subsec:band_adapter}) and a robust, two-stage continual pretraining pipeline: Masked Image Modeling (Sec.~\ref{subsec:mim}) followed by Self-Distillation (Sec.~\ref{subsec:dino}). We also detail strategies for handling pervasive artifacts such as NoData gaps and variable tile sizes (Sec.~\ref{subsec:heterogeneous_handling}).
+
+\subsection{Architecture and The Universal Band Adapter}
+\label{subsec:band_adapter}
+
+Vision Foundation Models (VFMs) such as Vision Transformers (ViT)~\cite{dosovitskiy2020image} and their robust variants (e.g., DINOv2~\cite{oquab2023dinov2}, EVA02~\cite{fang2023eva}) have achieved remarkable success. However, these models are historically hardcoded for 3-channel RGB imagery. In remote sensing, data is wildly heterogeneous, encompassing everything from single-band thermal imagery to 5-band multi-spectral satellite GeoTIFFs (e.g., Red, Green, Blue, Near-Infrared, Red-Edge). 
+Historically, researchers adapting VFMs to multi-spectral data have either discarded non-RGB bands or discarded the powerful pre-trained patch embedding weights entirely to train an $N$-channel patch embedding from scratch.
+
+To preserve the powerful hierarchical representations learned by models like DINOv3 and MAE on massive natural image datasets, we introduce a parameter-efficient, learnable $1 \times 1$ spatial convolution known as the \textbf{Band Adapter}. 
+Given an input tensor $X \in \mathbb{R}^{C \times H \times W}$ where $C$ is an arbitrary channel count (e.g., $C=5$ for multi-spectral), the Band Adapter applies a linear projection across the channel dimension:
+\begin{equation}
+    X_{rgb} = \text{Conv2D}_{1 \times 1}(X) \in \mathbb{R}^{3 \times H \times W}
+\end{equation}
+This seamlessly projects the $N$-channel input into the standard 3-channel dimension expected by official ViT patch embedding layers. The Band Adapter is initialized dynamically and optimized jointly with the backbone during pretraining. This allows the network to natively ingest diverse modalities while flawlessly retaining off-the-shelf initialization weights. Furthermore, our architecture adopts Rotary Position Embeddings (RoPE)~\cite{su2024roformer} rather than absolute position embeddings, granting the model robust translation invariance and enabling it to gracefully handle variable-sized spatial crops without interpolation artifacts.
+
+\subsection{Stage 1: Spatial Masked Image Modeling (MIM)}
+\label{subsec:mim}
+
+Agricultural and aerial landscapes inherently lack the centralized object bias present in natural image datasets like ImageNet. Consequently, bootstrapping contrastive learning from scratch on unstructured farmland often leads to representation collapse. We solve this by implementing Masked Image Modeling (MIM)~\cite{he2022masked} as the foundational pretraining stage.
+
+During Stage 1, we aggressively mask 75\% of the input patches. The unmasked 25\% of the patches are passed through the deep ViT encoder. A lightweight decoder then attempts to reconstruct the original un-normalized pixel values of the masked regions. The objective is to minimize the Mean Squared Error (MSE) between the reconstructed and original pixels:
+\begin{equation}
+    \mathcal{L}_{MIM} = \frac{1}{|M|} \sum_{i \in M} \left\| y_i - \hat{y}_i \right\|_2^2
+\end{equation}
+where $M$ is the set of masked patch indices, $y_i$ is the original pixel patch, and $\hat{y}_i$ is the predicted reconstruction. By forcing the network to inpaint massive missing regions of agricultural terrain, the model develops a profound understanding of low-level physical textures, crop canopy structures, and multi-spectral signatures (e.g., learning that high Near-Infrared reflectance strongly correlates with healthy vegetation patterns). 
+
+\subsection{Stage 2: Continual Self-Distillation (DINO)}
+\label{subsec:dino}
+
+While MIM excels at extracting dense spatial features, it often fails to group these textures into distinct, linearly separable semantic clusters (e.g., cleanly distinguishing weed clusters from crop rows). To bridge this gap, we transition the model to Stage 2: a DINO-style~\cite{caron2021emerging} continual self-distillation objective.
+
+We initialize a Teacher network with the exact weights learned from the MIM stage, while the Student network continues to train. The Student is fed severely augmented local and global crops, while the Teacher only sees global crops. The Student learns to predict the Teacher's class token distribution via cross-entropy, while the Teacher's weights are slowly updated via an Exponential Moving Average (EMA) of the Student's weights:
+\begin{equation}
+    \theta_t \leftarrow \lambda \theta_t + (1 - \lambda)\theta_s
+\end{equation}
+where $\theta_t$ and $\theta_s$ are the Teacher and Student parameters, respectively, and $\lambda$ is a cosine-scheduled momentum parameter. 
+Crucially, by initializing the DINO stage with the pre-learned MIM weights, the model bypasses the notoriously unstable early phases of contrastive learning. The distillation process effectively groups the low-level physical textures learned in Stage 1 into robust, high-level semantic objects, preparing the backbone for zero-shot and few-shot downstream agricultural tasks.
+
+\subsection{Handling Heterogeneous Resolution and NoData Artifacts}
+\label{subsec:heterogeneous_handling}
+
+Deploying models on uncurated, large-scale GIS data introduces unique systemic challenges.
+First, satellite GeoTIFFs frequently encode missing or invalid pixels as extreme negative integers (e.g., -2147483647). If ingested natively, these outliers utterly destroy batch normalization statistics and gradient stability. We embed a deterministic NoData clamping mechanism directly into the high-throughput WebDataset data loading pipeline, anchoring all negative outliers to zero prior to radiometric scaling.
+
+Second, extracting fixed-size crops (e.g., $224 \times 224$) at image boundaries inherently yields undersized spatial tensors. Rather than discarding this valuable edge data, our pipeline dynamically zero-pads undersized tiles on the right and bottom axes to satisfy the required crop dimension. Because our architecture employs RoPE and un-padded regions retain their spatial integrity, the model learns to naturally ignore the padded borders during self-attention, ensuring zero data waste across the 1.5 Terabyte pretraining corpus.
