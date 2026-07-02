@@ -133,6 +133,9 @@ class SSLTrainer:
             torch,
             enabled=self.device.type == "cuda" and precision == "fp16",
         )
+        if self.device.type == "cuda":
+            torch.set_float32_matmul_precision("high")
+            torch.backends.cudnn.benchmark = True
 
     def _autocast_context(self):
         import contextlib
@@ -230,6 +233,11 @@ class SSLTrainer:
         optimizer_steps = 0
 
         for step_index, batch in enumerate(self.train_loader, start=1):
+            # Hard epoch boundary guard: stop exactly at epoch_batches regardless
+            # of how many items the IterableDataset actually yields. This is the
+            # canonical pattern for WebDataset + PyTorch multiprocessing workers.
+            if num_batches > 0 and step_index > num_batches:
+                break
             loss = self._compute_loss(batch)
             if not torch.isfinite(loss):
                 raise FloatingPointError("Encountered a non-finite SSL loss.")
@@ -244,27 +252,23 @@ class SSLTrainer:
                 self.optimizer_step_count += 1
                 optimizer_steps += 1
                 self.optimizer.zero_grad(set_to_none=True)
+            avg_loss = total_loss / total_batches
+            lr = self._current_learning_rate()
+
             if self.progress_callback is not None:
-                total_work = total_epochs * num_batches
-                completed_work = (epoch_index * num_batches) + step_index - 1
-                avg_loss = total_loss / total_batches
-                lr = self._current_learning_rate()
-                accum_position = ((step_index - 1) % self.gradient_accumulation_steps) + 1
-                detail = (
-                    f"ep {epoch_index + 1}/{total_epochs} | "
-                    f"batch {step_index}/{num_batches} | "
-                    f"accum {accum_position}/{self.gradient_accumulation_steps} | "
-                    f"update {optimizer_steps}/{num_optimizer_steps} | "
-                    f"loss {last_loss:.4f} (avg {avg_loss:.4f}) | "
-                    f"lr {lr:.6f}"
+                self.progress_callback(
+                    step_index, 
+                    num_batches, 
+                    description=f"train-mim Epoch [{epoch_index + 1}/{total_epochs}]",
+                    detail=f"loss: {last_loss:.4f} | avg: {avg_loss:.4f} | lr: {lr:.6f}"
                 )
-                self.progress_callback(completed_work, total_work, detail=detail)
-            if step_index % self.log_every == 0:
+            elif step_index % self.log_every == 0:
                 print(
-                    f"train-mim epoch={epoch_index + 1} step={step_index}/{num_batches} "
-                    f"update={optimizer_steps}/{num_optimizer_steps} "
-                    f"accum={self.gradient_accumulation_steps} "
-                    f"loss={current_loss:.6f}"
+                    f"train-mim epoch={epoch_index + 1}/{total_epochs} | "
+                    f"batch={step_index}/{num_batches} | "
+                    f"update={optimizer_steps}/{num_optimizer_steps} | "
+                    f"loss={current_loss:.6f} (avg={avg_loss:.6f}) | "
+                    f"lr={lr:.6f}"
                 )
 
         return {
@@ -280,9 +284,16 @@ class SSLTrainer:
             return {"loss": float("nan"), "batches": 0}
 
         self.model.eval()
+        from tqdm import tqdm
+
         losses: list[float] = []
         with torch.no_grad():
-            for batch in self.val_loader:
+            for batch in tqdm(
+                self.val_loader,
+                desc=f"val-mim epoch={epoch_index + 1}",
+                leave=False,
+                dynamic_ncols=True,
+            ):
                 moved_batch = _move_ssl_batch_to_device(batch, self.device)
                 with self._autocast_context():
                     loss = self.model(moved_batch["image"])

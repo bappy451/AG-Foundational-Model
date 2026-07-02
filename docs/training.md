@@ -50,16 +50,33 @@ Recommended initial experiment:
 - crop divisible by the selected patch size
 - official checkpoint initialization
 - mask ratio 0.75
-- bf16 on an RTX 4090; fp16 is a fallback
+- `bf16` on an RTX 4090 (this is the new default).
 - batch size 4 to 8 with `gradient_accumulation_steps: 2` or higher as needed
+- `epoch_batches` configured if using WebDataset Tarballs.
 - 50 to 200 epochs depending on corpus size
 - group-disjoint validation
 - gradient checkpointing when memory-constrained
 
-Run:
+Run (Local WDS/CPU loader — Windows or Linux without DALI):
 
 ```bash
-bash scripts/train_mim.sh --config configs/my_mim.yaml
+python -m ag_foundation train-mim --config configs/wds_mim_pretrain.yaml
+```
+
+Run (Google Colab / Linux with NVIDIA DALI GPU loader):
+
+```python
+# Install the package first
+!pip install -e .[ml]
+
+# Then launch with DALI
+!python -m ag_foundation train-mim --config configs/wds_mim_pretrain.yaml --use-dali
+```
+
+Run (Compile for extra speed on Linux/Colab):
+
+```bash
+python -m ag_foundation train-mim --config configs/my_mim.yaml --use-dali --compile
 ```
 
 ## Production DINO
@@ -72,8 +89,26 @@ begin with a smaller output dimension while validating the pipeline.
 Publication comparisons must report the exact head, crop, precision, and
 accumulation settings.
 
+Run (Local WDS/CPU loader — Windows or Linux without DALI):
+
 ```bash
-bash scripts/train_dino.sh --config configs/my_dino.yaml
+python -m ag_foundation train-dino --config configs/wds_dino_pretrain.yaml
+```
+
+Run (Google Colab / Linux with NVIDIA DALI GPU loader):
+
+```python
+# Install the package first
+!pip install -e .[ml]
+
+# Then launch with DALI
+!python -m ag_foundation train-dino --config configs/wds_dino_pretrain.yaml --use-dali
+```
+
+Run (Compile for extra speed on Linux/Colab):
+
+```bash
+python -m ag_foundation train-dino --config configs/my_dino.yaml --use-dali --compile
 ```
 
 ## Continual Pretraining Meaning
@@ -119,7 +154,8 @@ Explicit:
 python -m ag_foundation train-dino \
   --config configs/my_dino.yaml \
   --epochs 100 \
-  --resume-from runs/my_run/last.pt
+  --resume-from runs/my_run/last.pt \
+  --compile
 ```
 
 If the checkpoint completed epoch 40 and `epochs` is 100, training continues at
@@ -167,3 +203,48 @@ instead of a long PyTorch tensor-shape dump.
   checkpoints are the source of truth.
 - The DINO implementation is DINO-style and still does not attempt the
   paper's full large-scale training and distillation stack.
+
+## WebDataset Data Pipeline Internals
+
+This section documents how the CPU and GPU data loading pipelines work internally,
+including important design decisions that prevent subtle bugs in multiprocessing environments.
+
+### CPU WDS Loader (`wds_loader.py`)
+
+The CPU pipeline uses `webdataset` with `resampled=True` (infinite random
+sampling with replacement) for maximum simplicity and Windows compatibility.
+
+Key design decisions:
+
+- **`resampled=True`** — Enables infinite streaming. Workers randomly resample
+  shards rather than cycling through a fixed shard list. This avoids the
+  `split_by_worker` pickling issue on Windows (`spawn` multiprocessing).
+- **`SizedWebDataset.__iter__` epoch boundary** — PyTorch's `DataLoader` does
+  not know when to stop iterating over an infinite `IterableDataset`. The
+  `SizedWebDataset` wrapper counts batches in its own `__iter__` and hard-stops
+  after exactly `epoch_batches` items. This prevents the
+  `Length of IterableDataset ... was reported to be N but M samples have been fetched`
+  warning caused by `.with_epoch()` applying its limit per-worker rather than globally.
+- **Hard `break` in `ssl_trainer.py`** — An additional safety guard breaks out
+  of the training loop after `num_batches` steps regardless of what the
+  DataLoader yields. This is the canonical pattern for large-scale WebDataset training.
+
+### GPU DALI Loader (`dali_wds_loader.py`)
+
+The GPU pipeline uses NVIDIA DALI's `fn.readers.webdataset` for hardware-
+accelerated JPEG decoding via nvJPEG entirely on the GPU.
+
+Key design decisions:
+
+- **`ext=["jpg;jpeg;png;tif;tiff"]`** — A single semicolon-separated string tells
+  DALI these are alternative formats for a **single** image output. Do NOT pass
+  a Python list with multiple strings (e.g., `["jpg", "png"]`) — DALI interprets
+  each list item as a separate output channel and crashes with
+  `ValueError: too many values to unpack`.
+- **`missing_component_behavior="skip"`** — Samples without a matching image file
+  are silently skipped.
+- **DALI startup index scan** — On the first run, DALI scans tar headers to build
+  an in-memory index (`Index file not provided, it may take some time...`). This
+  is a one-time cost and is safe to ignore.
+- **Not supported on Windows** — DALI requires Linux + CUDA. The codebase
+  automatically falls back to the CPU loader on Windows.

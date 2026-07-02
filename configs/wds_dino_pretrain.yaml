@@ -1,30 +1,30 @@
-# Smoke-test configuration for RTX 4090 — ViT-B DINO
-# Runs 2 epochs over the full 5.17M-image pretraining catalog.
-# Uses gradient checkpointing + small batch to fit 24 GB VRAM.
+# High-Performance DINO Pretraining Configuration (WebDataset)
+# Uses the massive 650GB dataset sharded into 1GB tarballs.
 #
-# Usage (PowerShell):
-#   conda activate ag-foundation
-#   cd E:\AG_Dataset\AG-Foundational-Model
-#   python -m ag_foundation train-dino --config configs/smoke_test_b.yaml
+# Usage (Google Colab / Linux):
+#   python -m ag_foundation train-dino --config configs/wds_dino_pretrain.yaml --use-dali
+#
+# Usage (Windows Local CPU-based WDS):
+#   python -m ag_foundation train-dino --config configs/wds_dino_pretrain.yaml
 
 data:
-  data_root: ../Pretraining
+  data_root: 'E:\AG_Dataset\shards\dataset-*.tar'
   catalog_path: null
   crop_size: 224
   channels: 3
-  batch_size: 8
-  num_workers: 8
+  batch_size: 16
+  num_workers: 12
   prefetch_factor: 2
   val_fraction: 0.05
 
 runtime:
-  output_dir: ../runs/smoke_test_dino
+  output_dir: ../runs/wds_dino_pretraining
   epochs: 2
   seed: 27
   precision: bf16
   device: auto
-  warmup_epochs: 0
-  gradient_accumulation_steps: 16
+  warmup_epochs: 1
+  gradient_accumulation_steps: 8
   resume: true
   resume_from: null
   initialize_from: null
@@ -34,7 +34,7 @@ runtime:
   visualization_samples: 8
 
 model:
-  model_name: B
+  model_name: S
   pretrained_backbone: true
   pretrained_source: dinov3
   pretrained_cfg: null
@@ -43,7 +43,7 @@ model:
   dino_bottleneck_dim: 256
   head_nlayers: 3
   num_global_crops: 2
-  num_local_crops: 4
+  num_local_crops: 8
   global_crop_scale: [0.6, 1.0]
   local_crop_scale: [0.3, 0.6]
   student_temperature: 0.1
@@ -51,7 +51,7 @@ model:
   teacher_momentum_start: 0.996
   teacher_momentum_end: 1.0
   center_momentum: 0.9
-  gradient_checkpointing: true
+  gradient_checkpointing: false
   drop_rate: 0.0
   attn_drop_rate: 0.0
   drop_path_rate: 0.1

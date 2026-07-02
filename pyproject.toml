@@ -13,6 +13,7 @@ dependencies = [
   "pandas>=2.2",
   "Pillow>=10.0",
   "PyYAML>=6.0",
+  "rich>=13.0",
 ]
 
 [project.scripts]
@@ -29,6 +30,8 @@ ml = [
   "timm>=1.0,<2",
   "torch>=2.2,<3",
   "torchvision>=0.17,<1",
+  "tqdm>=4.66",
+  "webdataset>=0.2.86",
 ]
 
 [tool.ruff]

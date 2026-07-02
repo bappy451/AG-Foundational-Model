@@ -490,15 +490,9 @@
 
 % ---------------------------------------------------------------
 
-%% Support for easy cross-referencing (e.g. \cref{sec:intro}
-% configured with \AtEndPreamble as it needs to be called after hyperref
-\AtEndPreamble{
-    \usepackage[capitalize]{cleveref}
-    \crefname{section}{Sec.}{Secs.}
-    \Crefname{section}{Section}{Sections}
-    \Crefname{table}{Table}{Tables}
-    \crefname{table}{Tab.}{Tabs.}
-}
+%% Support for easy cross-referencing (e.g. \cref{sec:intro})
+%% The proposal in this repository does not use these commands, so the
+%% dependency is omitted here to keep the local build lightweight.
 
 % ---------------------------------------------------------------
 

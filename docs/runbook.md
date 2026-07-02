@@ -7,16 +7,16 @@ answers three questions:
 2. What should I expect after each command?
 3. What should I do after the project runs correctly?
 
-It reflects the implementation audited on 2026-06-24.
+It reflects the implementation audited and patched through 2026-06-29.
 
 ## Current Project Status
 
 The project is ready for engineering-scale self-supervised pretraining runs on a
-single workstation. It supports:
+single workstation and on Google Colab with an A100/T4 GPU. It supports:
 
 - official `timm` ViT-S, ViT-B, and ViT-L backbones
 - ImageNet, DINOv2, DINOv3, and MAE checkpoint initialization
-- RGB, GeoTIFF, multispectral NPY, folder, ZIP, and nested-ZIP inputs
+- RGB, GeoTIFF, multispectral NPY, folder, ZIP, TAR, TAR.GZ, and nested-ZIP inputs
 - a learnable 1x1 band adapter before the official RGB ViT backbone
 - MIM and DINO-style pretraining
 - continual pretraining through `initialize_from`
@@ -25,6 +25,10 @@ single workstation. It supports:
 - **zero-padding of undersized images** (small tiles are padded, not rejected)
 - **GeoTIFF NoData handling** (extreme negative integers clamped to 0)
 - **RoPE backbone compatibility** (DINOv3/EVA02 4D patch embed + no absolute pos embed)
+- **WebDataset epoch boundary enforcement** (exact per-epoch batch count regardless of `num_workers`)
+- **Windows multiprocessing safety** (fully pickleable `SizedWebDataset` wrapper)
+- **DALI multi-format support** (semicolon-separated `ext` for single-image multi-format shards)
+- **Google Colab GPU training** via NVIDIA DALI (`--use-dali` flag)
 
 The main operational limitation is intentional: `initialize_from` requires a
 compatible checkpoint. The source and target should use the same ViT family,
@@ -394,6 +398,7 @@ What to do next:
 - Add multispectral/GeoTIFF sources if the current corpus is RGB-heavy.
 
 ## Step 10.5: Full-Dataset 2-Epoch Smoke Test (RTX 4090)
+## Step 10.5: Full-Dataset 2-Epoch Smoke Test (RTX 4090)
 
 Before a long pretraining campaign, run the full-dataset smoke test to confirm
 the entire pipeline works end-to-end on real data.
@@ -458,52 +463,91 @@ If CUDA OOM occurs, reduce `batch_size` to 4 and increase
 
 Resume works automatically: re-running the same command picks up from `last.pt`.
 
-## Step 11: Prepare Real Data
+## Step 11: Build Pretraining Data Structures
 
-The project now supports **Multi-Source Data Loading**, allowing you to pretrain seamlessly across dozens of different ZIP archives without extracting them. Before training, you need to generate a master catalog that maps all valid images across these ZIPs.
+For smaller datasets, the clean pretraining catalog (`Pretraining/catalog.csv`) can index the images
+across your archives.
 
-To scan the `Pretraining` directory and build the master pretraining catalog, run:
+To regenerate the catalog from scratch (e.g. after adding new datasets):
 
-```bash
-python scripts/build_pretraining_catalog.py \
-  --pretraining-root ../Pretraining \
-  --output-path catalogs/pretraining_master.csv \
-  --exclude-sources "Toxic Plant Classification" "Edible wild plants" \
-      "Pea Plant dataset" "Indian Medicinal Plant Image Dataset" \
-      "Agriculture crop images" "Paddy Doctor- Paddy Disease Classification" \
-      "GeoPlant_ Spatial Plant Species Prediction Dataset-008" \
-      "Pumpkin Leaf Diseases Dataset From Bangladesh" \
-      "PlantSeg_ A Large-Scale In-the-wild Dataset for Plant Disease Segmentation" \
-      "corn-kernel-counting" "longitudinal-nutrient-deficiency"
+```powershell
+conda activate ag-foundation
+cd E:\AG_Dataset\AG-Foundational-Model
+$env:PYTHONIOENCODING="utf-8"; $env:PYTHONUTF8="1"
+python -u scripts/build_pretraining_catalog.py
 ```
 
-This script will:
-- Iterate through all ZIP files and directories.
-- Automatically exclude known duplicate ZIP files.
-- Exclude the specified held-out datasets (reserved purely for evaluation).
-- Create a comprehensive `.csv` with `path`, `group`, and `source_dataset` tracking.
+### High-Performance WebDataset Shards (Recommended)
+For massive datasets (~1 TB), we heavily recommend building WebDataset (`.tar`) shards for maximum I/O performance on Linux and Google Colab.
 
-For large GeoTIFF scenes, you can slice them into tiles:
+```powershell
+python src\ag_foundation\data\build_wds_shards.py \
+  --input-dir "E:\AG_Dataset\AG-Foundational-Model\Pretraining" \
+  --output-prefix "E:\AG_Dataset\shards\dataset" \
+  --max-size 1000000000
+```
+This generates ~1GB `.tar` shards which can be sequentially streamed across the network directly into GPU memory using DALI.
 
-```bash
-python -m ag_foundation slice-geotiffs \
-  --input-path /path/to/geotiff_scenes \
-  --output-dir /path/to/geotiff_tiles \
-  --tile-size 224 \
-  --stride 224 \
-  --output-format tif
+## Step 11.5: Google Colab GPU Training (A100 / T4)
+
+The project supports training directly in Google Colab using the NVIDIA DALI GPU
+loader for maximum throughput. Your WebDataset shards must be accessible from
+Colab (e.g., mounted from Google Drive).
+
+### Setup in Colab
+
+```python
+# 1. Mount Google Drive (if your shards are stored there)
+from google.colab import drive
+drive.mount('/content/drive')
+
+# 2. Navigate to your project directory
+import os
+os.chdir('/content/drive/MyDrive/Colab_Projects/AG-Foundational-Model')
+
+# 3. Install the package in editable mode
+!pip install -e .[ml]
+
+# 4. Verify NVIDIA DALI is installed (included in the ml extras)
+!python -c "import nvidia.dali; print('DALI OK')"
 ```
 
-Expected result:
+### Run MIM Pretraining on Colab
 
-- `catalogs/pretraining_master.csv` contains thousands of rows, balancing data from all sources.
-- GeoTIFF tiles preserve georeferencing when written as `.tif`.
+```python
+!python -m ag_foundation train-mim \
+    --config configs/wds_mim_pretrain.yaml \
+    --use-dali
+```
 
-What to do next:
+### Run DINO Pretraining on Colab
 
-- Review the comprehensive pretraining methodology outlined in `docs/pretraining_implementation_plan.md`.
-- Decide the exact number of channels for each run.
-- Keep separate runs for RGB-only and multispectral experiments if the channel counts differ.
+```python
+!python -m ag_foundation train-dino \
+    --config configs/wds_dino_pretrain.yaml \
+    --use-dali
+```
+
+### Expected DALI Startup Messages (Safe to Ignore)
+
+When training starts, DALI will print two informational messages that are completely safe:
+
+```
+Warning: Please set `reader_name` and don't set last_batch_padded and size manually...
+[webdataset_loader.cc] Index file not provided, it may take some time to infer it from the tar file
+```
+
+The first warning is because we manually set the epoch size. The second means DALI
+is scanning tar headers to build an index — this is a one-time cost at startup.
+Training will proceed normally after the scan completes.
+
+### Colab Config Tips
+
+- Set `data.num_workers: 2` on Colab (CPU workers for prefetching are shared).
+- Set `runtime.precision: bf16` on A100 for maximum speed.
+- Set `runtime.precision: fp16` on T4.
+- Set `data.epoch_batches` to limit each epoch to a manageable number of batches
+  (e.g., `50000`) so checkpoints are saved frequently.
 
 ## Step 12: Configure A Real MIM Run
 
@@ -518,12 +562,12 @@ Edit the important fields:
 ```yaml
 data:
   data_root: ../Pretraining
-  catalog_path: null
+  catalog_path: ../Pretraining/catalog.csv
   crop_size: 224
   channels: 3
   batch_size: 4
-  num_workers: 4
-  val_fraction: 0.1
+  num_workers: 8
+  val_fraction: 0.05
 
 runtime:
   output_dir: ../runs/mim_vit_b_ag
@@ -581,12 +625,12 @@ Recommended first DINO config for a 4090:
 ```yaml
 data:
   data_root: ../Pretraining
-  catalog_path: null
+  catalog_path: ../Pretraining/catalog.csv
   crop_size: 224
   channels: 3
   batch_size: 4
-  num_workers: 4
-  val_fraction: 0.1
+  num_workers: 8
+  val_fraction: 0.05
 
 runtime:
   output_dir: ../runs/dino_vit_s_ag
@@ -824,3 +868,21 @@ The next major work is scientific, not plumbing:
 - collect ablations and external-domain results
 - prepare a reproducible experiment package for CVPR or Computers and
   Electronics in Agriculture style review
+
+## Advanced: Google Colab & NVIDIA DALI
+
+For cloud deployments (like Google Colab instances running Ubuntu), you can leverage NVIDIA DALI for ultra-fast GPU-accelerated JPEG decoding. DALI decodes WebDataset `.tar` shards directly into GPU memory via `nvJPEG`, entirely bypassing CPU bottlenecks.
+
+1. Install DALI on Colab (Ensure a T4, L4, or A100 runtime is selected):
+```bash
+!pip install --extra-index-url https://developer.download.nvidia.com/compute/redist --upgrade nvidia-dali-cuda120
+```
+
+2. Run Pretraining with the `--use-dali` flag:
+```bash
+# MIM
+python -m ag_foundation train-mim --config configs/wds_mim_pretrain.yaml --use-dali
+
+# DINO
+python -m ag_foundation train-dino --config configs/wds_dino_pretrain.yaml --use-dali
+```

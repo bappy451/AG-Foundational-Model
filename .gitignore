@@ -24,3 +24,15 @@ data/*
 Thumbs.db
 .idea/
 .vscode/
+# WebDataset shards
+*.tar
+
+# Local outputs and logs
+checkpoints/
+logs/
+wandb/
+# Ignore all downloaded timm/huggingface model weights and snapshots
+models/
+*.safetensors
+*.bin
+*.pth

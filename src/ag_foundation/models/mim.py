@@ -30,6 +30,7 @@ class RemoteSensingMIMModel(nn.Module):
         pretrained_source: str = DEFAULT_PRETRAINED_SOURCE,
         pretrained_cfg: str | dict[str, object] | None = None,
         mask_ratio: float = 0.75,
+        norm_pix_loss: bool = True,
         gradient_checkpointing: bool = False,
         drop_rate: float = 0.0,
         attn_drop_rate: float = 0.0,
@@ -39,6 +40,7 @@ class RemoteSensingMIMModel(nn.Module):
         self.requested_precision = _validate_precision(precision)
         self.image_size = _pair(image_size)
         self.mask_ratio = float(mask_ratio)
+        self.norm_pix_loss = bool(norm_pix_loss)
         if not 0.0 <= self.mask_ratio <= 1.0:
             raise ValueError("mask_ratio must be between 0 and 1.")
 
@@ -99,6 +101,12 @@ class RemoteSensingMIMModel(nn.Module):
             kernel_size=self.patch_size,
             stride=self.patch_size,
         ).transpose(1, 2).to(dtype=reconstruction.dtype)
+        
+        if self.norm_pix_loss:
+            target_mean = target.mean(dim=-1, keepdim=True)
+            target_var = target.var(dim=-1, keepdim=True, unbiased=False)
+            target = (target - target_mean) / (target_var + 1e-6).sqrt()
+
         loss = self.compute_masked_loss(reconstruction, target, mask)
         return {
             "adapted": adapted,

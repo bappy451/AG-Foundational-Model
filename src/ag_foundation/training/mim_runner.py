@@ -31,7 +31,7 @@ TRAIN_MIM_DEFAULTS: dict[str, Any] = {
     "seed": 27,
     "crop_size": 224,
     "channels": 3,
-    "prefetch_factor": 2,
+    "prefetch_factor": 4,
     "gradient_accumulation_steps": 1,
     "model_name": "S",
     "pretrained_backbone": True,
@@ -42,8 +42,9 @@ TRAIN_MIM_DEFAULTS: dict[str, Any] = {
     "drop_rate": 0.0,
     "attn_drop_rate": 0.0,
     "drop_path_rate": 0.0,
-    "precision": "fp32",
-    "num_workers": 0,
+    "precision": "bf16",
+    "num_workers": 8,
+    "compile": False,
     "learning_rate": 1e-4,
     "weight_decay": 1e-4,
     "warmup_epochs": 0,
@@ -56,6 +57,8 @@ TRAIN_MIM_DEFAULTS: dict[str, Any] = {
     "visualization_every": 1,
     "visualization_samples": 4,
     "val_fraction": 0.2,
+    "epoch_batches": 100000,
+    "use_dali": False,
 }
 
 
@@ -69,6 +72,8 @@ TRAIN_MIM_SECTION_MAP: dict[str, dict[str, str]] = {
         "num_workers": "num_workers",
         "prefetch_factor": "prefetch_factor",
         "val_fraction": "val_fraction",
+        "epoch_batches": "epoch_batches",
+        "use_dali": "use_dali",
     },
     "runtime": {
         "output_dir": "output_dir",
@@ -185,6 +190,7 @@ def build_train_mim_parser(config_defaults: dict[str, Any] | None = None) -> arg
     parser.add_argument("--drop-path-rate", type=float, default=defaults["drop_path_rate"])
     parser.add_argument("--precision", choices=("fp32", "fp16", "bf16"), default=defaults["precision"])
     parser.add_argument("--num-workers", type=int, default=defaults["num_workers"])
+    parser.add_argument("--compile", action=argparse.BooleanOptionalAction, default=defaults.get("compile", False), help="Compile model using torch.compile")
     parser.add_argument("--learning-rate", type=float, default=defaults["learning_rate"])
     parser.add_argument("--weight-decay", type=float, default=defaults["weight_decay"])
     parser.add_argument("--warmup-epochs", type=int, default=defaults["warmup_epochs"])
@@ -205,6 +211,10 @@ def build_train_mim_parser(config_defaults: dict[str, Any] | None = None) -> arg
     parser.add_argument("--visualization-every", type=int, default=defaults["visualization_every"])
     parser.add_argument("--visualization-samples", type=int, default=defaults["visualization_samples"])
     parser.add_argument("--val-fraction", type=float, default=defaults["val_fraction"])
+    parser.add_argument("--epoch-batches", type=int, default=defaults["epoch_batches"], help="Number of batches per epoch for WebDataset.")
+    parser.add_argument("--use-dali", action="store_true", help="Use NVIDIA DALI for WebDataset decoding (Colab/Linux only).")
+    parser.add_argument("--no-use-dali", action="store_false", dest="use_dali")
+    parser.set_defaults(use_dali=defaults["use_dali"])
     return parser
 
 
@@ -377,34 +387,74 @@ def _resolve_initialize_checkpoint(args: argparse.Namespace) -> Path | None:
     return candidate.resolve()
 
 
-def _build_progress_callback(tag: str):
-    def _callback(completed_work: int, total_work: int, *, detail: str = "") -> None:
-        if total_work <= 0:
-            return
-        print(f"[{tag}] progress {completed_work + 1}/{total_work} | {detail}")
-
-    return _callback
-
-
-def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = None):
+def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = None, progress_callback = None):
     set_global_seed(args.seed)
     resume_checkpoint = _resolve_resume_checkpoint(args)
     initialize_checkpoint = _resolve_initialize_checkpoint(args)
-    print("[train-mim] Scanning dataset directories and catalog (this may take several minutes on slow storage)...", flush=True)
-    train_loader, val_loader = get_dataloaders(
-        args.data_root,
-        batch_size=args.batch_size,
-        val_fraction=args.val_fraction,
-        seed=args.seed,
-        crop_size=args.crop_size,
-        channels=args.channels,
-        precision=args.precision,
-        num_workers=args.num_workers,
-        prefetch_factor=args.prefetch_factor,
-        catalog_path=args.catalog_path,
-        train_augment=True,
-        val_augment=False,
-    )
+    data_root_str = str(args.data_root)
+    if "*" in data_root_str and data_root_str.endswith(".tar"):
+        import glob
+        import os
+        import sys
+
+        resolved_tars = []
+        if "*" in data_root_str or "?" in data_root_str:
+            resolved_tars.extend(glob.glob(data_root_str))
+        else:
+            resolved_tars.append(data_root_str)
+
+        if not resolved_tars:
+            raise ValueError(f"No tar files found matching: {data_root_str}")
+
+        if sys.platform == "win32":
+            from webdataset.gopen import gopen_schemes
+
+            gopen_schemes["winfile"] = lambda url, mode="rb", bufsize=8192, **kw: open(
+                url.replace("winfile://", ""), mode, buffering=bufsize
+            )
+            resolved_tars = [
+                f"winfile://{os.path.abspath(t).replace(os.sep, '/')}" for t in resolved_tars
+            ]
+
+        if args.use_dali:
+            print("[train-mim] Detected WebDataset tarballs. Using NVIDIA DALI GPU loader.", flush=True)
+            from ag_foundation.data.dali_wds_loader import build_dali_wds_dataloader
+
+            train_loader = build_dali_wds_dataloader(
+                tar_urls=resolved_tars,
+                batch_size=args.batch_size,
+                num_workers=args.num_workers,
+                epoch_batches=args.epoch_batches,
+                crop_size=args.crop_size,
+            )
+        else:
+            print("[train-mim] Detected WebDataset tarballs in config. Using high-performance WDS CPU loader.", flush=True)
+            from ag_foundation.data.wds_loader import build_wds_dataloader
+
+            train_loader = build_wds_dataloader(
+                tar_urls=resolved_tars,
+                batch_size=args.batch_size,
+                num_workers=args.num_workers,
+                epoch_batches=args.epoch_batches,
+                crop_size=args.crop_size,
+            )
+        val_loader = None
+    else:
+        print("[train-mim] Scanning dataset directories and catalog (this may take several minutes on slow storage)...", flush=True)
+        train_loader, val_loader = get_dataloaders(
+            args.data_root,
+            batch_size=args.batch_size,
+            val_fraction=args.val_fraction,
+            seed=args.seed,
+            crop_size=args.crop_size,
+            channels=args.channels,
+            precision=args.precision,
+            num_workers=args.num_workers,
+            prefetch_factor=args.prefetch_factor,
+            catalog_path=args.catalog_path,
+            train_augment=True,
+            val_augment=False,
+        )
     print(f"[train-mim] Constructing RemoteSensingMIMModel (ViT-{args.model_name}) and loading weights...", flush=True)
     model = RemoteSensingMIMModel(
         in_channels=args.channels,
@@ -423,10 +473,27 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
     if initialize_checkpoint is not None:
         checkpoint = load_training_checkpoint(initialize_checkpoint)
         model.initialize_from_state_dict(checkpoint.get("model_state_dict", checkpoint))
+        
+    if getattr(args, "compile", False):
+        print(f"[train-mim] Compiling model with torch.compile...", flush=True)
+        model = torch.compile(model)
+        
+    decay_params = []
+    no_decay_params = []
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+        if param.ndim <= 1 or name.endswith(".bias"):
+            no_decay_params.append(param)
+        else:
+            decay_params.append(param)
+
     optimizer = torch.optim.AdamW(
-        [parameter for parameter in model.parameters() if parameter.requires_grad],
+        [
+            {"params": decay_params, "weight_decay": args.weight_decay},
+            {"params": no_decay_params, "weight_decay": 0.0},
+        ],
         lr=args.learning_rate,
-        weight_decay=args.weight_decay,
     )
     run_config = dict(vars(args))
     run_config["resolved_resume_checkpoint"] = (
@@ -436,6 +503,7 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
     run_config["backbone_initialized_from_timm"] = bool(
         args.pretrained_backbone and resume_checkpoint is None and initialize_checkpoint is None
     )
+    run_config["compile"] = getattr(args, "compile", False)
     run_config["effective_batch_size"] = int(args.batch_size) * int(args.gradient_accumulation_steps)
     print("[train-mim] Assembling trainer, optimizers, and schedulers...", flush=True)
     trainer = SSLTrainer(
@@ -448,7 +516,7 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
         epoch_lr_schedule=build_epoch_lr_schedule(warmup_epochs=args.warmup_epochs),
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         log_every=args.log_every,
-        progress_callback=_build_progress_callback("train-mim"),
+        progress_callback=progress_callback,
         save_visualizations=args.save_visualizations,
         visualization_every=args.visualization_every,
         visualization_samples=args.visualization_samples,
@@ -483,5 +551,8 @@ def run_train_mim(args: argparse.Namespace, *, command_argv: list[str] | None = 
 
 def main(argv: list[str] | None = None) -> None:
     args = parse_train_mim_args(argv)
-    summary = run_train_mim(args, command_argv=list(argv or []))
-    print(summary)
+    from ag_foundation.progress import command_progress_context
+    with command_progress_context(argv) as progress:
+        progress_cb = progress.update if progress else None
+        summary = run_train_mim(args, command_argv=list(argv or []), progress_callback=progress_cb)
+        print(summary)

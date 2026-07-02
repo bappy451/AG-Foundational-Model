@@ -82,7 +82,7 @@ def test_ssl_trainer_fit_writes_checkpoints_metrics_and_sets_epoch(fake_timm, tm
     assert summary.val_batches == 1
     assert summary.final_train_loss is not None
     assert summary.final_val_loss is not None
-    checkpoint = torch.load(tmp_path / "mim-run" / "last.pt", map_location="cpu")
+    checkpoint = torch.load(tmp_path / "mim-run" / "last.pt", map_location="cpu", weights_only=False)
     assert "rng_state" in checkpoint
     assert "run_config" in checkpoint
 
@@ -115,7 +115,7 @@ def test_ssl_trainer_accumulates_gradients_before_stepping(fake_timm, tmp_path: 
     summary = trainer.fit(epochs=1, output_dir=tmp_path / "mim-accum")
 
     metrics = json.loads((tmp_path / "mim-accum" / "metrics.json").read_text(encoding="utf-8"))
-    checkpoint = torch.load(tmp_path / "mim-accum" / "last.pt", map_location="cpu")
+    checkpoint = torch.load(tmp_path / "mim-accum" / "last.pt", map_location="cpu", weights_only=False)
     assert metrics["history"][0]["optimizer_steps"] == 2
     assert metrics["system_info"]["gradient_accumulation_steps"] == 2
     assert metrics["system_info"]["optimizer_steps_completed"] == 2
@@ -333,7 +333,7 @@ def test_dino_trainer_accumulates_gradients_before_teacher_updates(fake_timm, tm
     summary = trainer.fit(epochs=1, output_dir=output_dir)
 
     metrics = json.loads((output_dir / "metrics.json").read_text(encoding="utf-8"))
-    checkpoint = torch.load(output_dir / "last.pt", map_location="cpu")
+    checkpoint = torch.load(output_dir / "last.pt", map_location="cpu", weights_only=False)
     assert metrics["history"][0]["optimizer_steps"] == 2
     assert metrics["system_info"]["gradient_accumulation_steps"] == 2
     assert metrics["system_info"]["optimizer_steps_completed"] == 2

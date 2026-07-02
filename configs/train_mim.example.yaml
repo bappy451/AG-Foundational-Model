@@ -1,12 +1,12 @@
 data:
-  data_root: ../data/your_dataset_or_zip
-  catalog_path: null
+  data_root: ../Pretraining
+  catalog_path: ../Pretraining/catalog.csv
   crop_size: 224
   channels: 3
   batch_size: 8
-  num_workers: 4
+  num_workers: 8
   prefetch_factor: 2
-  val_fraction: 0.2
+  val_fraction: 0.05
 
 runtime:
   output_dir: ../runs/train_mim_example

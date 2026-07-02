@@ -8,6 +8,7 @@
 | GeoTIFF | `.tif`, `.tiff` | rasterio bands-first |
 | NumPy | `.npy` | `C,H,W`, `H,W,C`, or 2D single-band |
 | Archive | `.zip` | supported images and nested ZIPs |
+| WebDataset | `.tar` | sequential WebDataset shards |
 
 macOS metadata such as `__MACOSX` and `._*` members is skipped.
 
@@ -43,6 +44,8 @@ reflectance calibration, and per-band standardization should be performed
 before this generic loader when scientifically required.
 
 ## Spatial Rules
+
+The corpus contains an extreme variety of resolutions ranging from `128x128` thumbnails to massive `8143x5467` high-resolution imagery. The dataloader handles this natively via dynamic cropping and scaling.
 
 - Images smaller than `crop_size` in any dimension are **zero-padded** on the
   right/bottom to reach the required size.  This preserves small but valid
@@ -130,11 +133,18 @@ when the additional spectral bands or original radiometry are required.
 
 ## Archives
 
+### ZIP Archives
 ZIP members are read without extracting the complete archive. Each DataLoader
 worker lazily opens a root archive once and reuses that handle, avoiding repeated
 central-directory parsing for every sample. Nested ZIPs are supported. For very
 large archives, random access may still be slower than a sharded or extracted
 training layout; benchmark I/O before a long campaign.
+
+### WebDataset Shards (`.tar`)
+For massive datasets, we support WebDataset `.tar` shards natively. When `data_root` specifies a pattern like `/data/shards/dataset-*.tar`, the runners will automatically switch to a high-performance sequential loader.
+- On Windows or CPU, this utilizes a custom PyTorch IterableDataset pipeline.
+- On Linux (e.g., Google Colab) with `--use-dali` enabled, this utilizes NVIDIA DALI to decode the JPEGs directly into GPU memory via `nvJPEG`, bypassing the CPU completely.
+Corrupted or truncated images within Tarballs are automatically skipped by the loader without crashing the training run.
 
 ## Demo Data
 

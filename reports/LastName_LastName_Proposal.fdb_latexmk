@@ -1,6 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1782542157.32776 "/Users/abedinm/Desktop/AG Dataset/AG_Foundational_Model/reports/LastName_LastName_Proposal.tex" "LastName_LastName_Proposal.pdf" "LastName_LastName_Proposal" 1782542158.05694 0
-  "/Users/abedinm/Desktop/AG Dataset/AG_Foundational_Model/reports/LastName_LastName_Proposal.tex" 1782542156.34642 9407 fd32e9bb0c609d5dc321c91b674799ef ""
+["pdflatex"] 1782951288.9588 "LastName_LastName_Proposal.tex" "LastName_LastName_Proposal.pdf" "LastName_LastName_Proposal" 1782951289.60831 0
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/adobe/courier/pcrr7t.tfm" 1136768653 960 379cc0019370a9e0208a0a3f949f847a ""
@@ -74,7 +73,6 @@
   "/usr/local/texlive/2025/texmf-dist/tex/latex/caption/caption.sty" 1696191071 56128 c2ccf1a29d78c33bc553880402e4fb9a ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/caption/caption3.sty" 1696191071 72619 ee90b6612147680fd73c3b1406a74245 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/caption/subcaption.sty" 1690576852 12494 0c0cdb824278a4d51cefeb2e79901315 ""
-  "/usr/local/texlive/2025/texmf-dist/tex/latex/cleveref/cleveref.sty" 1525128982 329481 7fc6b003158402a4c694bc0a1b729308 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/enumitem/enumitem.sty" 1738874546 52272 63d293bc0d496619edb57585740861a2 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty" 1579991033 13886 d1306dcf79a944f6988e688c1785f9ce ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/etoolbox/etoolbox.sty" 1739306980 46850 d87daedc2abdc653769a6f1067849fe0 ""
@@ -88,7 +86,6 @@
   "/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/keyval.sty" 1717359999 2671 70891d50dac933918b827d326687c6e8 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/mathcolor.ltx" 1667332637 2885 9c645d672ae17285bba324998918efd8 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/trig.sty" 1717359999 4023 2c9f39712cf7b43d3eb93a8bbd5c8f67 ""
-  "/usr/local/texlive/2025/texmf-dist/tex/latex/grfext/grfext.sty" 1575499774 7133 b94bbacbee6e4fdccdc7f810b2aec370 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/hycolor/hycolor.sty" 1580250785 17914 4c28a13fc3d975e6e81c9bea1d697276 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/hyperref/hpdftex.def" 1730838014 48154 82da9991b9f0390b3a9d3af6c8618af4 ""
   "/usr/local/texlive/2025/texmf-dist/tex/latex/hyperref/hyperref.sty" 1730838014 222112 c22dbd2288f89f7ba942ac22f7d00f11 ""
@@ -120,10 +117,10 @@
   "/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1756063951 5467155 19efa205003f9ecad95fbbaa6ff24da1 ""
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1741450574 3345740 46b66fdb0378f7bf5921b5eabf1762b8 ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
-  "LastName_LastName_Proposal.aux" 1782542158.00771 1130 d14519ba3e1ce956307972e73e7e4839 "pdflatex"
-  "LastName_LastName_Proposal.out" 1782542158.00849 1348 db13f50038742ec14252cfce0ab02522 "pdflatex"
-  "LastName_LastName_Proposal.tex" 1782542156.34642 9407 fd32e9bb0c609d5dc321c91b674799ef ""
-  "cvpr.sty" 1782434838.45695 17969 80f163e29385124bdb82ffc8fdde892f ""
+  "LastName_LastName_Proposal.aux" 1782951289.55497 1322 f7b83f19196fe4c3674283d16ad32b09 "pdflatex"
+  "LastName_LastName_Proposal.out" 1782951289.55585 1234 22e5be96677a8283c86c5939aec500fd "pdflatex"
+  "LastName_LastName_Proposal.tex" 1782951283.0849 8724 99ee216ccd05b88b1faa9133f494934a ""
+  "cvpr.sty" 1782951221.99429 17831 f210f5f1cb88baa15f30ee38b7f09236 ""
   (generated)
   "LastName_LastName_Proposal.aux"
   "LastName_LastName_Proposal.log"

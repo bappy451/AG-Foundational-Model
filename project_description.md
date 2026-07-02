@@ -59,7 +59,7 @@ reconstruction/distillation objective.
 
 The corpus contribution should include provenance, licenses, versions, sensor
 metadata, duplicate clusters, and domain-aware splits. The current local corpus
-contains 317,224 loader-visible RGB images but no real multispectral archive;
+contains 5,175,016 loader-visible RGB images across ~1 TB of archives, but no real multispectral archive;
 this gap must be closed before making multimodal foundation-model claims.
 
 ### Cross-Domain Benchmark
