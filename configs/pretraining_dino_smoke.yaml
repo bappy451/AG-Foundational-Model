@@ -1,7 +1,7 @@
 data:
   data_root: ../../Pretraining/ssharma2020:Plant-Seedlings-Dataset.zip
   catalog_path: ../catalogs/pretraining_seedlings_subset.csv
-  crop_size: 32
+  crop_size: 28
   channels: 3
   batch_size: 4
   num_workers: 0
@@ -26,8 +26,8 @@ runtime:
 
 model:
   model_name: S
-  pretrained_backbone: false
-  pretrained_source: imagenet
+  pretrained_backbone: true
+  pretrained_source: dinov2
   pretrained_cfg: null
   dino_out_dim: 256
   dino_hidden_dim: 1024
@@ -38,7 +38,12 @@ model:
   global_crop_scale: [0.8, 1.0]
   local_crop_scale: [0.5, 0.8]
   student_temperature: 0.1
-  teacher_temperature: 0.04
+  teacher_temperature_start: 0.04
+  teacher_temperature: 0.07
+  teacher_temperature_warmup_epochs: 1
+  dino_loss_weight: 1.0
+  ibot_loss_weight: 1.0
+  koleo_loss_weight: 0.1
   teacher_momentum_start: 0.996
   teacher_momentum_end: 1.0
   center_momentum: 0.9

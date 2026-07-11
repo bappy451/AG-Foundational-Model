@@ -49,7 +49,12 @@ TRAIN_DINO_DEFAULTS: dict[str, Any] = {
     "global_crop_scale": (0.6, 1.0),
     "local_crop_scale": (0.3, 0.6),
     "student_temperature": 0.1,
-    "teacher_temperature": 0.04,
+    "teacher_temperature": 0.07,
+    "teacher_temperature_start": 0.04,
+    "teacher_temperature_warmup_epochs": 0,
+    "dino_loss_weight": 1.0,
+    "ibot_loss_weight": 1.0,
+    "koleo_loss_weight": 0.1,
     "teacher_momentum_start": 0.996,
     "teacher_momentum_end": 1.0,
     "center_momentum": 0.9,
@@ -61,7 +66,9 @@ TRAIN_DINO_DEFAULTS: dict[str, Any] = {
     "num_workers": 8,
     "compile": False,
     "learning_rate": 1e-4,
-    "weight_decay": 1e-4,
+    "weight_decay": 0.04,
+    "weight_decay_end": 0.4,
+    "min_learning_rate": 1e-6,
     "warmup_epochs": 0,
     "device": None,
     "resume": False,
@@ -123,6 +130,11 @@ TRAIN_DINO_SECTION_MAP: dict[str, dict[str, str]] = {
         "local_crop_scale": "local_crop_scale",
         "student_temperature": "student_temperature",
         "teacher_temperature": "teacher_temperature",
+        "teacher_temperature_start": "teacher_temperature_start",
+        "teacher_temperature_warmup_epochs": "teacher_temperature_warmup_epochs",
+        "dino_loss_weight": "dino_loss_weight",
+        "ibot_loss_weight": "ibot_loss_weight",
+        "koleo_loss_weight": "koleo_loss_weight",
         "teacher_momentum_start": "teacher_momentum_start",
         "teacher_momentum_end": "teacher_momentum_end",
         "center_momentum": "center_momentum",
@@ -134,6 +146,8 @@ TRAIN_DINO_SECTION_MAP: dict[str, dict[str, str]] = {
     "optimizer": {
         "learning_rate": "learning_rate",
         "weight_decay": "weight_decay",
+        "weight_decay_end": "weight_decay_end",
+        "min_learning_rate": "min_learning_rate",
     },
 }
 
@@ -217,7 +231,12 @@ def build_train_dino_parser(config_defaults: dict[str, Any] | None = None) -> ar
     parser.add_argument("--global-crop-scale", nargs=2, type=float, default=defaults["global_crop_scale"])
     parser.add_argument("--local-crop-scale", nargs=2, type=float, default=defaults["local_crop_scale"])
     parser.add_argument("--student-temperature", type=float, default=defaults["student_temperature"])
-    parser.add_argument("--teacher-temperature", type=float, default=defaults["teacher_temperature"])
+    parser.add_argument("--teacher-temperature", type=float, default=defaults["teacher_temperature"], help="Final teacher temperature after warmup.")
+    parser.add_argument("--teacher-temperature-start", type=float, default=defaults["teacher_temperature_start"])
+    parser.add_argument("--teacher-temperature-warmup-epochs", type=int, default=defaults["teacher_temperature_warmup_epochs"])
+    parser.add_argument("--dino-loss-weight", type=float, default=defaults["dino_loss_weight"])
+    parser.add_argument("--ibot-loss-weight", type=float, default=defaults["ibot_loss_weight"])
+    parser.add_argument("--koleo-loss-weight", type=float, default=defaults["koleo_loss_weight"])
     parser.add_argument("--teacher-momentum-start", type=float, default=defaults["teacher_momentum_start"])
     parser.add_argument("--teacher-momentum-end", type=float, default=defaults["teacher_momentum_end"])
     parser.add_argument("--center-momentum", type=float, default=defaults["center_momentum"])
@@ -234,6 +253,8 @@ def build_train_dino_parser(config_defaults: dict[str, Any] | None = None) -> ar
     parser.add_argument("--compile", action=argparse.BooleanOptionalAction, default=defaults.get("compile", False), help="Compile model using torch.compile")
     parser.add_argument("--learning-rate", type=float, default=defaults["learning_rate"])
     parser.add_argument("--weight-decay", type=float, default=defaults["weight_decay"])
+    parser.add_argument("--weight-decay-end", type=float, default=defaults["weight_decay_end"])
+    parser.add_argument("--min-learning-rate", type=float, default=defaults["min_learning_rate"])
     parser.add_argument("--warmup-epochs", type=int, default=defaults["warmup_epochs"])
     parser.add_argument("--device", default=defaults["device"])
     parser.add_argument("--resume", action=argparse.BooleanOptionalAction, default=defaults["resume"])
@@ -326,8 +347,16 @@ def _validate_dino_args(
         parser.error("--num-global-crops must be at least 2.")
     if args.num_local_crops < 0:
         parser.error("--num-local-crops cannot be negative.")
-    if args.student_temperature <= 0.0 or args.teacher_temperature <= 0.0:
+    if args.student_temperature <= 0.0 or args.teacher_temperature <= 0.0 or args.teacher_temperature_start <= 0.0:
         parser.error("DINO student and teacher temperatures must be positive.")
+    if args.teacher_temperature_warmup_epochs < 0 or args.teacher_temperature_warmup_epochs > args.epochs:
+        parser.error("--teacher-temperature-warmup-epochs must be between 0 and --epochs.")
+    if min(args.dino_loss_weight, args.ibot_loss_weight, args.koleo_loss_weight) < 0.0:
+        parser.error("DINO loss weights cannot be negative.")
+    if args.min_learning_rate < 0.0 or args.min_learning_rate > args.learning_rate:
+        parser.error("--min-learning-rate must be between 0 and --learning-rate.")
+    if args.weight_decay < 0.0 or args.weight_decay_end < 0.0:
+        parser.error("Weight decay values cannot be negative.")
     if not 0.0 <= args.center_momentum < 1.0:
         parser.error("--center-momentum must be in [0, 1).")
     if not 0.0 <= args.teacher_momentum_start <= args.teacher_momentum_end <= 1.0:
@@ -563,6 +592,15 @@ def run_train_dino(args: argparse.Namespace, *, command_argv: list[str] | None =
         center_momentum=args.center_momentum,
         teacher_momentum_start=args.teacher_momentum_start,
         teacher_momentum_end=args.teacher_momentum_end,
+        teacher_temperature_start=args.teacher_temperature_start,
+        teacher_temperature_end=args.teacher_temperature,
+        teacher_temperature_warmup_epochs=args.teacher_temperature_warmup_epochs,
+        lr_warmup_epochs=args.warmup_epochs,
+        dino_loss_weight=args.dino_loss_weight,
+        ibot_loss_weight=args.ibot_loss_weight,
+        koleo_loss_weight=args.koleo_loss_weight,
+        min_learning_rate=args.min_learning_rate,
+        weight_decay_end=args.weight_decay_end,
         augmentation_config=augmentation_config,
         progress_callback=progress_callback,
         save_visualizations=args.save_visualizations,

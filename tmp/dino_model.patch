@@ -1,0 +1,203 @@
+--- a/src/ag_foundation/models/dino.py
++++ b/src/ag_foundation/models/dino.py
+@@
+ def sinkhorn_knopp(out: torch.Tensor, iterations: int = 3) -> torch.Tensor:
+-    Q = torch.exp(out).float()
++    logits = out.float()
++    logits = logits - logits.max(dim=-1, keepdim=True).values
++    Q = torch.exp(logits)
+@@
+-    sum_Q = torch.sum(Q)
++    sum_Q = torch.sum(Q).clamp_min(1e-12)
+@@
+-        sum_of_rows = torch.sum(Q, dim=1, keepdim=True)
++        sum_of_rows = torch.sum(Q, dim=1, keepdim=True).clamp_min(1e-12)
+@@
+-        sum_of_cols = torch.sum(Q, dim=0, keepdim=True)
++        sum_of_cols = torch.sum(Q, dim=0, keepdim=True).clamp_min(1e-12)
+@@
+ def koleo_loss(features: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
++    if features.shape[0] < 2:
++        return features.sum() * 0.0
++    normalized = F.normalize(features.float(), p=2, dim=-1)
+     with torch.no_grad():
+-        dist = torch.cdist(features, features)
++        dist = torch.cdist(normalized, normalized)
+         dist.fill_diagonal_(float('inf'))
+-        min_dist = dist.min(dim=1).values
+-    return -torch.log(min_dist + eps).mean()
++        nearest = dist.argmin(dim=1)
++    nearest_features = normalized[nearest]
++    nearest_dist = torch.linalg.vector_norm(normalized - nearest_features, dim=-1)
++    return -torch.log(nearest_dist.clamp_min(eps)).mean()
+@@
+-        layers: list[nn.Module] = []
+-        current_dim = in_dim
++        layers: list[nn.Module] = []
+         if nlayers == 1:
+-            layers.append(nn.Linear(current_dim, bottleneck_dim))
+-            current_dim = bottleneck_dim
++            layers.append(nn.Linear(in_dim, bottleneck_dim))
+         else:
+-            for layer_index in range(nlayers - 1):
+-                next_dim = hidden_dim if layer_index < nlayers - 2 else bottleneck_dim
+-                layers.append(nn.Linear(current_dim, next_dim))
+-                current_dim = next_dim
+-                if layer_index < nlayers - 2:
+-                    layers.append(nn.GELU())
++            layers.extend((nn.Linear(in_dim, hidden_dim), nn.GELU()))
++            for _ in range(nlayers - 2):
++                layers.extend((nn.Linear(hidden_dim, hidden_dim), nn.GELU()))
++            layers.append(nn.Linear(hidden_dim, bottleneck_dim))
+         self.mlp = nn.Sequential(*layers)
+-        self.last_layer = weight_norm(nn.Linear(current_dim, out_dim, bias=False))
++        self.last_layer = weight_norm(nn.Linear(bottleneck_dim, out_dim, bias=False))
+@@
+     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+         outputs = self.mlp(inputs)
++        outputs = F.normalize(outputs, p=2, dim=-1)
+         return self.last_layer(outputs)
+@@
+         self.teacher_ibot_head.eval()
+         self.register_buffer("center", torch.zeros(1, dino_out_dim), persistent=True)
++        self.register_buffer("patch_center", torch.zeros(1, 1, dino_out_dim), persistent=True)
+@@
+-        batch_center = torch.cat(
++        cls_center = torch.cat(
+             [output["cls"].detach().float() if isinstance(output, dict) else output.detach().float() for output in teacher_outputs],
+             dim=0,
+         ).mean(dim=0, keepdim=True)
++        patch_center = torch.cat(
++            [output["patch"].detach().float().reshape(-1, output["patch"].shape[-1]) for output in teacher_outputs],
++            dim=0,
++        ).mean(dim=0, keepdim=True).unsqueeze(0)
++        if torch.distributed.is_available() and torch.distributed.is_initialized():
++            world_size = torch.distributed.get_world_size()
++            torch.distributed.all_reduce(cls_center)
++            torch.distributed.all_reduce(patch_center)
++            cls_center.div_(world_size)
++            patch_center.div_(world_size)
+         self.center.mul_(float(center_momentum)).add_(
+-            batch_center.to(device=self.center.device),
++            cls_center.to(device=self.center.device),
+             alpha=1.0 - float(center_momentum),
+         )
++        self.patch_center.mul_(float(center_momentum)).add_(
++            patch_center.to(device=self.patch_center.device),
++            alpha=1.0 - float(center_momentum),
++        )
+@@
+         if "center" in state_dict:
+             migrated["center"] = state_dict["center"]
++        if "patch_center" in state_dict:
++            migrated["patch_center"] = state_dict["patch_center"]
+@@
+         *,
+         student_temperature: float,
+-    ) -> torch.Tensor:
++        teacher_temperature: float | None = None,
++        dino_loss_weight: float = 1.0,
++        ibot_loss_weight: float = 1.0,
++        koleo_loss_weight: float = 0.1,
++        return_components: bool = False,
++    ) -> torch.Tensor | dict[str, torch.Tensor]:
+@@
+         if student_temperature <= 0.0:
+             raise ValueError("student_temperature must be positive.")
++        teacher_temperature = self.teacher_temperature if teacher_temperature is None else float(teacher_temperature)
++        if teacher_temperature <= 0.0:
++            raise ValueError("teacher_temperature must be positive.")
+@@
+-        num_koleo_terms = 0
+@@
+-            # Sinkhorn-Knopp on CLS
+-            teacher_cls_probs = sinkhorn_knopp(teacher_output["cls"] / self.teacher_temperature)
+-            
+-            # Sinkhorn-Knopp on patches
+-            B, N, D = teacher_output["patch"].shape
+-            teacher_patch_logits = teacher_output["patch"].view(-1, D)
+-            teacher_patch_probs = sinkhorn_knopp(teacher_patch_logits / self.teacher_temperature).view(B, N, D)
++            teacher_cls_probs = F.softmax(
++                (teacher_output["cls"].float() - self.center) / teacher_temperature,
++                dim=-1,
++            )
+@@
+-                # 2. iBOT Loss (only on masked patches)
+-                mask = student_output["mask"] # (B, N)
+-                if mask.any():
+-                    student_patch_log_probs = F.log_softmax(student_output["patch"][mask].float() / student_temperature, dim=-1)
+-                    target_probs = teacher_patch_probs[mask]
+-                    total_ibot_loss = total_ibot_loss + torch.sum(-target_probs * student_patch_log_probs, dim=-1).mean()
+-                    num_ibot_terms += 1
+-
+-                # 3. KoLeo Loss
+-                cls_features = student_output["cls_features"]
+-                normalized_features = F.normalize(cls_features.float(), p=2, dim=-1)
+-                total_koleo_loss = total_koleo_loss + koleo_loss(normalized_features)
+-                num_koleo_terms += 1
++            # Patch targets are valid only for the matching global crop.
++            if teacher_index < len(student_outputs):
++                matching_student = student_outputs[teacher_index]
++                mask = matching_student["mask"]
++                if mask.any():
++                    teacher_patch_probs = F.softmax(
++                        (teacher_output["patch"].float() - self.patch_center) / teacher_temperature,
++                        dim=-1,
++                    )
++                    student_patch_log_probs = F.log_softmax(
++                        matching_student["patch"][mask].float() / student_temperature,
++                        dim=-1,
++                    )
++                    target_probs = teacher_patch_probs[mask]
++                    total_ibot_loss = total_ibot_loss + torch.sum(-target_probs * student_patch_log_probs, dim=-1).mean()
++                    num_ibot_terms += 1
+@@
+-        final_loss = total_dino_loss / float(num_dino_terms)
+-        if num_ibot_terms > 0:
+-            final_loss = final_loss + total_ibot_loss / float(num_ibot_terms)
+-        if num_koleo_terms > 0:
+-            final_loss = final_loss + 0.1 * (total_koleo_loss / float(num_koleo_terms))
+-            
+-        return final_loss
++        dino_component = total_dino_loss / float(num_dino_terms)
++        ibot_component = total_ibot_loss / float(num_ibot_terms) if num_ibot_terms else total_ibot_loss
++        global_student_features = [output["cls_features"] for output in student_outputs[: len(teacher_outputs)]]
++        if global_student_features:
++            total_koleo_loss = torch.stack([koleo_loss(features) for features in global_student_features]).mean()
++            feature_matrix = torch.cat(global_student_features, dim=0).float()
++            feature_variance = feature_matrix.var(dim=0, unbiased=False).mean()
++        else:
++            feature_variance = total_koleo_loss
++        teacher_probabilities = torch.cat(
++            [F.softmax((output["cls"].float() - self.center) / teacher_temperature, dim=-1) for output in teacher_outputs],
++            dim=0,
++        )
++        mean_prototype_probability = teacher_probabilities.mean(dim=0)
++        prototype_entropy = -torch.sum(
++            mean_prototype_probability * torch.log(mean_prototype_probability.clamp_min(1e-12))
++        )
++        mask_ratio = torch.stack([output["mask"].float().mean() for output in student_outputs]).mean()
++
++        final_loss = float(dino_loss_weight) * dino_component
++        if num_ibot_terms > 0:
++            final_loss = final_loss + float(ibot_loss_weight) * ibot_component
++        final_loss = final_loss + float(koleo_loss_weight) * total_koleo_loss
++        if not return_components:
++            return final_loss
++        return {
++            "loss": final_loss,
++            "dino_loss": dino_component,
++            "ibot_loss": ibot_component,
++            "koleo_loss": total_koleo_loss,
++            "feature_variance": feature_variance,
++            "prototype_entropy": prototype_entropy,
++            "mask_ratio": mask_ratio,
++        }
+@@
+         for key in legacy_adapter_keys:
+@@
+             migrated[f"teacher_adapter.{suffix}"] = value.clone() if hasattr(value, "clone") else value
++
++        if "patch_center" not in migrated:
++            migrated["patch_center"] = self.patch_center.clone()
+

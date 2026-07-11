@@ -21,21 +21,23 @@ def _freeze_module(module: nn.Module) -> None:
 
 @torch.no_grad()
 def sinkhorn_knopp(out: torch.Tensor, iterations: int = 3) -> torch.Tensor:
-    Q = torch.exp(out).float()
+    logits = out.float()
+    logits = logits - logits.max(dim=-1, keepdim=True).values
+    Q = torch.exp(logits)
     B, K = Q.shape
     
     # make the matrix sums to 1
-    sum_Q = torch.sum(Q)
+    sum_Q = torch.sum(Q).clamp_min(1e-12)
     Q.div_(sum_Q)
 
     for _ in range(iterations):
         # normalize each row: total weight per sample must be 1/B
-        sum_of_rows = torch.sum(Q, dim=1, keepdim=True)
+        sum_of_rows = torch.sum(Q, dim=1, keepdim=True).clamp_min(1e-12)
         Q.div_(sum_of_rows)
         Q.div_(B)
 
         # normalize each column: total weight per class must be 1/K
-        sum_of_cols = torch.sum(Q, dim=0, keepdim=True)
+        sum_of_cols = torch.sum(Q, dim=0, keepdim=True).clamp_min(1e-12)
         Q.div_(sum_of_cols)
         Q.div_(K)
 
@@ -44,12 +46,16 @@ def sinkhorn_knopp(out: torch.Tensor, iterations: int = 3) -> torch.Tensor:
 
 
 def koleo_loss(features: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
+    if features.shape[0] < 2:
+        return features.sum() * 0.0
+    normalized = F.normalize(features.float(), p=2, dim=-1)
     with torch.no_grad():
-        dist = torch.cdist(features, features)
-        dist.fill_diagonal_(float('inf'))
-        min_dist = dist.min(dim=1).values
-    return -torch.log(min_dist + eps).mean()
-
+        dist = torch.cdist(normalized, normalized)
+        dist.fill_diagonal_(float("inf"))
+        nearest = dist.argmin(dim=1)
+    nearest_features = normalized[nearest]
+    nearest_dist = torch.linalg.vector_norm(normalized - nearest_features, dim=-1)
+    return -torch.log(nearest_dist.clamp_min(eps)).mean()
 
 class DINOHead(nn.Module):
     def __init__(
@@ -69,27 +75,22 @@ class DINOHead(nn.Module):
             raise ValueError("All DINO head dimensions must be positive.")
 
         layers: list[nn.Module] = []
-        current_dim = in_dim
         if nlayers == 1:
-            layers.append(nn.Linear(current_dim, bottleneck_dim))
-            current_dim = bottleneck_dim
+            layers.append(nn.Linear(in_dim, bottleneck_dim))
         else:
-            for layer_index in range(nlayers - 1):
-                next_dim = hidden_dim if layer_index < nlayers - 2 else bottleneck_dim
-                layers.append(nn.Linear(current_dim, next_dim))
-                current_dim = next_dim
-                if layer_index < nlayers - 2:
-                    layers.append(nn.GELU())
+            layers.extend((nn.Linear(in_dim, hidden_dim), nn.GELU()))
+            for _ in range(nlayers - 2):
+                layers.extend((nn.Linear(hidden_dim, hidden_dim), nn.GELU()))
+            layers.append(nn.Linear(hidden_dim, bottleneck_dim))
         self.mlp = nn.Sequential(*layers)
-        self.last_layer = weight_norm(nn.Linear(current_dim, out_dim, bias=False))
+        self.last_layer = weight_norm(nn.Linear(bottleneck_dim, out_dim, bias=False))
         self.last_layer.parametrizations.weight.original0.data.fill_(1.0)
         if norm_last_layer:
             self.last_layer.parametrizations.weight.original0.requires_grad_(False)
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        outputs = self.mlp(inputs)
+        outputs = F.normalize(self.mlp(inputs), p=2, dim=-1)
         return self.last_layer(outputs)
-
 
 class RemoteSensingDINOModel(nn.Module):
     def __init__(
@@ -176,6 +177,7 @@ class RemoteSensingDINOModel(nn.Module):
         self.teacher_head.eval()
         self.teacher_ibot_head.eval()
         self.register_buffer("center", torch.zeros(1, dino_out_dim), persistent=True)
+        self.register_buffer("patch_center", torch.zeros(1, 1, dino_out_dim), persistent=True)
 
     @property
     def adapter(self) -> BandAdapter:
@@ -203,7 +205,13 @@ class RemoteSensingDINOModel(nn.Module):
         with torch.no_grad():
             return self.teacher_backbone.forward_cls_token(rgb_inputs)
 
-    def _forward_student_view(self, rgb_inputs: torch.Tensor, mask_ratio: float = 0.3) -> dict[str, Any]:
+    def _forward_student_view(
+        self,
+        rgb_inputs: torch.Tensor,
+        mask_ratio: float = 0.3,
+        *,
+        compute_patch_logits: bool = True,
+    ) -> dict[str, Any]:
         patch_tokens, grid_size = self.student_backbone.embed_patches(rgb_inputs)
         B, N, C = patch_tokens.shape
         
@@ -220,7 +228,7 @@ class RemoteSensingDINOModel(nn.Module):
         patch_tokens_out = encoded_tokens[:, self.student_backbone.num_prefix_tokens:]
         
         cls_logits = self.student_head(cls_tokens)
-        patch_logits = self.student_ibot_head(patch_tokens_out)
+        patch_logits = self.student_ibot_head(patch_tokens_out) if compute_patch_logits else None
         
         return {"cls": cls_logits, "patch": patch_logits, "mask": mask, "cls_features": cls_tokens}
 
@@ -262,15 +270,20 @@ class RemoteSensingDINOModel(nn.Module):
     def update_center(self, teacher_outputs: Sequence[torch.Tensor], center_momentum: float) -> None:
         if not teacher_outputs:
             return
-        batch_center = torch.cat(
-            [output["cls"].detach().float() if isinstance(output, dict) else output.detach().float() for output in teacher_outputs],
+        cls_center = torch.cat([output["cls"].detach().float() for output in teacher_outputs], dim=0).mean(dim=0, keepdim=True)
+        patch_center = torch.cat(
+            [output["patch"].detach().float().reshape(-1, output["patch"].shape[-1]) for output in teacher_outputs],
             dim=0,
-        ).mean(dim=0, keepdim=True)
-        self.center.mul_(float(center_momentum)).add_(
-            batch_center.to(device=self.center.device),
-            alpha=1.0 - float(center_momentum),
-        )
-
+        ).mean(dim=0, keepdim=True).unsqueeze(0)
+        if torch.distributed.is_available() and torch.distributed.is_initialized():
+            world_size = torch.distributed.get_world_size()
+            torch.distributed.all_reduce(cls_center)
+            torch.distributed.all_reduce(patch_center)
+            cls_center.div_(world_size)
+            patch_center.div_(world_size)
+        momentum = float(center_momentum)
+        self.center.mul_(momentum).add_(cls_center.to(self.center.device), alpha=1.0 - momentum)
+        self.patch_center.mul_(momentum).add_(patch_center.to(self.patch_center.device), alpha=1.0 - momentum)
     @torch.no_grad()
     def _sync_teacher_from_student(self) -> None:
         self.teacher_adapter.load_state_dict(self.student_adapter.state_dict())
@@ -308,67 +321,88 @@ class RemoteSensingDINOModel(nn.Module):
         teacher_outputs: Sequence[dict[str, Any]],
         *,
         student_temperature: float,
-    ) -> torch.Tensor:
-        if not student_outputs:
-            raise ValueError("student_outputs cannot be empty.")
-        if not teacher_outputs:
-            raise ValueError("teacher_outputs cannot be empty.")
-
+        teacher_temperature: float | None = None,
+        dino_loss_weight: float = 1.0,
+        ibot_loss_weight: float = 1.0,
+        koleo_loss_weight: float = 0.1,
+        return_components: bool = False,
+    ) -> torch.Tensor | dict[str, torch.Tensor]:
+        if not student_outputs or not teacher_outputs:
+            raise ValueError("student_outputs and teacher_outputs cannot be empty.")
         student_temperature = float(student_temperature)
-        if student_temperature <= 0.0:
-            raise ValueError("student_temperature must be positive.")
-        
-        total_dino_loss = torch.zeros((), device=student_outputs[0]["cls"].device, dtype=torch.float32)
-        total_ibot_loss = torch.zeros((), device=student_outputs[0]["cls"].device, dtype=torch.float32)
-        total_koleo_loss = torch.zeros((), device=student_outputs[0]["cls"].device, dtype=torch.float32)
-        
-        num_dino_terms = 0
-        num_ibot_terms = 0
-        num_koleo_terms = 0
+        teacher_temperature = self.teacher_temperature if teacher_temperature is None else float(teacher_temperature)
+        if student_temperature <= 0.0 or teacher_temperature <= 0.0:
+            raise ValueError("Student and teacher temperatures must be positive.")
+
+        device = student_outputs[0]["cls"].device
+        dino_total = torch.zeros((), device=device, dtype=torch.float32)
+        ibot_total = torch.zeros((), device=device, dtype=torch.float32)
+        dino_terms = 0
+        ibot_terms = 0
 
         for teacher_index, teacher_output in enumerate(teacher_outputs):
-            # Sinkhorn-Knopp on CLS
-            teacher_cls_probs = sinkhorn_knopp(teacher_output["cls"] / self.teacher_temperature)
-            
-            # Sinkhorn-Knopp on patches
-            B, N, D = teacher_output["patch"].shape
-            teacher_patch_logits = teacher_output["patch"].view(-1, D)
-            teacher_patch_probs = sinkhorn_knopp(teacher_patch_logits / self.teacher_temperature).view(B, N, D)
-            
+            teacher_cls_probs = F.softmax(
+                (teacher_output["cls"].float() - self.center) / teacher_temperature,
+                dim=-1,
+            )
             for student_index, student_output in enumerate(student_outputs):
-                if student_index == teacher_index and student_index < len(teacher_outputs):
+                if student_index == teacher_index:
                     continue
-                    
-                # 1. DINO Loss
-                student_cls_log_probs = F.log_softmax(student_output["cls"].float() / student_temperature, dim=-1)
-                total_dino_loss = total_dino_loss + torch.sum(-teacher_cls_probs * student_cls_log_probs, dim=-1).mean()
-                num_dino_terms += 1
-                
-                # 2. iBOT Loss (only on masked patches)
-                mask = student_output["mask"] # (B, N)
+                student_log_probs = F.log_softmax(
+                    student_output["cls"].float() / student_temperature,
+                    dim=-1,
+                )
+                dino_total = dino_total + torch.sum(-teacher_cls_probs * student_log_probs, dim=-1).mean()
+                dino_terms += 1
+
+            if teacher_index < len(student_outputs):
+                matching_student = student_outputs[teacher_index]
+                mask = matching_student["mask"]
                 if mask.any():
-                    student_patch_log_probs = F.log_softmax(student_output["patch"][mask].float() / student_temperature, dim=-1)
-                    target_probs = teacher_patch_probs[mask]
-                    total_ibot_loss = total_ibot_loss + torch.sum(-target_probs * student_patch_log_probs, dim=-1).mean()
-                    num_ibot_terms += 1
+                    teacher_patch_probs = F.softmax(
+                        (teacher_output["patch"].float() - self.patch_center) / teacher_temperature,
+                        dim=-1,
+                    )
+                    student_patch_log_probs = F.log_softmax(
+                        matching_student["patch"][mask].float() / student_temperature,
+                        dim=-1,
+                    )
+                    ibot_total = ibot_total + torch.sum(
+                        -teacher_patch_probs[mask] * student_patch_log_probs,
+                        dim=-1,
+                    ).mean()
+                    ibot_terms += 1
 
-                # 3. KoLeo Loss
-                cls_features = student_output["cls_features"]
-                normalized_features = F.normalize(cls_features.float(), p=2, dim=-1)
-                total_koleo_loss = total_koleo_loss + koleo_loss(normalized_features)
-                num_koleo_terms += 1
-
-        if num_dino_terms == 0:
+        if dino_terms == 0:
             raise RuntimeError("DINO loss received no valid teacher/student view pairs.")
-            
-        final_loss = total_dino_loss / float(num_dino_terms)
-        if num_ibot_terms > 0:
-            final_loss = final_loss + total_ibot_loss / float(num_ibot_terms)
-        if num_koleo_terms > 0:
-            final_loss = final_loss + 0.1 * (total_koleo_loss / float(num_koleo_terms))
-            
-        return final_loss
+        dino_component = dino_total / float(dino_terms)
+        ibot_component = ibot_total / float(ibot_terms) if ibot_terms else ibot_total
+        global_features = [output["cls_features"] for output in student_outputs[: len(teacher_outputs)]]
+        koleo_component = torch.stack([koleo_loss(features) for features in global_features]).mean()
+        feature_matrix = torch.cat(global_features, dim=0).float()
+        feature_variance = feature_matrix.var(dim=0, unbiased=False).mean()
+        teacher_probabilities = torch.cat(
+            [F.softmax((output["cls"].float() - self.center) / teacher_temperature, dim=-1) for output in teacher_outputs],
+            dim=0,
+        )
+        mean_probability = teacher_probabilities.mean(dim=0)
+        prototype_entropy = -torch.sum(mean_probability * torch.log(mean_probability.clamp_min(1e-12)))
+        mask_ratio = torch.stack([output["mask"].float().mean() for output in student_outputs]).mean()
 
+        total = float(dino_loss_weight) * dino_component
+        total = total + float(ibot_loss_weight) * ibot_component
+        total = total + float(koleo_loss_weight) * koleo_component
+        if not return_components:
+            return total
+        return {
+            "loss": total,
+            "dino_loss": dino_component,
+            "ibot_loss": ibot_component,
+            "koleo_loss": koleo_component,
+            "feature_variance": feature_variance,
+            "prototype_entropy": prototype_entropy,
+            "mask_ratio": mask_ratio,
+        }
     def load_state_dict(
         self,
         state_dict: Mapping[str, Any],
@@ -386,5 +420,8 @@ class RemoteSensingDINOModel(nn.Module):
             value = migrated.pop(key)
             migrated[f"student_adapter.{suffix}"] = value
             migrated[f"teacher_adapter.{suffix}"] = value.clone() if hasattr(value, "clone") else value
+
+        if "patch_center" not in migrated:
+            migrated["patch_center"] = self.patch_center.clone()
 
         return super().load_state_dict(migrated, strict=strict, assign=assign)

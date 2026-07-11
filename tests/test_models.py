@@ -6,7 +6,7 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from ag_foundation.models.dino import RemoteSensingDINOModel
+from ag_foundation.models.dino import DINOHead, RemoteSensingDINOModel, koleo_loss
 from ag_foundation.models.mim import RemoteSensingMIMModel
 from ag_foundation.models.vit import BandAdapter, RemoteSensingViT
 
@@ -201,7 +201,10 @@ def test_dino_model_returns_logits_and_updates_teacher(fake_timm) -> None:
     assert adapted.shape == (2, 3, 32, 32)
 
     views = [adapted, adapted, adapted]
-    student_outputs = model.forward_student_views(views)
+    student_outputs = model.forward_student_views(views, num_global_views=2)
+    assert student_outputs[0]["patch"] is not None
+    assert student_outputs[1]["patch"] is not None
+    assert student_outputs[2]["patch"] is None
     teacher_outputs = model.forward_teacher_views(views[:2])
     loss = model.dino_loss(student_outputs, teacher_outputs, student_temperature=0.1)
 
@@ -393,9 +396,9 @@ def test_mim_initialize_from_dino_checkpoint_rejects_incompatible_shapes(fake_ti
         restored.initialize_from_state_dict(source.state_dict())
 
 
-# ─────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Tests: RoPE backbone compatibility (4D patch embed + no pos_embed)
-# ─────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 @pytest.fixture
@@ -428,7 +431,7 @@ def fake_timm_rope(monkeypatch):
             self.num_prefix_tokens = 1
             self.patch_embed = _RopePatchEmbed(embed_dim, patch_size=patch_size)
             self.cls_token = torch.nn.Parameter(torch.zeros(1, 1, embed_dim))
-            self.pos_embed = None  # <─ critical: no absolute pos embed
+            self.pos_embed = None  # <â”€ critical: no absolute pos embed
             self.pos_drop = torch.nn.Identity()
             self.blocks = torch.nn.ModuleList([torch.nn.Identity()])
             self.norm = torch.nn.Identity()
@@ -485,3 +488,81 @@ def test_vit_handles_missing_pos_embed_rope_backbones(fake_timm_rope) -> None:
     assert outputs.ndim == 2
     assert outputs.shape[0] == 1
     assert outputs.shape[-1] == 384
+
+
+def test_dino_head_uses_requested_depth_and_normalized_bottleneck() -> None:
+    head = DINOHead(12, 7, hidden_dim=16, bottleneck_dim=5, nlayers=3)
+    linear_layers = [layer for layer in head.mlp if isinstance(layer, torch.nn.Linear)]
+
+    assert len(linear_layers) == 3
+    captured = {}
+
+    def capture_input(_module, args):
+        captured["norm"] = args[0].norm(dim=-1)
+
+    handle = head.last_layer.register_forward_pre_hook(capture_input)
+    try:
+        outputs = head(torch.randn(4, 12))
+    finally:
+        handle.remove()
+
+    assert outputs.shape == (4, 7)
+    assert torch.allclose(captured["norm"], torch.ones(4), atol=1e-5)
+
+
+def test_koleo_loss_backpropagates_to_features() -> None:
+    features = torch.randn(6, 8, requires_grad=True)
+
+    loss = koleo_loss(features)
+    loss.backward()
+
+    assert features.grad is not None
+    assert torch.isfinite(features.grad).all()
+    assert features.grad.abs().sum() > 0
+
+
+def test_ibot_ignores_nonmatching_local_patch_predictions(fake_timm) -> None:
+    fake_timm()
+    model = RemoteSensingDINOModel(
+        in_channels=3,
+        image_size=32,
+        model_name="S",
+        pretrained_backbone=False,
+        dino_out_dim=4,
+        dino_hidden_dim=8,
+        dino_bottleneck_dim=4,
+        head_nlayers=2,
+    )
+    batch, patches, prototypes = 2, 4, 4
+
+    def student(patch_value: float):
+        return {
+            "cls": torch.zeros(batch, prototypes),
+            "patch": torch.full((batch, patches, prototypes), patch_value),
+            "mask": torch.ones(batch, patches, dtype=torch.bool),
+            "cls_features": torch.randn(batch, model.feature_dim, requires_grad=True),
+        }
+
+    teacher_outputs = [
+        {"cls": torch.zeros(batch, prototypes), "patch": torch.randn(batch, patches, prototypes)},
+        {"cls": torch.zeros(batch, prototypes), "patch": torch.randn(batch, patches, prototypes)},
+    ]
+    global_zero = student(0.0)
+    global_one = student(1.0)
+    local_a = student(-100.0)
+    local_b = student(100.0)
+
+    first = model.dino_loss(
+        [global_zero, global_one, local_a],
+        teacher_outputs,
+        student_temperature=0.1,
+        return_components=True,
+    )
+    second = model.dino_loss(
+        [global_zero, global_one, local_b],
+        teacher_outputs,
+        student_temperature=0.1,
+        return_components=True,
+    )
+
+    assert torch.allclose(first["ibot_loss"], second["ibot_loss"])

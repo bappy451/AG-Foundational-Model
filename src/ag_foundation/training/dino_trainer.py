@@ -226,6 +226,15 @@ class DINOTrainer:
         center_momentum: float = 0.9,
         teacher_momentum_start: float = 0.996,
         teacher_momentum_end: float = 1.0,
+        teacher_temperature_start: float = 0.04,
+        teacher_temperature_end: float = 0.04,
+        teacher_temperature_warmup_epochs: int = 0,
+        lr_warmup_epochs: int = 0,
+        dino_loss_weight: float = 1.0,
+        ibot_loss_weight: float = 1.0,
+        koleo_loss_weight: float = 0.1,
+        min_learning_rate: float = 1e-6,
+        weight_decay_end: float | None = None,
         augmentation_config: DINOAugmentationConfig | None = None,
         save_visualizations: bool = True,
         visualization_every: int = 1,
@@ -270,6 +279,16 @@ class DINOTrainer:
         self.center_momentum = float(center_momentum)
         self.teacher_momentum_start = float(teacher_momentum_start)
         self.teacher_momentum_end = float(teacher_momentum_end)
+        self.teacher_temperature_start = float(teacher_temperature_start)
+        self.teacher_temperature_end = float(teacher_temperature_end)
+        self.teacher_temperature_warmup_epochs = max(0, int(teacher_temperature_warmup_epochs))
+        self.lr_warmup_epochs = max(0, int(lr_warmup_epochs))
+        self.dino_loss_weight = float(dino_loss_weight)
+        self.ibot_loss_weight = float(ibot_loss_weight)
+        self.koleo_loss_weight = float(koleo_loss_weight)
+        self.min_learning_rate = float(min_learning_rate)
+        self.base_weight_decays = [float(group.get("weight_decay", 0.0)) for group in self.optimizer.param_groups]
+        self.weight_decay_end = float(weight_decay_end) if weight_decay_end is not None else max(self.base_weight_decays, default=0.0)
         if augmentation_config is None:
             augmentation_config = DINOAugmentationConfig(
                 image_size=self.model.student_backbone.image_size,
@@ -316,6 +335,47 @@ class DINOTrainer:
     def _current_learning_rate(self) -> float:
         return float(self.optimizer.param_groups[0]["lr"])
 
+    def _current_weight_decay(self) -> float:
+        return max(float(group.get("weight_decay", 0.0)) for group in self.optimizer.param_groups)
+
+    def _schedule_progress(self, epoch_index: int, optimizer_step: int, total_epochs: int, steps_per_epoch: int) -> tuple[int, int]:
+        total_steps = max(1, total_epochs * steps_per_epoch)
+        global_step = min(epoch_index * steps_per_epoch + optimizer_step, total_steps - 1)
+        return global_step, total_steps
+
+    def _apply_step_schedules(self, epoch_index: int, optimizer_step: int, total_epochs: int, steps_per_epoch: int) -> None:
+        global_step, total_steps = self._schedule_progress(epoch_index, optimizer_step, total_epochs, steps_per_epoch)
+        warmup_steps = min(self.lr_warmup_epochs * steps_per_epoch, total_steps)
+        if warmup_steps > 0 and global_step < warmup_steps:
+            lr_scale = float(global_step + 1) / float(warmup_steps)
+            learning_rate = [base_lr * lr_scale for base_lr in self.base_lrs]
+        else:
+            decay_steps = max(1, total_steps - warmup_steps)
+            progress = min(max((global_step - warmup_steps) / decay_steps, 0.0), 1.0)
+            cosine = 0.5 * (1.0 + math.cos(math.pi * progress))
+            learning_rate = [self.min_learning_rate + (base_lr - self.min_learning_rate) * cosine for base_lr in self.base_lrs]
+        progress = float(global_step) / float(max(1, total_steps - 1))
+        wd_cosine = 0.5 * (1.0 - math.cos(math.pi * progress))
+        for index, group in enumerate(self.optimizer.param_groups):
+            group["lr"] = float(learning_rate[index])
+            if self.base_weight_decays[index] > 0.0:
+                group["weight_decay"] = self.base_weight_decays[index] + (self.weight_decay_end - self.base_weight_decays[index]) * wd_cosine
+
+    def _teacher_temperature(self, epoch_index: int, optimizer_step: int, steps_per_epoch: int) -> float:
+        warmup_steps = self.teacher_temperature_warmup_epochs * steps_per_epoch
+        global_step = epoch_index * steps_per_epoch + optimizer_step
+        if warmup_steps <= 0 or global_step >= warmup_steps:
+            return self.teacher_temperature_end
+        progress = float(global_step) / float(max(1, warmup_steps - 1))
+        return self.teacher_temperature_start + (self.teacher_temperature_end - self.teacher_temperature_start) * progress
+
+    def _gradient_norm(self) -> float:
+        import torch
+
+        gradients = [parameter.grad.detach().float().norm(2) for parameter in self._trainable_parameters() if parameter.grad is not None]
+        if not gradients:
+            return 0.0
+        return float(torch.stack(gradients).norm(2).cpu())
     def _apply_epoch_learning_rate(self, epoch_index: int, total_epochs: int) -> None:
         if self.epoch_lr_schedule is None:
             return
@@ -351,145 +411,168 @@ class DINOTrainer:
         teacher_adapted = self.model.adapt_teacher(images)
         return self.eval_augmenter(student_adapted), self.eval_augmenter.global_views(teacher_adapted)
 
-    def _forward_train_batch(self, batch: dict[str, Any]):
+    def _forward_train_batch(self, batch: dict[str, Any], *, teacher_temperature: float):
         self.model.teacher_adapter.eval()
         self.model.teacher_backbone.eval()
         self.model.teacher_head.eval()
         self.model.teacher_ibot_head.eval()
         moved_batch = _move_ssl_batch_to_device(batch, self.device)
-        images = moved_batch["image"]
-        student_views, teacher_views = self._augment_batch(images)
+        student_views, teacher_views = self._augment_batch(moved_batch["image"])
 
         with self._autocast_context():
-            student_outputs = self.model.forward_student_views(student_views)
+            student_outputs = self.model.forward_student_views(student_views, num_global_views=self.num_global_crops)
             teacher_outputs = self.model.forward_teacher_views(teacher_views)
-            loss = self.model.dino_loss(
+            components = self.model.dino_loss(
                 student_outputs,
                 teacher_outputs,
                 student_temperature=self.student_temperature,
+                teacher_temperature=teacher_temperature,
+                dino_loss_weight=self.dino_loss_weight,
+                ibot_loss_weight=self.ibot_loss_weight,
+                koleo_loss_weight=self.koleo_loss_weight,
+                return_components=True,
             )
-
-        return loss, teacher_outputs
+        return components, teacher_outputs
 
     def train_step(self, batch: dict[str, Any], *, teacher_momentum: float) -> dict[str, float]:
         import torch
 
         self.model.train()
         self.optimizer.zero_grad(set_to_none=True)
-        loss, teacher_outputs = self._forward_train_batch(batch)
+        components, teacher_outputs = self._forward_train_batch(
+            batch,
+            teacher_temperature=self.teacher_temperature_end,
+        )
+        loss = components["loss"]
         if not torch.isfinite(loss):
             raise FloatingPointError("Encountered a non-finite DINO loss.")
         _BaseSSLTrainer._backward_loss(self, loss)
         _BaseSSLTrainer._finalize_optimizer_step(self)
+        gradient_norm = self._gradient_norm()
         self.optimizer_step_count += 1
         self.model.update_teacher(teacher_momentum)
         self.model.update_center(teacher_outputs, self.center_momentum)
-        return {"loss": float(loss.detach().cpu())}
-
+        result = {name: float(value.detach().cpu()) for name, value in components.items()}
+        result["gradient_norm"] = gradient_norm
+        return result
     def train_epoch(self, epoch_index: int, total_epochs: int = 1) -> dict[str, float]:
         import torch
 
         sampler = getattr(self.train_loader, "sampler", None)
         if sampler is not None and hasattr(sampler, "set_epoch"):
             sampler.set_epoch(epoch_index)
-
         self.model.train()
         self.model.teacher_adapter.eval()
         self.model.teacher_backbone.eval()
         self.model.teacher_head.eval()
         self.model.teacher_ibot_head.eval()
         self.optimizer.zero_grad(set_to_none=True)
-        total_loss = 0.0
-        total_batches = 0
         num_batches = len(self.train_loader)
-        num_optimizer_steps = _optimizer_steps_for_batches(num_batches, self.gradient_accumulation_steps)
-        last_loss = 0.0
-        last_teacher_momentum = self.teacher_momentum_start
+        steps_per_epoch = _optimizer_steps_for_batches(num_batches, self.gradient_accumulation_steps)
+        totals = {name: 0.0 for name in ("loss", "dino_loss", "ibot_loss", "koleo_loss", "feature_variance", "prototype_entropy", "mask_ratio")}
+        total_batches = 0
         optimizer_steps = 0
+        last_teacher_momentum = self.teacher_momentum_start
+        last_gradient_norm = 0.0
+        teacher_temperature = self.teacher_temperature_start
 
         for step_index, batch in enumerate(self.train_loader, start=1):
-            loss, teacher_outputs = self._forward_train_batch(batch)
+            if (step_index - 1) % self.gradient_accumulation_steps == 0:
+                self._apply_step_schedules(epoch_index, optimizer_steps, total_epochs, steps_per_epoch)
+                teacher_temperature = self._teacher_temperature(epoch_index, optimizer_steps, steps_per_epoch)
+            components, teacher_outputs = self._forward_train_batch(
+                batch,
+                teacher_temperature=teacher_temperature,
+            )
+            loss = components["loss"]
             if not torch.isfinite(loss):
                 raise FloatingPointError("Encountered a non-finite DINO loss.")
-            current_loss = float(loss.detach().cpu())
-            total_loss += current_loss
+            current = {name: float(value.detach().cpu()) for name, value in components.items()}
+            for name in totals:
+                totals[name] += current[name]
             total_batches += 1
-            last_loss = current_loss
             _BaseSSLTrainer._backward_loss(self, loss, loss_scale=self.gradient_accumulation_steps)
             self.model.update_center(teacher_outputs, self.center_momentum)
-            should_step = _is_accumulation_boundary(step_index, num_batches, self.gradient_accumulation_steps)
-            if should_step:
+            if _is_accumulation_boundary(step_index, num_batches, self.gradient_accumulation_steps):
                 teacher_momentum = self._teacher_momentum(
                     epoch_index,
                     optimizer_steps,
                     total_epochs,
-                    num_optimizer_steps,
+                    steps_per_epoch,
                 )
                 _BaseSSLTrainer._finalize_optimizer_step(self)
+                last_gradient_norm = self._gradient_norm()
                 self.optimizer_step_count += 1
                 optimizer_steps += 1
                 last_teacher_momentum = teacher_momentum
                 self.model.update_teacher(teacher_momentum)
                 self.optimizer.zero_grad(set_to_none=True)
-            avg_loss = total_loss / total_batches
-            lr = self._current_learning_rate()
-
+            averages = {name: value / total_batches for name, value in totals.items()}
+            detail = (
+                f"loss: {current['loss']:.4f} | dino: {current['dino_loss']:.4f} | "
+                f"ibot: {current['ibot_loss']:.4f} | lr: {self._current_learning_rate():.6f} | "
+                f"ema: {last_teacher_momentum:.6f}"
+            )
             if self.progress_callback is not None:
-                self.progress_callback(
-                    step_index, 
-                    num_batches, 
-                    description=f"train-dino Epoch [{epoch_index + 1}/{total_epochs}]",
-                    detail=f"loss: {last_loss:.4f} | avg: {avg_loss:.4f} | lr: {lr:.6f} | ema: {last_teacher_momentum:.6f}"
-                )
+                self.progress_callback(step_index, num_batches, description=f"train-dino Epoch [{epoch_index + 1}/{total_epochs}]", detail=detail)
             elif step_index % self.log_every == 0:
                 print(
-                    f"train-dino epoch={epoch_index + 1}/{total_epochs} | "
-                    f"batch={step_index}/{num_batches} | "
-                    f"update={optimizer_steps}/{num_optimizer_steps} | "
-                    f"loss={current_loss:.6f} (avg={avg_loss:.6f}) | "
-                    f"lr={lr:.6f} | "
-                    f"ema={last_teacher_momentum:.6f}"
+                    f"train-dino epoch={epoch_index + 1}/{total_epochs} batch={step_index}/{num_batches} "
+                    f"update={optimizer_steps}/{steps_per_epoch} loss={current['loss']:.6f} "
+                    f"dino={current['dino_loss']:.6f} ibot={current['ibot_loss']:.6f} "
+                    f"koleo={current['koleo_loss']:.6f} var={current['feature_variance']:.6f} "
+                    f"entropy={current['prototype_entropy']:.4f} mask={current['mask_ratio']:.3f} "
+                    f"grad={last_gradient_norm:.4f} lr={self._current_learning_rate():.6f} "
+                    f"wd={self._current_weight_decay():.5f} temp={teacher_temperature:.4f} ema={last_teacher_momentum:.6f}"
                 )
 
-        return {
-            "loss": float(total_loss / total_batches) if total_batches > 0 else float("nan"),
+        result = {name: (value / total_batches if total_batches else float("nan")) for name, value in totals.items()}
+        result.update({
             "batches": total_batches,
             "optimizer_steps": optimizer_steps,
             "teacher_momentum": float(last_teacher_momentum),
-        }
-
+            "teacher_temperature": float(teacher_temperature),
+            "gradient_norm": float(last_gradient_norm),
+            "weight_decay": self._current_weight_decay(),
+        })
+        return result
     def evaluate(self, epoch_index: int) -> dict[str, float]:
         import torch
 
         if self.val_loader is None:
             return {"loss": float("nan"), "batches": 0}
-
         self.model.eval()
         self.model.teacher_adapter.eval()
         self.model.teacher_backbone.eval()
         self.model.teacher_head.eval()
-        losses: list[float] = []
+        totals = {name: 0.0 for name in ("loss", "dino_loss", "ibot_loss", "koleo_loss", "feature_variance", "prototype_entropy", "mask_ratio")}
+        batches = 0
         with torch.no_grad():
             for batch in self.val_loader:
                 moved_batch = _move_ssl_batch_to_device(batch, self.device)
-                images = moved_batch["image"]
-                student_views, teacher_views = self._eval_views(images)
+                student_views, teacher_views = self._eval_views(moved_batch["image"])
                 with self._autocast_context():
-                    student_outputs = self.model.forward_student_views(student_views)
+                    student_outputs = self.model.forward_student_views(student_views, num_global_views=self.num_global_crops)
                     teacher_outputs = self.model.forward_teacher_views(teacher_views)
-                    loss = self.model.dino_loss(
+                    components = self.model.dino_loss(
                         student_outputs,
                         teacher_outputs,
                         student_temperature=self.student_temperature,
+                        teacher_temperature=self.teacher_temperature_end,
+                        dino_loss_weight=self.dino_loss_weight,
+                        ibot_loss_weight=self.ibot_loss_weight,
+                        koleo_loss_weight=self.koleo_loss_weight,
+                        return_components=True,
                     )
-                if not torch.isfinite(loss):
+                if not torch.isfinite(components["loss"]):
                     raise FloatingPointError("Encountered a non-finite DINO validation loss.")
-                losses.append(float(loss.detach().cpu()))
-
-        mean_loss = float(sum(losses) / len(losses)) if losses else float("nan")
-        print(f"train-dino epoch={epoch_index + 1} val_loss={mean_loss:.6f}")
-        return {"loss": mean_loss, "batches": len(losses)}
-
+                for name in totals:
+                    totals[name] += float(components[name].detach().cpu())
+                batches += 1
+        result = {name: (value / batches if batches else float("nan")) for name, value in totals.items()}
+        result["batches"] = batches
+        print(f"train-dino epoch={epoch_index + 1} val_loss={result['loss']:.6f}")
+        return result
     def _best_metric_from_history(self, history: list[dict[str, Any]]) -> float:
         best_metric = float("inf")
         for record in history:
@@ -634,6 +717,15 @@ class DINOTrainer:
                     "teacher_momentum": train_metrics["teacher_momentum"],
                     "optimizer_steps": train_metrics["optimizer_steps"],
                     "gradient_accumulation_steps": self.gradient_accumulation_steps,
+                    "train_dino_loss": train_metrics["dino_loss"],
+                    "train_ibot_loss": train_metrics["ibot_loss"],
+                    "train_koleo_loss": train_metrics["koleo_loss"],
+                    "feature_variance": train_metrics["feature_variance"],
+                    "prototype_entropy": train_metrics["prototype_entropy"],
+                    "mask_ratio": train_metrics["mask_ratio"],
+                    "gradient_norm": train_metrics["gradient_norm"],
+                    "teacher_temperature": train_metrics["teacher_temperature"],
+                    "weight_decay": train_metrics["weight_decay"],
                 }
             )
             print(
