@@ -9,13 +9,13 @@
 #SBATCH --cpus-per-task=10                 # CPU cores for data loading
 #SBATCH --mem=64G                          # System RAM
 #SBATCH --time=2-00:00:00                  # Maximum runtime: two days
-#SBATCH --mail-user=mza0288@auburn.edu     # Email address - /home/mza0288/AG_Dataset/AG-Foundational-Model
+#SBATCH --mail-user=mza0288@auburn.edu     # Email notifications
 #SBATCH --mail-type=ALL                    # Email on start, failure, and completion 
 
 set -euo pipefail
 
 # Project locations on Easley. Change these if you used different directories.
-PROJECT_DIR="$HOME/AG_Dataset/AG-Foundational-Modell"
+PROJECT_DIR="$HOME/AG_Dataset/AG-Foundational-Model"
 CONDA_ENV_NAME="ag-foundation"
 SHARDS="$HOME/AG_Dataset/shards/dataset-*.tar"
 OUTPUT_DIR="$HOME/AG_Dataset/runs/dino-v2-production"
@@ -41,6 +41,15 @@ conda activate "$CONDA_ENV_NAME"
 cd "$PROJECT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
+# Make the source tree importable even if the editable install was not created yet.
+export PYTHONPATH="$PROJECT_DIR/src:${PYTHONPATH:-}"
+
+# If the package is not available in this environment, install it in editable mode.
+if ! python -c "import ag_foundation" >/dev/null 2>&1; then
+    echo "ag_foundation is not installed in the active environment. Installing editable package..."
+    python -m pip install -e "$PROJECT_DIR"
+fi
+
 # Prevent each DataLoader process from creating extra CPU thread pools.
 export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
@@ -49,6 +58,9 @@ export PYTHONUNBUFFERED=1
 export TORCH_HOME="/scratch/$USER/ag-foundation/cache/torch"
 export HF_HOME="/scratch/$USER/ag-foundation/cache/huggingface"
 mkdir -p "$TORCH_HOME" "$HF_HOME"
+
+# Load the NVIDIA/CUDA drivers
+module load cuda11.0/toolkit/11.8.0
 
 echo "GPU status:"
 nvidia-smi
