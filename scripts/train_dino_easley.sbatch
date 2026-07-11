@@ -9,16 +9,16 @@
 #SBATCH --cpus-per-task=10                 # CPU cores for data loading
 #SBATCH --mem=64G                          # System RAM
 #SBATCH --time=2-00:00:00                  # Maximum runtime: two days
-#SBATCH --mail-user=xxx@auburn.edu         # Email address
-#SBATCH --mail-type=ALL                    # Email on start, failure, and completion
+#SBATCH --mail-user=mza0288@auburn.edu     # Email address - /home/mza0288/AG_Dataset/AG-Foundational-Model
+#SBATCH --mail-type=ALL                    # Email on start, failure, and completion 
 
 set -euo pipefail
 
 # Project locations on Easley. Change these if you used different directories.
-PROJECT_DIR="$HOME/ag-foundation/AG-Foundational-Model"
+PROJECT_DIR="$HOME/AG_Dataset/AG-Foundational-Modell"
 CONDA_ENV_NAME="ag-foundation"
-SHARDS="/scratch/$USER/ag-foundation/shards/dataset-*.tar"
-OUTPUT_DIR="/scratch/$USER/ag-foundation/runs/dino-v2-production"
+SHARDS="$HOME/AG_Dataset/shards/dataset-*.tar"
+OUTPUT_DIR="$HOME/AG_Dataset/runs/dino-v2-production"
 CONFIG="$PROJECT_DIR/configs/wds_dino_pretrain_v2.yaml"
 
 echo "Starting agricultural DINOv2-style training."
