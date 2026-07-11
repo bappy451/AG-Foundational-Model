@@ -1,0 +1,93 @@
+==========================================================================================
+ PRETRAINING DATASET COMPREHENSIVE ANALYSIS 
+==========================================================================================
+
+--- Analyzing ZIP files and directories in E:\AG_Dataset\AG-Foundational-Model\Pretraining ---
+  OK Agriculture crop images.zip                             |   59.7 MB |    1100 imgs | W:[224-3200] H:[224-1800] Avg:422x329 Mode:RGB
+  OK Agriculture-Vision-2021.tar.gz                          |   19.6 GB |       0 imgs | N/A
+  OK Chili Plant Disease Detection.zip                       |  827.4 KB |     200 imgs | W:[256-256] H:[256-256] Avg:256x256 Mode:RGB
+  OK Chili Plant Disease.zip                                 |    4.9 MB |     500 imgs | W:[194-310] H:[163-259] Avg:260x197 Mode:RGB
+  OK Cotton plant disease ????-003.zip                       |    4.0 GB |   26108 imgs | W:[231-1080] H:[182-865] Avg:588x497 Mode:L
+  OK CottonWeedDet3-002.zip                                  |    5.2 GB |     848 imgs | W:[2448-6000] H:[3264-6000] Avg:3818x4557 Mode:RGB
+  OK DeepWeeds- A Multiclass Weed Species Image Dataset for  |  468.7 MB |   17509 imgs | W:[256-256] H:[256-256] Avg:256x256 Mode:RGB
+  OK Edible wild plants.zip                                  |  765.6 MB |    6878 imgs | W:[178-1000] H:[143-1000] Avg:437x349 Mode:RGB
+  OK GeoPlant_ Spatial Plant Species Prediction Dataset-008. |   39.4 GB |  188407 imgs | W:[128-128] H:[128-128] Avg:128x128 Mode:L
+  OK Ghana Crop Disease Detection Dataset-013.zip            |   10.4 GB |    7003 imgs | W:[1920-4080] H:[1280-3060] Avg:3347x2298 Mode:RGB
+  OK House Plant Species-006.zip                             |    4.8 GB |   14774 imgs | W:[340-6552] H:[270-4368] Avg:1636x1517 Mode:RGB
+  OK Indian Medicinal Plant Image Dataset.zip                |  252.6 MB |    5945 imgs | W:[600-600] H:[277-450] Avg:600x361 Mode:RGB
+  OK OPPD                                                    |  128.9 GB |  322628 imgs | W:[4096-4096] H:[3000-3000] Avg:4096x3000 Mode:RGB
+  OK Paddy Doctor- Paddy Disease Classification.zip          |    1.0 GB |   13876 imgs | W:[480-480] H:[640-640] Avg:480x640 Mode:RGB
+  OK Pea Plant dataset.zip                                   |   16.8 MB |    1432 imgs | W:[256-256] H:[256-256] Avg:256x256 Mode:RGB
+  OK Plant Disease Dataset-009.zip                           |    6.4 GB |   28500 imgs | W:[240-3456] H:[256-3456] Avg:789x804 Mode:RGB
+  OK Plant Disease Detection.zip                             |  534.0 MB |   35725 imgs | W:[256-256] H:[256-256] Avg:256x256 Mode:RGB
+  OK Plant Disease Expert-016.zip                            |    9.3 GB |  200506 imgs | W:[256-3081] H:[256-897] Avg:444x299 Mode:RGB
+  OK Plant Disease Expert.zip                                |    9.3 GB |  200506 imgs | W:[256-256] H:[256-256] Avg:256x256 Mode:RGB
+  OK Plant Leaves for Image Classification-004.zip           |    6.6 GB |    4502 imgs | W:[6000-6000] H:[4000-4000] Avg:6000x4000 Mode:RGB
+  OK Plant Leaves for Image Classification.zip               |    6.6 GB |    4502 imgs | W:[6000-6000] H:[4000-4000] Avg:6000x4000 Mode:RGB
+  OK Plant Pathogen Dataset.zip                              |    1.4 GB |   39997 imgs | W:[256-512] H:[256-512] Avg:427x427 Mode:RGB
+  OK Plant Stress Identification (Paddy Leaves).zip          |   18.8 MB |    2200 imgs | W:[299-299] H:[187-187] Avg:299x187 Mode:RGB
+  OK PlantCLEF2024singleplanttrainingdata.tar                |  281.4 GB |       0 imgs | N/A
+  OK PlantCLEF2024singleplanttrainingdata_800_max_side_size. |  158.6 GB |       0 imgs | N/A
+  OK PlantCLEF2025_pseudoquadrats_without_labels_complementa |  170.5 GB |       0 imgs | N/A
+  OK PlantSeg_ A Large-Scale In-the-wild Dataset for Plant D |    1.6 GB |   22916 imgs | W:[150-3024] H:[150-4032] Avg:1141x1092 Mode:RGB
+  OK PlantVillage Dataset-019.zip                            |    2.0 GB |  162916 imgs | W:[256-256] H:[256-256] Avg:256x256 Mode:RGB
+  OK PlantifyDr Dataset-014.zip                              |    2.6 GB |  125024 imgs | W:[256-256] H:[256-256] Avg:256x256 Mode:RGB
+  OK Plants Type Datasets.zip                                |  937.1 MB |   30000 imgs | W:[225-1904] H:[160-1175] Avg:653x492 Mode:RGB
+  OK Plants leafs Dataset-022.zip                            |    2.2 GB |  190077 imgs | W:[256-256] H:[256-256] Avg:256x256 Mode:RGB
+  OK Pumpkin Leaf Diseases Dataset From Bangladesh.zip       |  269.7 MB |    2000 imgs | W:[600-800] H:[599-800] Avg:775x626 Mode:RGB
+  OK Rice Leaf Diseases Dataset.zip                          |   36.7 MB |     120 imgs | W:[948-3081] H:[233-897] Avg:2832x812 Mode:RGB
+  OK Rice Plant diseases dataset.zip                         |  176.0 MB |    4684 imgs | W:[300-300] H:[300-300] Avg:300x300 Mode:RGB
+  OK Toxic Plant Classification.zip                          |  457.0 MB |    9952 imgs | W:[281-500] H:[281-500] Avg:389x469 Mode:RGB
+  OK UNL-CPPD-005.zip                                        |    7.2 GB |    2093 imgs | W:[1255-2454] H:[999-2056] Avg:1794x1467 Mode:RGB
+  OK V2 Plant Seedlings Dataset-020.zip                      |    3.2 GB |   11078 imgs | W:[107-731] H:[107-731] Avg:275x275 Mode:RGB
+  OK Weed Detection in Soybean Crops-012.zip                 |    2.4 GB |   30672 imgs | W:[177-359] H:[167-269] Avg:246x243 Mode:RGB
+  OK Wheat Plant Diseases-021.zip                            |    6.1 GB |   14154 imgs | W:[233-6000] H:[174-4852] Avg:1419x1639 Mode:RGB
+  OK catalog.csv                                             |  911.1 MB |       0 imgs | N/A
+  OK catalog_1.csv                                           |  303.8 MB |       0 imgs | N/A
+  OK plant disease detection - dataset.zip                   |    1.7 GB |   42373 imgs | W:[256-640] H:[256-640] Avg:441x434 Mode:RGB
+  OK plantnet_300K-018.zip                                   |   29.5 GB |  306146 imgs | W:[437-600] H:[437-600] Avg:570x570 Mode:RGB
+  OK rice+leaf+diseases.zip                                  |   36.7 MB |     120 imgs | W:[250-3081] H:[92-897] Avg:2212x687 Mode:RGB
+
+[Saved detailed results to E:\AG_Dataset\AG-Foundational-Model\pretraining_analysis.json]
+
+==========================================================================================
+ SUMMARY: 44 items | ~2,077,971 total images | 926.9 GB on disk
+==========================================================================================
+ HIGH scale variance datasets: 10
+   -> Agriculture crop images.zip: W:[224-3200] H:[224-1800] Avg:422x329 Mode:RGB
+   -> Edible wild plants.zip: W:[178-1000] H:[143-1000] Avg:437x349 Mode:RGB
+   -> House Plant Species-006.zip: W:[340-6552] H:[270-4368] Avg:1636x1517 Mode:RGB
+   -> Plant Disease Dataset-009.zip: W:[240-3456] H:[256-3456] Avg:789x804 Mode:RGB
+   -> Plant Disease Expert-016.zip: W:[256-3081] H:[256-897] Avg:444x299 Mode:RGB
+   -> PlantSeg_ A Large-Scale In-the-wild Dataset for Plant Diseas: W:[150-3024] H:[150-4032] Avg:1141x1092 Mode:RGB
+   -> Plants Type Datasets.zip: W:[225-1904] H:[160-1175] Avg:653x492 Mode:RGB
+   -> V2 Plant Seedlings Dataset-020.zip: W:[107-731] H:[107-731] Avg:275x275 Mode:RGB
+   -> Wheat Plant Diseases-021.zip: W:[233-6000] H:[174-4852] Avg:1419x1639 Mode:RGB
+   -> rice+leaf+diseases.zip: W:[250-3081] H:[92-897] Avg:2212x687 Mode:RGB
+ Datasets with >20% grayscale images: 3
+   -> Cotton plant disease ????-003.zip: 60% grayscale
+   -> GeoPlant_ Spatial Plant Species Prediction Dataset-008.zip: 53% grayscale
+   -> PlantSeg_ A Large-Scale In-the-wild Dataset for Plant Diseas: 47% grayscale
+
+--- Shard Analysis: E:\AG_Dataset\shards ---
+Total shards: 329
+Total size: 220.2 GB
+
+Sampled 300 images from 10 shards:
+  Width:  min=   31  max=  6000  avg= 1319.9
+  Height: min=   31  max=  4000  avg=  988.1
+
+  Size Distribution:
+        1024-2047px:  11 (3.7%)
+        2048-4095px:   7 (2.3%)
+          224-511px:  74 (24.7%)
+         512-1023px:  20 (6.7%)
+           64-223px: 118 (39.3%)
+              <64px:   9 (3.0%)
+            >4096px:  61 (20.3%)
+
+  Image Modes: {'RGB': 268, 'P': 1, 'RGBA': 1, 'L': 30}
+  Formats: {'JPEG': 298, 'PNG': 2}
+  Corrupt/unreadable: 0
+  Tiny (<64px): 9 (3.0%)
+  Huge (>4000px): 63 (21.0%)

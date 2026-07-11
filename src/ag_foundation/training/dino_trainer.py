@@ -133,8 +133,7 @@ class DINOMultiCropAugmenter:
         import torch.nn.functional as F
 
         image = image.float()
-        _, height, width = image.shape
-        image = self._random_resized_crop(image, scale_range, output_size=(height, width))
+        image = self._random_resized_crop(image, scale_range, output_size=self.config.image_size)
         if bool(torch.rand(()) < 0.5):
             image = torch.flip(image, dims=(2,))
         image = self._color_jitter(image)
@@ -356,6 +355,7 @@ class DINOTrainer:
         self.model.teacher_adapter.eval()
         self.model.teacher_backbone.eval()
         self.model.teacher_head.eval()
+        self.model.teacher_ibot_head.eval()
         moved_batch = _move_ssl_batch_to_device(batch, self.device)
         images = moved_batch["image"]
         student_views, teacher_views = self._augment_batch(images)
@@ -397,6 +397,7 @@ class DINOTrainer:
         self.model.teacher_adapter.eval()
         self.model.teacher_backbone.eval()
         self.model.teacher_head.eval()
+        self.model.teacher_ibot_head.eval()
         self.optimizer.zero_grad(set_to_none=True)
         total_loss = 0.0
         total_batches = 0

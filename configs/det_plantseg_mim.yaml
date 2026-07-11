@@ -1,0 +1,41 @@
+# Task 2: OBB Detection — PlantSeg Disease Detection — AG-Foundation MIM Weights
+# Protocol: ViTDet-inspired — ViT patch tokens reshaped to spatial feature map
+#           + lightweight FCOS-OBB detection head. Full end-to-end fine-tuning with LLRD.
+# Reference: ViTDet (Li et al. 2022), MAE fine-tuning recipe
+
+data:
+  data_root: 'E:\AG_Dataset\Evaluation\PlantSeg'  # Extract first: .\scripts\extract_datasets.ps1
+  crop_size: 640      # Larger crop for detection (standard for aerial/drone imagery)
+  batch_size: 8
+  num_workers: 8
+  prefetch_factor: 2
+
+runtime:
+  output_dir: 'E:\AG_Dataset\runs\det_plantseg_mim'
+  epochs: 50
+  seed: 42
+  precision: bf16
+  device: cuda
+  warmup_epochs: 3
+  gradient_accumulation_steps: 4  # Effective batch = 32
+  log_every: 10
+  grad_clip_norm: 0.1  # Tighter clipping for detection stability
+  early_stopping_patience: 10
+
+model:
+  model_name: B
+  pretrained_source: imagenet
+  pretrained_weights: 'E:\AG_Dataset\AG-Foundational-Model\runs\wds_mim_pretraining_B\best.pt'
+  layer_decay: 0.75
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.1
+  # Detection head config
+  num_classes: null  # Auto-detected from dataset
+  obb_num_convs: 4
+  fpn_out_channels: 256
+
+optimizer:
+  learning_rate: 0.0002  # 2e-4 base for detection (lower than cls — spatial features more sensitive)
+  weight_decay: 0.05
+  label_smoothing: 0.0  # N/A for detection

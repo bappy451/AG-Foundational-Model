@@ -138,13 +138,12 @@ class AgricultureImageDataset(Dataset[dict[str, Any]]):
 
         _, height, width = image.shape
         if height < self.crop_size or width < self.crop_size:
-            # Zero-pad the image on the right/bottom to reach crop_size.
-            # This preserves small but valid images (e.g. tiny GIS tiles)
-            # instead of discarding them.
-            pad_h = max(0, self.crop_size - height)
-            pad_w = max(0, self.crop_size - width)
-            # F.pad order is (left, right, top, bottom)
-            image = F.pad(image, (0, pad_w, 0, pad_h), mode="constant", value=0.0)
+            # Small images: _random_crop (bounded multiscale) handles upscaling.
+            # _center_crop (val path) still needs padding for robustness.
+            if not self.augment:
+                pad_h = max(0, self.crop_size - height)
+                pad_w = max(0, self.crop_size - width)
+                image = F.pad(image, (0, pad_w, 0, pad_h), mode="constant", value=0.0)
 
         if self.augment:
             image = self._random_crop(image)
@@ -367,12 +366,67 @@ class AgricultureImageDataset(Dataset[dict[str, Any]]):
         return archive
 
     def _random_crop(self, image: torch.Tensor) -> torch.Tensor:
-        _, height, width = image.shape
-        max_top = height - self.crop_size
-        max_left = width - self.crop_size
-        top = int(torch.randint(max_top + 1, (1,)).item()) if max_top else 0
-        left = int(torch.randint(max_left + 1, (1,)).item()) if max_left else 0
-        return image[:, top : top + self.crop_size, left : left + self.crop_size]
+        """
+        Bounded multi-scale random crop.
+
+        Stage 1 — Bounded resize (context normalization):
+          Very large images (min-side > 1024px) are downscaled so min-side = 1024px.
+          This means a 4096×3000 image crops cover 40-100% of the scene, not 0.3%.
+          Very small images (min-side < crop_size) are gently upscaled.
+
+        Stage 2 — Scale-restricted random crop:
+          RandomResizedCrop equivalent with scale=(0.4, 1.0) on the bounded image.
+          This preserves high-frequency textures while normalizing scale variance.
+
+        Stage 3 — Resize to exact crop_size.
+        """
+        import torch.nn.functional as TF_fn
+
+        _, h, w = image.shape
+        BOUND_MAX = 1024
+        min_side = min(h, w)
+
+        # Stage 1a: downscale if too large
+        if min_side > BOUND_MAX:
+            scale = BOUND_MAX / min_side
+            new_h = max(1, int(round(h * scale)))
+            new_w = max(1, int(round(w * scale)))
+            image = TF_fn.interpolate(
+                image.unsqueeze(0), size=(new_h, new_w), mode="bilinear", align_corners=False, antialias=True
+            ).squeeze(0)
+            _, h, w = image.shape
+
+        # Stage 1b: upscale if too small (avoid zero-padding artifacts)
+        if min_side < self.crop_size:
+            pad_to = self.crop_size + 32
+            image = TF_fn.interpolate(
+                image.unsqueeze(0), size=(pad_to, pad_to), mode="bilinear", align_corners=False, antialias=True
+            ).squeeze(0)
+            _, h, w = image.shape
+
+        # Stage 2: scale-restricted random crop (40-100% of bounded image)
+        scale = random.uniform(0.4, 1.0)
+        crop_h = max(self.crop_size, int(h * scale))
+        crop_w = max(self.crop_size, int(w * scale))
+        crop_h = min(crop_h, h)
+        crop_w = min(crop_w, w)
+
+        top  = random.randint(0, h - crop_h) if h > crop_h else 0
+        left = random.randint(0, w - crop_w) if w > crop_w else 0
+        image = image[:, top : top + crop_h, left : left + crop_w]
+
+        # Stage 3: resize to exact crop_size
+        if crop_h != self.crop_size or crop_w != self.crop_size:
+            image = TF_fn.interpolate(
+                image.unsqueeze(0),
+                size=(self.crop_size, self.crop_size),
+                mode="bilinear",
+                align_corners=False,
+                antialias=True,
+            ).squeeze(0)
+
+        return image
+
 
     def _center_crop(self, image: torch.Tensor) -> torch.Tensor:
         _, height, width = image.shape

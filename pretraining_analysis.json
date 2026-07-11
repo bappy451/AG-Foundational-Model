@@ -1,0 +1,442 @@
+[
+  {
+    "dataset": "Agriculture crop images.zip",
+    "size": "59.7 MB",
+    "size_bytes": 62575817,
+    "img_count": 1100,
+    "shape_summary": "W:[224-3200] H:[224-1800] Avg:422x329 Mode:RGB",
+    "scale_variance": "HIGH",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Agriculture-Vision-2021.tar.gz",
+    "size": "19.6 GB",
+    "size_bytes": 21033702578,
+    "img_count": 0,
+    "shape_summary": "N/A",
+    "scale_variance": "N/A",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Chili Plant Disease Detection.zip",
+    "size": "827.4 KB",
+    "size_bytes": 847209,
+    "img_count": 200,
+    "shape_summary": "W:[256-256] H:[256-256] Avg:256x256 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Chili Plant Disease.zip",
+    "size": "4.9 MB",
+    "size_bytes": 5176708,
+    "img_count": 500,
+    "shape_summary": "W:[194-310] H:[163-259] Avg:260x197 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Cotton plant disease 🌱🍂🍂🌱-003.zip",
+    "size": "4.0 GB",
+    "size_bytes": 4270464406,
+    "img_count": 26108,
+    "shape_summary": "W:[231-1080] H:[182-865] Avg:588x497 Mode:L",
+    "scale_variance": "LOW",
+    "grayscale_pct": 60,
+    "error": null
+  },
+  {
+    "dataset": "CottonWeedDet3-002.zip",
+    "size": "5.2 GB",
+    "size_bytes": 5592550746,
+    "img_count": 848,
+    "shape_summary": "W:[2448-6000] H:[3264-6000] Avg:3818x4557 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "DeepWeeds- A Multiclass Weed Species Image Dataset for Deep Learning.zip",
+    "size": "468.7 MB",
+    "size_bytes": 491516047,
+    "img_count": 17509,
+    "shape_summary": "W:[256-256] H:[256-256] Avg:256x256 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Edible wild plants.zip",
+    "size": "765.6 MB",
+    "size_bytes": 802778599,
+    "img_count": 6878,
+    "shape_summary": "W:[178-1000] H:[143-1000] Avg:437x349 Mode:RGB",
+    "scale_variance": "HIGH",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "GeoPlant_ Spatial Plant Species Prediction Dataset-008.zip",
+    "size": "39.4 GB",
+    "size_bytes": 42287015003,
+    "img_count": 188407,
+    "shape_summary": "W:[128-128] H:[128-128] Avg:128x128 Mode:L",
+    "scale_variance": "LOW",
+    "grayscale_pct": 53,
+    "error": null
+  },
+  {
+    "dataset": "Ghana Crop Disease Detection Dataset-013.zip",
+    "size": "10.4 GB",
+    "size_bytes": 11130065025,
+    "img_count": 7003,
+    "shape_summary": "W:[1920-4080] H:[1280-3060] Avg:3347x2298 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "House Plant Species-006.zip",
+    "size": "4.8 GB",
+    "size_bytes": 5205034688,
+    "img_count": 14774,
+    "shape_summary": "W:[340-6552] H:[270-4368] Avg:1636x1517 Mode:RGB",
+    "scale_variance": "HIGH",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Indian Medicinal Plant Image Dataset.zip",
+    "size": "252.6 MB",
+    "size_bytes": 264918525,
+    "img_count": 5945,
+    "shape_summary": "W:[600-600] H:[277-450] Avg:600x361 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "OPPD",
+    "size": "128.9 GB",
+    "size_bytes": 138399508688,
+    "img_count": 322628,
+    "shape_summary": "W:[4096-4096] H:[3000-3000] Avg:4096x3000 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Paddy Doctor- Paddy Disease Classification.zip",
+    "size": "1.0 GB",
+    "size_bytes": 1093378623,
+    "img_count": 13876,
+    "shape_summary": "W:[480-480] H:[640-640] Avg:480x640 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Pea Plant dataset.zip",
+    "size": "16.8 MB",
+    "size_bytes": 17566584,
+    "img_count": 1432,
+    "shape_summary": "W:[256-256] H:[256-256] Avg:256x256 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Plant Disease Dataset-009.zip",
+    "size": "6.4 GB",
+    "size_bytes": 6842960258,
+    "img_count": 28500,
+    "shape_summary": "W:[240-3456] H:[256-3456] Avg:789x804 Mode:RGB",
+    "scale_variance": "HIGH",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Plant Disease Detection.zip",
+    "size": "534.0 MB",
+    "size_bytes": 559927257,
+    "img_count": 35725,
+    "shape_summary": "W:[256-256] H:[256-256] Avg:256x256 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Plant Disease Expert-016.zip",
+    "size": "9.3 GB",
+    "size_bytes": 10019383772,
+    "img_count": 200506,
+    "shape_summary": "W:[256-3081] H:[256-897] Avg:444x299 Mode:RGB",
+    "scale_variance": "HIGH",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Plant Disease Expert.zip",
+    "size": "9.3 GB",
+    "size_bytes": 10019383772,
+    "img_count": 200506,
+    "shape_summary": "W:[256-256] H:[256-256] Avg:256x256 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Plant Leaves for Image Classification-004.zip",
+    "size": "6.6 GB",
+    "size_bytes": 7044045230,
+    "img_count": 4502,
+    "shape_summary": "W:[6000-6000] H:[4000-4000] Avg:6000x4000 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Plant Leaves for Image Classification.zip",
+    "size": "6.6 GB",
+    "size_bytes": 7044045230,
+    "img_count": 4502,
+    "shape_summary": "W:[6000-6000] H:[4000-4000] Avg:6000x4000 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Plant Pathogen Dataset.zip",
+    "size": "1.4 GB",
+    "size_bytes": 1531384194,
+    "img_count": 39997,
+    "shape_summary": "W:[256-512] H:[256-512] Avg:427x427 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Plant Stress Identification (Paddy Leaves).zip",
+    "size": "18.8 MB",
+    "size_bytes": 19760543,
+    "img_count": 2200,
+    "shape_summary": "W:[299-299] H:[187-187] Avg:299x187 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "PlantCLEF2024singleplanttrainingdata.tar",
+    "size": "281.4 GB",
+    "size_bytes": 302147553280,
+    "img_count": 0,
+    "shape_summary": "N/A",
+    "scale_variance": "N/A",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "PlantCLEF2024singleplanttrainingdata_800_max_side_size.tar",
+    "size": "158.6 GB",
+    "size_bytes": 170310000640,
+    "img_count": 0,
+    "shape_summary": "N/A",
+    "scale_variance": "N/A",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "PlantCLEF2025_pseudoquadrats_without_labels_complementary_training_set.tar",
+    "size": "170.5 GB",
+    "size_bytes": 183071795200,
+    "img_count": 0,
+    "shape_summary": "N/A",
+    "scale_variance": "N/A",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "PlantSeg_ A Large-Scale In-the-wild Dataset for Plant Disease Segmentation.zip",
+    "size": "1.6 GB",
+    "size_bytes": 1707018998,
+    "img_count": 22916,
+    "shape_summary": "W:[150-3024] H:[150-4032] Avg:1141x1092 Mode:RGB",
+    "scale_variance": "HIGH",
+    "grayscale_pct": 47,
+    "error": null
+  },
+  {
+    "dataset": "PlantVillage Dataset-019.zip",
+    "size": "2.0 GB",
+    "size_bytes": 2189386419,
+    "img_count": 162916,
+    "shape_summary": "W:[256-256] H:[256-256] Avg:256x256 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "PlantifyDr Dataset-014.zip",
+    "size": "2.6 GB",
+    "size_bytes": 2768152927,
+    "img_count": 125024,
+    "shape_summary": "W:[256-256] H:[256-256] Avg:256x256 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Plants Type Datasets.zip",
+    "size": "937.1 MB",
+    "size_bytes": 982641259,
+    "img_count": 30000,
+    "shape_summary": "W:[225-1904] H:[160-1175] Avg:653x492 Mode:RGB",
+    "scale_variance": "HIGH",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Plants leafs Dataset-022.zip",
+    "size": "2.2 GB",
+    "size_bytes": 2326416740,
+    "img_count": 190077,
+    "shape_summary": "W:[256-256] H:[256-256] Avg:256x256 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Pumpkin Leaf Diseases Dataset From Bangladesh.zip",
+    "size": "269.7 MB",
+    "size_bytes": 282843752,
+    "img_count": 2000,
+    "shape_summary": "W:[600-800] H:[599-800] Avg:775x626 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Rice Leaf Diseases Dataset.zip",
+    "size": "36.7 MB",
+    "size_bytes": 38456279,
+    "img_count": 120,
+    "shape_summary": "W:[948-3081] H:[233-897] Avg:2832x812 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Rice Plant diseases dataset.zip",
+    "size": "176.0 MB",
+    "size_bytes": 184522498,
+    "img_count": 4684,
+    "shape_summary": "W:[300-300] H:[300-300] Avg:300x300 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Toxic Plant Classification.zip",
+    "size": "457.0 MB",
+    "size_bytes": 479228680,
+    "img_count": 9952,
+    "shape_summary": "W:[281-500] H:[281-500] Avg:389x469 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "UNL-CPPD-005.zip",
+    "size": "7.2 GB",
+    "size_bytes": 7726890832,
+    "img_count": 2093,
+    "shape_summary": "W:[1255-2454] H:[999-2056] Avg:1794x1467 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "V2 Plant Seedlings Dataset-020.zip",
+    "size": "3.2 GB",
+    "size_bytes": 3427338216,
+    "img_count": 11078,
+    "shape_summary": "W:[107-731] H:[107-731] Avg:275x275 Mode:RGB",
+    "scale_variance": "HIGH",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Weed Detection in Soybean Crops-012.zip",
+    "size": "2.4 GB",
+    "size_bytes": 2539611648,
+    "img_count": 30672,
+    "shape_summary": "W:[177-359] H:[167-269] Avg:246x243 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "Wheat Plant Diseases-021.zip",
+    "size": "6.1 GB",
+    "size_bytes": 6542645239,
+    "img_count": 14154,
+    "shape_summary": "W:[233-6000] H:[174-4852] Avg:1419x1639 Mode:RGB",
+    "scale_variance": "HIGH",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "catalog.csv",
+    "size": "911.1 MB",
+    "size_bytes": 955311723,
+    "img_count": 0,
+    "shape_summary": "N/A",
+    "scale_variance": "N/A",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "catalog_1.csv",
+    "size": "303.8 MB",
+    "size_bytes": 318597668,
+    "img_count": 0,
+    "shape_summary": "N/A",
+    "scale_variance": "N/A",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "plant disease detection - dataset.zip",
+    "size": "1.7 GB",
+    "size_bytes": 1822053222,
+    "img_count": 42373,
+    "shape_summary": "W:[256-640] H:[256-640] Avg:441x434 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "plantnet_300K-018.zip",
+    "size": "29.5 GB",
+    "size_bytes": 31654430714,
+    "img_count": 306146,
+    "shape_summary": "W:[437-600] H:[437-600] Avg:570x570 Mode:RGB",
+    "scale_variance": "LOW",
+    "grayscale_pct": 0,
+    "error": null
+  },
+  {
+    "dataset": "rice+leaf+diseases.zip",
+    "size": "36.7 MB",
+    "size_bytes": 38442567,
+    "img_count": 120,
+    "shape_summary": "W:[250-3081] H:[92-897] Avg:2212x687 Mode:RGB",
+    "scale_variance": "HIGH",
+    "grayscale_pct": 0,
+    "error": null
+  }
+]

@@ -1,0 +1,38 @@
+# Task 1: Classification — Medicinal Plant — AG-Foundation MIM Weights
+# Protocol: Full fine-tuning with LLRD + class-weighted loss + early stopping
+# Reference: MAE (He et al. 2022) fine-tuning recipe adapted for small imbalanced datasets
+
+data:
+  data_root: 'E:\AG_Dataset\Evaluation\Classification_Medicinal_Plant'
+  crop_size: 224
+  channels: 3
+  batch_size: 128
+  num_workers: 8
+  prefetch_factor: 2
+
+runtime:
+  output_dir: 'E:\AG_Dataset\runs\cls_medicinal_mim'
+  epochs: 100
+  seed: 42
+  precision: bf16
+  device: cuda
+  warmup_epochs: 5
+  gradient_accumulation_steps: 1
+  log_every: 10
+  grad_clip_norm: 1.0
+  early_stopping_patience: 15  # Stop if no improvement for 15 epochs
+
+model:
+  model_name: B
+  pretrained_source: imagenet
+  pretrained_weights: 'E:\AG_Dataset\AG-Foundational-Model\runs\wds_mim_pretraining_B\best.pt'
+  layer_decay: 0.75
+  drop_rate: 0.1
+  attn_drop_rate: 0.1
+  drop_path_rate: 0.2
+  head_dropout: 0.2
+
+optimizer:
+  learning_rate: 0.001  # 1e-3 base; with layer_decay=0.75 → bottom blocks ~3e-5
+  weight_decay: 0.05
+  label_smoothing: 0.1

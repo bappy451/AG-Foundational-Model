@@ -1,0 +1,95 @@
+# DINO Pretraining Configuration v2 — Rebuilt Shards
+# ====================================================
+# Uses the cleaned shards dataset (bounded 1024px RGB, ~2M images).
+# DINO multi-crop works correctly because shards contain 1024px-bounded
+# images — not pre-resized 224×224 — allowing meaningful local crops.
+#
+# Multi-crop strategy:
+#   2x global crops at 224×224 (40–100% of 1024px bounded image)
+#   6x local  crops at  96×96  (5–40%  of 1024px bounded image)
+#
+# Key changes from v1:
+#   - model_name: S → B (ViT-Base for paper-quality results)
+#   - global_crop_scale: [0.6,1.0] → [0.4,1.0] (wider for agricultural scale variance)
+#   - local_crop_scale:  [0.3,0.6] → [0.05,0.4] (standard DINO local crop range)
+#   - epochs: 2 → 100 (proper full training)
+#   - warmup_epochs: 1 → 10 (10% warmup standard for DINO)
+#   - batch_size: 16 → 32 (RTX 4090 can handle B/16 at bs=32 for DINO)
+#   - gradient_accumulation: 8 → 8 → effective batch = 32 * 8 = 256
+#   - drop_path_rate: 0.1 → 0.1 (keep stochastic depth for regularization)
+#   - pretrained_backbone: false (train from scratch on clean agricultural data)
+#   - output_dir updated to v2
+#   - val_fraction: 0.05 → 0.02
+#   - num_workers: 12, prefetch_factor: 4
+#
+# Usage (Windows Local, RTX 4090):
+#   python -m ag_foundation train-dino --config configs/wds_dino_pretrain_v2.yaml
+#
+# Usage (Google Colab / Linux):
+#   python -m ag_foundation train-dino --config configs/wds_dino_pretrain_v2.yaml --use-dali
+
+data:
+  data_root: 'E:\AG_Dataset\shards\dataset-*.tar'
+  catalog_path: null
+  crop_size: 224                # global crop resolution
+  channels: 3
+  batch_size: 32                # RTX 4090 VRAM limit for ViT-B DINO (2 global + 6 local crops)
+  # epoch_batches: 2M images / 32 = 62500 → round to 64000
+  epoch_batches: 64000
+  num_workers: 12
+  prefetch_factor: 4
+  val_fraction: 0.02            # 2% val shard split — enables loss monitoring
+
+runtime:
+  output_dir: ../runs/wds_dino_pretraining_v2
+  epochs: 100                   # DINO standard: 100 epochs on domain data
+  seed: 42
+  precision: bf16
+  device: cuda
+  warmup_epochs: 10             # 10% warmup — critical for DINO teacher stability
+  gradient_accumulation_steps: 8   # effective batch = 32 * 8 = 256
+  resume: true
+  resume_from: null
+  initialize_from: null
+  log_every: 50
+  save_visualizations: true
+  visualization_every: 5
+  visualization_samples: 8
+
+model:
+  model_name: B                 # ViT-Base/16 — 86M params, paper-quality backbone
+  pretrained_backbone: false    # train from scratch on clean agricultural data
+  pretrained_source: null       # no imagenet init — avoid imagenet bias
+  pretrained_cfg: null
+
+  # DINO head architecture (standard DINOv1 head)
+  dino_out_dim: 65536           # prototypes dimension (standard DINO)
+  dino_hidden_dim: 2048
+  dino_bottleneck_dim: 256
+  head_nlayers: 3
+
+  # Multi-crop settings — aligned with 1024px bounded shards
+  num_global_crops: 2
+  num_local_crops: 6            # reduced from 8 to 6 for VRAM on B model
+  global_crop_scale: [0.4, 1.0]  # covers 40–100% of 1024px bounded image
+  local_crop_scale: [0.05, 0.4]  # covers 5–40%  of 1024px bounded image → 51–410px
+
+  # DINO temperature schedule
+  student_temperature: 0.1
+  teacher_temperature: 0.04     # standard DINOv1 teacher temp (fixed)
+  teacher_momentum_start: 0.996 # EMA start
+  teacher_momentum_end: 1.0     # EMA end (cosine schedule)
+  center_momentum: 0.9
+
+  gradient_checkpointing: true  # required for ViT-B with multi-crop on 24GB VRAM
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.1           # stochastic depth for regularization (DINO paper)
+
+optimizer:
+  # DINO standard: base_lr=5e-4 scaled by effective_batch/256
+  # effective_batch = 32 * 8 = 256 → lr = 5e-4 * 1.0 = 5e-4
+  learning_rate: 0.0005
+  weight_decay: 0.04
+  # Note: DINO uses AdamW with cosine LR decay + linear warmup
+  # The runner applies these schedules automatically based on warmup_epochs / epochs

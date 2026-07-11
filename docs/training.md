@@ -248,3 +248,18 @@ Key design decisions:
   is a one-time cost and is safe to ignore.
 - **Not supported on Windows** — DALI requires Linux + CUDA. The codebase
   automatically falls back to the CPU loader on Windows.
+
+## Downstream Fine-Tuning (Classification)
+
+After continual pretraining (MIM or DINO), you can fine-tune the resulting `best.pt` foundation weights on downstream standard image classification tasks.
+We support direct loading of ImageFolder-style datasets (e.g. from Roboflow).
+
+1. Extract your dataset so it has `train/` and `valid/` (or `test/`) subdirectories.
+2. Configure `configs/finetune_classification.yaml` (point `data_root` to your dataset, and `pretrained_weights` to your foundation weights).
+3. Run the fine-tuning command:
+
+```bash
+python -m ag_foundation train-cls --config configs/finetune_classification.yaml
+```
+
+The pipeline automatically swaps the self-supervised heads for an `nn.Linear` head and applies label smoothing, high dropout, and a low fine-tuning learning rate (e.g. 5e-5) with cosine decay to prevent catastrophic forgetting. Output checkpoints and accuracy curves will be saved to the configured `output_dir`.

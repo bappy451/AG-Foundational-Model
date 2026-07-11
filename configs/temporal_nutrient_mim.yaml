@@ -1,0 +1,41 @@
+# Task 4: Temporal Analysis — Longitudinal Nutrient Deficiency — AG-Foundation MIM Weights
+# Protocol: Encode each timepoint image independently with the ViT CLS token.
+#           Concatenate [feat_t1, feat_t2, feat_t2 - feat_t1] → 3×768 = 2304-dim vector.
+#           Train a 3-layer MLP to classify the nutrient deficiency type and severity.
+# Reference: AAAI 2021 Longitudinal Nutrient Deficiency dataset
+
+data:
+  data_root: 'E:\AG_Dataset\Evaluation\longitudinal-nutrient-deficiency\data'  # Extract first
+  crop_size: 224
+  batch_size: 64
+  num_workers: 8
+  prefetch_factor: 2
+
+runtime:
+  output_dir: 'E:\AG_Dataset\runs\temporal_nutrient_mim'
+  epochs: 100
+  seed: 42
+  precision: bf16
+  device: cuda
+  warmup_epochs: 5
+  gradient_accumulation_steps: 1
+  log_every: 10
+  grad_clip_norm: 1.0
+  early_stopping_patience: 15
+
+model:
+  model_name: B
+  pretrained_source: imagenet
+  pretrained_weights: 'E:\AG_Dataset\AG-Foundational-Model\runs\wds_mim_pretraining_B\best.pt'
+  layer_decay: 0.75
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.1
+  # Temporal head config
+  temporal_hidden_dim: 512   # MLP hidden size
+  temporal_dropout: 0.3
+
+optimizer:
+  learning_rate: 0.0005
+  weight_decay: 0.05
+  label_smoothing: 0.1

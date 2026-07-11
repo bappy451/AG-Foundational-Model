@@ -4,33 +4,39 @@ build_pretraining_catalog.py
 ============================
 Scans the Pretraining directory from scratch — reading inside every ZIP and
 TAR archive plus every extracted sub-directory — and produces a clean
-catalog.csv that is ready for use in the PyTorch pretraining DataLoader.
+catalog_v2.csv that is ready for use in the shard builder.
 
 Rules applied
 -------------
   * Only image files (.jpg / .jpeg / .png / .tif / .tiff / .bmp) are kept.
   * Paths containing mask / label / _gt / ground_truth tokens are excluded.
   * The Evaluation/ sub-directory is entirely skipped.
-  * Known duplicate ZIPs (e.g. "Plant Disease Expert.zip" vs "-016.zip") are
-    de-duplicated by skipping the non-versioned copy.
-  * Archives that cannot be opened (corrupted, etc.) are logged and skipped.
-  * .tar.gz archives are streamed with live progress every 10k members.
-  * Plain .tar archives are also streamed (no random-seek required).
+  * Known DUPLICATE ZIPs are skipped (non-versioned copy skipped, versioned kept).
+  * Known LOW-QUALITY datasets are excluded entirely (too small, wrong domain,
+    grayscale satellite patches, or eval-set contamination).
+  * Datasets with KNOWN OVERLAP (PlantCLEF full-res vs 800px) are de-duplicated.
+  * Archives that cannot be opened (corrupted) are logged and skipped.
+  * .tar.gz archives are streamed with live progress every 25k members.
+
+Excluded datasets (KNOWN_EXCLUDES) — rationale
+-----------------------------------------------
+  GeoPlant*.zip            : 128×128 grayscale satellite tiles — wrong domain/scale
+  Chili Plant Disease*.zip : < 500 images each — statistically negligible
+  Rice Leaf Diseases*.zip  : 120 images each — noise
+  rice+leaf+diseases.zip   : duplicate of Rice Leaf Diseases, also 120 images
+  PlantCLEF2024single*.tar : Full-res version (288 GB) — overlaps with 800px version
+  Toxic Plant*.zip         : Evaluation set — must not contaminate pretraining
+  Indian Medicinal*.zip    : Evaluation set
+  Pea Plant*.zip           : Evaluation set
+  Agriculture crop images* : Evaluation set (<1100 images)
 
 Catalog schema (CSV columns)
 -----------------------------
-  path         : portable DataLoader path
-                   - archive embedded:  "archive_name.zip::inner/path.jpg"
+  path         : DataLoader path
+                   - archive embedded:  "archive.zip::inner/path.jpg"
                    - plain file:        "OPPD/images/foo.jpg"
-  group        : inferred label / category from directory structure
+  group        : inferred category from directory structure
   source_name  : stem of the originating archive or directory
-
-DataLoader helpers (importable)
---------------------------------
-  from scripts.build_pretraining_catalog import load_catalog, open_image_from_record
-
-  records = load_catalog("Pretraining/catalog.csv")
-  img = open_image_from_record(Path("Pretraining"), records[0]["path"])
 
 Usage
 -----
@@ -38,8 +44,8 @@ Usage
 
   # Custom paths:
   python scripts/build_pretraining_catalog.py ^
-      --pretraining-root "e:/AG_Dataset/AG-Foundational-Model/Pretraining" ^
-      --output "e:/AG_Dataset/AG-Foundational-Model/Pretraining/catalog.csv"
+      --pretraining-root "E:/AG_Dataset/AG-Foundational-Model/Pretraining" ^
+      --output "E:/AG_Dataset/AG-Foundational-Model/Pretraining/catalog_v2.csv"
 """
 
 from __future__ import annotations
@@ -52,6 +58,7 @@ import sys
 import time
 import zipfile
 import tarfile
+import tqdm
 from collections import Counter
 from pathlib import Path
 
@@ -59,7 +66,6 @@ from pathlib import Path
 # Constants
 # ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp"}
 
 # Lower-cased substrings that identify masks / labels / ground-truth
@@ -75,18 +81,41 @@ EXCLUDE_TOKENS = (
     "/annotations/",   "\\annotations\\",
     # Agriculture-Vision segmentation channel images
     "_boundary.",      "_plant.",          "_weed.",
-=======
-from ag_foundation.data.dataset import AgricultureImageDataset  # noqa: E402
-from ag_foundation.data.multi_source_dataset import (  # noqa: E402
-    scan_pretraining_directory,
->>>>>>> 33c63a88879f064cce6e7e60a11fa3ba55e170bd
+    # OPPD ground-truth annotation files
+    "/annotations",
 )
 
-# Known exact-duplicate archive stems. Key = skip; Value = keep instead.
+# Known exact-duplicate archive names. Key = SKIP; Value = keep instead.
 KNOWN_DUPLICATES: dict[str, str] = {
-    "Plant Disease Expert.zip":                   "Plant Disease Expert-016.zip",
-    "Plant Leaves for Image Classification.zip":  "Plant Leaves for Image Classification-004.zip",
-    "rice+leaf+diseases.zip":                     "Rice Leaf Diseases Dataset.zip",
+    "Plant Disease Expert.zip":
+        "Plant Disease Expert-016.zip",
+    "Plant Leaves for Image Classification.zip":
+        "Plant Leaves for Image Classification-004.zip",
+}
+
+# Known bad/excluded datasets — skip entire archive.
+# These are matched by checking if the archive filename STARTS WITH any prefix here.
+KNOWN_EXCLUDES: set[str] = {
+    # 128×128 grayscale satellite patches — wrong domain/scale for plant foundation model
+    "GeoPlant_ Spatial Plant Species Prediction Dataset-008.zip",
+    # Too small — < 500 images each, statistical noise
+    "Chili Plant Disease Detection.zip",
+    "Chili Plant Disease.zip",
+    # 120 images each — noise + duplicates
+    "Rice Leaf Diseases Dataset.zip",
+    "rice+leaf+diseases.zip",
+    # PlantCLEF full-resolution overlaps with 800px version (both contain same images)
+    # Keep the 800px version: PlantCLEF2024singleplanttrainingdata_800_max_side_size.tar
+    "PlantCLEF2024singleplanttrainingdata.tar",
+    # Evaluation-only sets — must NOT be in pretraining to avoid data leakage
+    "Toxic Plant Classification.zip",
+    "Indian Medicinal Plant Image Dataset.zip",
+    "Pea Plant dataset.zip",
+    "Agriculture crop images.zip",
+    # Evaluation sets already used as downstream benchmarks
+    "Paddy Doctor- Paddy Disease Classification.zip",
+    "PlantSeg_ A Large-Scale In-the-wild Dataset for Plant Disease Segmentation.zip",
+    "Edible wild plants.zip",
 }
 
 # Print a live progress line after this many image members (for big TARs)
@@ -106,6 +135,11 @@ def is_valid_image(filename: str) -> bool:
     return Path(filename).suffix.lower() in IMAGE_EXTENSIONS
 
 
+def should_exclude_archive(archive_name: str) -> bool:
+    """Return True if this archive should be skipped entirely."""
+    return archive_name in KNOWN_EXCLUDES
+
+
 # ---------------------------------------------------------------------------
 # Group inference
 # ---------------------------------------------------------------------------
@@ -113,9 +147,9 @@ def is_valid_image(filename: str) -> bool:
 def infer_group(inner_path: str, source_name: str) -> str:
     """Return the most meaningful parent-folder label for the image."""
     parts = Path(inner_path.replace("\\", "/")).parts
-    # skip common uninformative folder names
     SKIP = {".", "images", "train", "val", "test", "valid", "data",
-            "image", "img", "imgs", "train2", "val2"}
+            "image", "img", "imgs", "train2", "val2", "rgb", "color",
+            "raw", "input", "output", "src", "dataset", "datasets"}
     parents = [p for p in parts[:-1] if p.lower() not in SKIP]
     if parents:
         return "/".join(parents[-3:])
@@ -131,10 +165,9 @@ def scan_zip(archive_path: Path, source_name: str) -> list[dict]:
     try:
         with zipfile.ZipFile(archive_path, "r") as zf:
             members = zf.infolist()
-            n_total = len(members)
             n_img = 0
             t0 = time.time()
-            for idx, info in enumerate(members):
+            for info in tqdm.tqdm(members, desc=f"  Scan {archive_path.name[:20]}", unit="file", leave=False, dynamic_ncols=True):
                 if info.is_dir():
                     continue
                 inner = info.filename
@@ -142,65 +175,66 @@ def scan_zip(archive_path: Path, source_name: str) -> list[dict]:
                     continue
                 if is_ground_truth(inner):
                     continue
+                if "__MACOSX" in inner or inner.startswith("._"):
+                    continue
                 rows.append({
                     "path":        f"{archive_path.name}::{inner}",
                     "group":       infer_group(inner, source_name),
                     "source_name": source_name,
                 })
-                n_img += 1
-                if n_img > 0 and n_img % PROGRESS_INTERVAL == 0:
-                    elapsed = time.time() - t0
-                    print(f"    ... {n_img:,} images found so far  ({elapsed:.0f}s)", flush=True)
     except zipfile.BadZipFile as exc:
         print(f"\n  [WARN] Cannot open zip {archive_path.name}: {exc}", flush=True)
     return rows
 
 
+import subprocess
+
 def scan_tar_streaming(archive_path: Path, source_name: str) -> list[dict]:
     """
-    Stream a TAR or TAR.GZ without seeking. Works for both compressed and
-    uncompressed TARs. Prints progress every PROGRESS_INTERVAL images.
+    Stream a TAR or TAR.GZ extremely fast using the native OS tar utility (bsdtar).
+    Bypasses Python's slow pure-python tarfile parser.
     """
     rows: list[dict] = []
-    # Use r: (no compression) for .tar, r:gz for .tar.gz
-    if archive_path.name.endswith(".tar.gz"):
-        mode = "r:gz"
-    elif archive_path.name.endswith(".tar"):
-        mode = "r:"
-    else:
-        mode = "r:*"
-
     n_img = 0
     t0 = time.time()
+    
+    # Use native tar to just list the file contents rapidly
     try:
-        with tarfile.open(archive_path, mode) as tf:
-            while True:
-                try:
-                    member = tf.next()
-                except StopIteration:
-                    break
-                if member is None:
-                    break
-                if member.isdir():
-                    continue
-                inner = member.name
-                if not is_valid_image(inner):
-                    continue
-                if is_ground_truth(inner):
-                    continue
-                rows.append({
-                    "path":        f"{archive_path.name}::{inner}",
-                    "group":       infer_group(inner, source_name),
-                    "source_name": source_name,
-                })
-                n_img += 1
-                if n_img % PROGRESS_INTERVAL == 0:
-                    elapsed = time.time() - t0
-                    rate = n_img / max(elapsed, 0.001)
-                    print(f"    ... {n_img:,} images found  ({elapsed:.0f}s, {rate:.0f} img/s)",
-                          flush=True)
-    except (tarfile.TarError, EOFError) as exc:
-        print(f"\n  [WARN] Error reading {archive_path.name}: {exc}", flush=True)
+        proc = subprocess.Popen(
+            ["tar", "-tf", str(archive_path)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding='utf-8',
+            errors='replace'
+        )
+        
+        for line in tqdm.tqdm(proc.stdout, desc=f"  Scan {archive_path.name[:20]}", unit="file", leave=False, dynamic_ncols=True):
+            inner = line.strip()
+            
+            # Skip directories or empty lines
+            if not inner or inner.endswith('/'):
+                continue
+                
+            if not is_valid_image(inner):
+                continue
+            if is_ground_truth(inner):
+                continue
+                
+            rows.append({
+                "path":        f"{archive_path.name}::{inner}",
+                "group":       infer_group(inner, source_name),
+                "source_name": source_name,
+            })
+                
+        proc.wait()
+        if proc.returncode != 0:
+            err = proc.stderr.read()
+            print(f"\n  [WARN] Native tar returned exit code {proc.returncode} for {archive_path.name}: {err}", flush=True)
+            
+    except Exception as exc:
+        print(f"\n  [WARN] Error invoking native tar for {archive_path.name}: {exc}", flush=True)
+        
     return rows
 
 
@@ -210,9 +244,12 @@ def scan_directory(dir_path: Path, pretraining_root: Path) -> list[dict]:
     source_name = dir_path.name
     n_img = 0
     t0 = time.time()
+    pbar = tqdm.tqdm(desc=f"  Scan {dir_path.name[:20]}", unit="file", leave=False, dynamic_ncols=True)
     for root, dirs, files in os.walk(dir_path):
-        dirs[:] = [d for d in dirs if d != "Evaluation"]
+        # Skip evaluation sub-dirs, .git, __MACOSX
+        dirs[:] = [d for d in dirs if d not in ("Evaluation", ".git", "__MACOSX")]
         for f in files:
+            pbar.update(1)
             if not is_valid_image(f):
                 continue
             full = Path(root) / f
@@ -225,10 +262,7 @@ def scan_directory(dir_path: Path, pretraining_root: Path) -> list[dict]:
                 "group":       group,
                 "source_name": source_name,
             })
-            n_img += 1
-            if n_img % PROGRESS_INTERVAL == 0:
-                print(f"    ... {n_img:,} images found  ({time.time()-t0:.0f}s)",
-                      flush=True)
+    pbar.close()
     return rows
 
 
@@ -238,22 +272,25 @@ def scan_directory(dir_path: Path, pretraining_root: Path) -> list[dict]:
 
 def build_catalog(pretraining_root: Path, output_path: Path) -> None:
     pretraining_root = pretraining_root.resolve()
-    print(f"\n{'='*70}")
-    print(f" Pretraining Catalog Builder  (from scratch)")
+    print(f"\n{'=' * 72}")
+    print(f" Pretraining Catalog Builder v2  (clean rebuild)")
     print(f"   Root  : {pretraining_root}")
     print(f"   Output: {output_path}")
-    print(f"{'='*70}\n", flush=True)
+    print(f"   Excluded datasets: {len(KNOWN_EXCLUDES)}")
+    print(f"   Duplicate skips : {len(KNOWN_DUPLICATES)}")
+    print(f"{'=' * 72}\n", flush=True)
 
     all_rows: list[dict] = []
     skipped_dups: list[str] = []
+    skipped_excl: list[str] = []
     format_counts: Counter = Counter()
     source_counts: dict[str, int] = {}
 
-    zip_files  = sorted(pretraining_root.glob("*.zip"))
+    zip_files = sorted(pretraining_root.glob("*.zip"))
     tar_plain  = sorted(pretraining_root.glob("*.tar"))
     tar_gz     = sorted(pretraining_root.glob("*.tar.gz"))
     dirs       = [d for d in sorted(pretraining_root.iterdir())
-                  if d.is_dir() and d.name != "Evaluation"]
+                  if d.is_dir() and d.name not in ("Evaluation", ".git", "__pycache__")]
 
     print(f"Discovered:")
     print(f"  {len(zip_files)} ZIP archives")
@@ -263,66 +300,86 @@ def build_catalog(pretraining_root: Path, output_path: Path) -> None:
     print(flush=True)
 
     # ---- ZIPs ----
-    print(f"{'─'*70}")
+    print(f"{'─' * 72}")
     print(f"Phase 1/3: ZIP files")
-    print(f"{'─'*70}", flush=True)
+    print(f"{'─' * 72}", flush=True)
     for i, zp in enumerate(zip_files, 1):
-        if zp.name in KNOWN_DUPLICATES:
-            preferred = KNOWN_DUPLICATES[zp.name]
-            print(f"  [{i:02}/{len(zip_files)}] SKIP duplicate: {zp.name}")
-            print(f"         (use {preferred} instead)", flush=True)
-            skipped_dups.append(zp.name)
+        name = zp.name
+
+        if name in KNOWN_EXCLUDES:
+            print(f"  [{i:02}/{len(zip_files)}] EXCLUDE: {name}")
+            skipped_excl.append(name)
             continue
+
+        if name in KNOWN_DUPLICATES:
+            preferred = KNOWN_DUPLICATES[name]
+            print(f"  [{i:02}/{len(zip_files)}] SKIP duplicate: {name}")
+            print(f"         (use {preferred} instead)", flush=True)
+            skipped_dups.append(name)
+            continue
+
         source_name = zp.stem
         size_gb = zp.stat().st_size / 1e9
         t0 = time.time()
-        print(f"  [{i:02}/{len(zip_files)}] {zp.name}  ({size_gb:.1f} GB)", flush=True)
+        print(f"  [{i:02}/{len(zip_files)}] {name}  ({size_gb:.1f} GB)", flush=True)
         rows = scan_zip(zp, source_name)
         elapsed = time.time() - t0
         n = len(rows)
-        print(f"         → {n:,} images  ({elapsed:.1f}s)", flush=True)
+        print(f"         -> {n:,} images  ({elapsed:.1f}s)", flush=True)
         all_rows.extend(rows)
         source_counts[source_name] = n
         for r in rows:
             format_counts[Path(r["path"]).suffix.lower()] += 1
 
-    # ---- Plain TARs ----
-    print(f"\n{'─'*70}")
+    # ---- TARs ----
+    print(f"\n{'─' * 72}")
     print(f"Phase 2/3: TAR files (streaming, no extraction)")
-    print(f"{'─'*70}", flush=True)
+    print(f"{'─' * 72}", flush=True)
     all_tars = tar_plain + tar_gz
     for i, tp in enumerate(all_tars, 1):
-        source_name = tp.name.replace(".tar.gz", "").replace(".tar", "")
+        name = tp.name
+
+        if name in KNOWN_EXCLUDES:
+            print(f"  [{i:02}/{len(all_tars)}] EXCLUDE: {name}")
+            skipped_excl.append(name)
+            continue
+
+        source_name = name.replace(".tar.gz", "").replace(".tar", "")
         size_gb = tp.stat().st_size / 1e9
         t0 = time.time()
-        print(f"  [{i:02}/{len(all_tars)}] {tp.name}  ({size_gb:.1f} GB)", flush=True)
+        print(f"  [{i:02}/{len(all_tars)}] {name}  ({size_gb:.1f} GB)", flush=True)
         rows = scan_tar_streaming(tp, source_name)
         elapsed = time.time() - t0
         n = len(rows)
-        print(f"         → {n:,} images  ({elapsed:.1f}s total)", flush=True)
+        print(f"         -> {n:,} images  ({elapsed:.1f}s total)", flush=True)
         all_rows.extend(rows)
         source_counts[source_name] = n
         for r in rows:
             format_counts[Path(r["path"]).suffix.lower()] += 1
 
     # ---- Directories ----
-    print(f"\n{'─'*70}")
+    print(f"\n{'─' * 72}")
     print(f"Phase 3/3: Extracted directories")
-    print(f"{'─'*70}", flush=True)
+    print(f"{'─' * 72}", flush=True)
     for i, dp in enumerate(dirs, 1):
         t0 = time.time()
         print(f"  [{i:02}/{len(dirs)}] {dp.name}/", flush=True)
         rows = scan_directory(dp, pretraining_root)
         elapsed = time.time() - t0
         n = len(rows)
-        print(f"         → {n:,} images  ({elapsed:.1f}s)", flush=True)
+        print(f"         -> {n:,} images  ({elapsed:.1f}s)", flush=True)
         all_rows.extend(rows)
         source_counts[dp.name] = n
         for r in rows:
             format_counts[Path(r["path"]).suffix.lower()] += 1
 
+    # ---- Shuffle for better shard diversity ----
+    import random
+    random.seed(42)
+    random.shuffle(all_rows)
+
     # ---- Write catalog ----
-    print(f"\nWriting catalog to {output_path} ...", flush=True)
+    print(f"\n[Catalog] Writing {len(all_rows):,} records to {output_path}...")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["path", "group", "source_name"])
@@ -331,87 +388,27 @@ def build_catalog(pretraining_root: Path, output_path: Path) -> None:
 
     # ---- Summary ----
     total = len(all_rows)
-    print(f"\n{'='*70}")
-    print(f" CATALOG COMPLETE")
-    print(f"{'='*70}")
+    print(f"\n{'=' * 72}")
+    print(f" CATALOG v2 COMPLETE")
+    print(f"{'=' * 72}")
     print(f"  Total pretraining images : {total:>12,}")
-    print(f"  Duplicate archives skipped: {len(skipped_dups):>10} ({', '.join(skipped_dups)})")
+    print(f"  Excluded datasets        : {len(skipped_excl):>12} ({', '.join(skipped_excl[:3])}...)")
+    print(f"  Duplicate archives skipped: {len(skipped_dups):>11} ({', '.join(skipped_dups)})")
     print(f"  Output file              : {output_path}")
     print(f"\n  Format breakdown:")
     for ext, cnt in format_counts.most_common():
         pct = 100 * cnt / max(total, 1)
-        bar = "█" * int(pct / 2)
+        bar = "#" * int(pct / 2)
         print(f"    {ext.ljust(6)}  {cnt:>12,}  ({pct:5.1f}%)  {bar}")
     print(f"\n  Per-source image counts (largest first):")
     for src, cnt in sorted(source_counts.items(), key=lambda x: -x[1]):
         pct = 100 * cnt / max(total, 1)
-        print(f"    {cnt:>12,}  ({pct:4.1f}%)  {src}")
+        try:
+            safe_src = src.encode("ascii", errors="replace").decode("ascii")
+        except Exception:
+            safe_src = repr(src)
+        print(f"    {cnt:>12,}  ({pct:4.1f}%)  {safe_src}")
     print(flush=True)
-
-
-# ---------------------------------------------------------------------------
-# DataLoader helpers (importable)
-# ---------------------------------------------------------------------------
-
-def load_catalog(catalog_csv: str | Path) -> list[dict]:
-    """
-    Load the pre-built catalog into memory for use in a PyTorch Dataset.
-
-    Returns list of dicts with keys: 'path', 'group', 'source_name'.
-
-    Example::
-
-        class PretrainingDataset(torch.utils.data.Dataset):
-            def __init__(self, catalog_csv, pretraining_root, transform=None):
-                self.records = load_catalog(catalog_csv)
-                self.root = Path(pretraining_root)
-                self.transform = transform
-
-            def __len__(self):
-                return len(self.records)
-
-            def __getitem__(self, idx):
-                img = open_image_from_record(self.root, self.records[idx]["path"])
-                return self.transform(img) if self.transform else img
-    """
-    records: list[dict] = []
-    with open(catalog_csv, "r", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            records.append(row)
-    return records
-
-
-def open_image_from_record(pretraining_root: Path, path: str):
-    """
-    Open a PIL.Image.Image from a catalog record 'path' field.
-
-    Handles:
-      - ZIP-embedded:  "archive.zip::inner/path.jpg"
-      - TAR-embedded:  "archive.tar::inner/path.jpg"
-      - Plain file:    "OPPD/images/foo.jpg"
-
-    Requires Pillow.
-    """
-    from PIL import Image
-
-    if "::" not in path:
-        return Image.open(pretraining_root / path).convert("RGB")
-
-    archive_name, inner = path.split("::", 1)
-    archive_path = pretraining_root / archive_name
-
-    if archive_name.endswith(".zip"):
-        with zipfile.ZipFile(archive_path, "r") as zf:
-            data = zf.read(inner)
-    elif ".tar" in archive_name:
-        mode = "r:gz" if archive_name.endswith(".tar.gz") else "r:"
-        with tarfile.open(archive_path, mode) as tf:
-            fobj = tf.extractfile(tf.getmember(inner))
-            data = fobj.read()
-    else:
-        raise ValueError(f"Unknown archive type: {archive_name}")
-
-    return Image.open(io.BytesIO(data)).convert("RGB")
 
 
 # ---------------------------------------------------------------------------
@@ -420,22 +417,22 @@ def open_image_from_record(pretraining_root: Path, path: str):
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Build a clean pretraining catalog from all ZIP/TAR/directory sources.",
+        description="Build a clean pretraining catalog v2 (with exclusions).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--pretraining-root",
         type=Path,
-        default=Path(r"e:\AG_Dataset\AG-Foundational-Model\Pretraining"),
+        default=Path(r"E:\AG_Dataset\AG-Foundational-Model\Pretraining"),
     )
     parser.add_argument(
         "--output",
         type=Path,
         default=None,
-        help="Output CSV (default: <pretraining-root>/catalog.csv)",
+        help="Output CSV (default: <pretraining-root>/catalog_v2.csv)",
     )
     args = parser.parse_args()
-    output = args.output or (args.pretraining_root / "catalog.csv")
+    output = args.output or (args.pretraining_root / "catalog_v2.csv")
     build_catalog(args.pretraining_root, output)
 
 

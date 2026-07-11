@@ -1,0 +1,41 @@
+# Task 3: Regression / Counting — Corn Kernel Counting — AG-Foundation MIM Weights
+# Protocol: ViT patch tokens upsampled to spatial density map.
+#           Loss = MSE(density_map) + 0.1 * L1(total_count)
+# Reference: CSRNet-style density map regression adapted for ViT backbones
+
+data:
+  data_root: 'E:\AG_Dataset\Evaluation\corn-kernel-counting\data'  # Extract first
+  crop_size: 224
+  batch_size: 32
+  num_workers: 8
+  prefetch_factor: 2
+
+runtime:
+  output_dir: 'E:\AG_Dataset\runs\count_corn_mim'
+  epochs: 100
+  seed: 42
+  precision: bf16
+  device: cuda
+  warmup_epochs: 5
+  gradient_accumulation_steps: 1
+  log_every: 10
+  grad_clip_norm: 1.0
+  early_stopping_patience: 15
+
+model:
+  model_name: B
+  pretrained_source: imagenet
+  pretrained_weights: 'E:\AG_Dataset\AG-Foundational-Model\runs\wds_mim_pretraining_B\best.pt'
+  layer_decay: 0.75
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.1
+  # Counting head config
+  density_upsample_factor: 4    # 14x14 patch grid → 56x56 density map
+  density_channels: 256
+
+optimizer:
+  learning_rate: 0.0005  # 5e-4 base; counting is more sensitive, lower than cls
+  weight_decay: 0.05
+  density_loss_weight: 1.0
+  count_loss_weight: 0.1    # L1 loss on total count

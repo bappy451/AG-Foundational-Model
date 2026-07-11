@@ -1,0 +1,36 @@
+# Task 4: Temporal Analysis — Longitudinal Nutrient Deficiency — ImageNet Baseline
+
+data:
+  data_root: 'E:\AG_Dataset\Evaluation\longitudinal-nutrient-deficiency\data'
+  crop_size: 224
+  batch_size: 64
+  num_workers: 8
+  prefetch_factor: 2
+
+runtime:
+  output_dir: 'E:\AG_Dataset\runs\temporal_nutrient_imagenet'
+  epochs: 100
+  seed: 42
+  precision: bf16
+  device: cuda
+  warmup_epochs: 5
+  gradient_accumulation_steps: 1
+  log_every: 10
+  grad_clip_norm: 1.0
+  early_stopping_patience: 15
+
+model:
+  model_name: B
+  pretrained_source: imagenet
+  pretrained_weights: ''
+  layer_decay: 0.75
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.1
+  temporal_hidden_dim: 512
+  temporal_dropout: 0.3
+
+optimizer:
+  learning_rate: 0.0005
+  weight_decay: 0.05
+  label_smoothing: 0.1

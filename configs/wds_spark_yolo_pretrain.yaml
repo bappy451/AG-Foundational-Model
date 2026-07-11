@@ -1,0 +1,27 @@
+data:
+  data_root: E:\AG_Dataset\shards\dataset-*.tar
+  catalog_path: null
+  crop_size: 640
+  channels: 3
+  batch_size: 16
+  epoch_batches: 4000
+  num_workers: 8
+  prefetch_factor: 2
+  val_fraction: 0.02
+  val_epoch_batches: 200
+runtime:
+  output_dir: runs/spark_yolo_full
+  epochs: 500
+  seed: 42
+  precision: bf16
+  device: cuda
+  log_every: 50
+model:
+  name: spark_yolo11l
+  pretrained: true
+  pretrained_weights_path: yolo11l.pt
+  mask_ratio: 0.6
+  patch_size: 32
+optimizer:
+  learning_rate: 0.00001
+  weight_decay: 0.05

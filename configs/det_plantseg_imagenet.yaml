@@ -1,0 +1,38 @@
+# Task 2: OBB Detection — PlantSeg Disease Detection — ImageNet Baseline
+# Identical hyperparameters to MIM config for fair comparison
+
+data:
+  data_root: 'E:\AG_Dataset\Evaluation\PlantSeg'
+  crop_size: 640
+  batch_size: 8
+  num_workers: 8
+  prefetch_factor: 2
+
+runtime:
+  output_dir: 'E:\AG_Dataset\runs\det_plantseg_imagenet'
+  epochs: 50
+  seed: 42
+  precision: bf16
+  device: cuda
+  warmup_epochs: 3
+  gradient_accumulation_steps: 4
+  log_every: 10
+  grad_clip_norm: 0.1
+  early_stopping_patience: 10
+
+model:
+  model_name: B
+  pretrained_source: imagenet
+  pretrained_weights: ''
+  layer_decay: 0.75
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.1
+  num_classes: null
+  obb_num_convs: 4
+  fpn_out_channels: 256
+
+optimizer:
+  learning_rate: 0.0002
+  weight_decay: 0.05
+  label_smoothing: 0.0

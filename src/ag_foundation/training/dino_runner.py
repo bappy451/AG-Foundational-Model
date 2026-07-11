@@ -73,6 +73,7 @@ TRAIN_DINO_DEFAULTS: dict[str, Any] = {
     "visualization_samples": 4,
     "val_fraction": 0.2,
     "epoch_batches": 100000,
+    "val_epoch_batches": 1000,
     "use_dali": False,
 }
 
@@ -88,6 +89,7 @@ TRAIN_DINO_SECTION_MAP: dict[str, dict[str, str]] = {
         "prefetch_factor": "prefetch_factor",
         "val_fraction": "val_fraction",
         "epoch_batches": "epoch_batches",
+        "val_epoch_batches": "val_epoch_batches",
         "use_dali": "use_dali",
     },
     "runtime": {
@@ -251,6 +253,7 @@ def build_train_dino_parser(config_defaults: dict[str, Any] | None = None) -> ar
     parser.add_argument("--visualization-samples", type=int, default=defaults["visualization_samples"])
     parser.add_argument("--val-fraction", type=float, default=defaults["val_fraction"])
     parser.add_argument("--epoch-batches", type=int, default=defaults["epoch_batches"], help="Number of batches per epoch for WebDataset.")
+    parser.add_argument("--val-epoch-batches", type=int, default=defaults.get("val_epoch_batches", 1000), help="Validation batches per epoch.")
     parser.add_argument("--use-dali", action="store_true", help="Use NVIDIA DALI for WebDataset decoding (Colab/Linux only).")
     parser.add_argument("--no-use-dali", action="store_false", dest="use_dali")
     parser.set_defaults(use_dali=defaults["use_dali"])
@@ -393,29 +396,79 @@ def run_train_dino(args: argparse.Namespace, *, command_argv: list[str] | None =
                 f"winfile://{os.path.abspath(t).replace(os.sep, '/')}" for t in resolved_tars
             ]
 
+        resolved_tars = sorted(resolved_tars)
+        val_fraction = getattr(args, "val_fraction", 0.02)
+        val_count = max(1, int(len(resolved_tars) * val_fraction)) if val_fraction > 0 else 0
+        
+        if val_count > 0 and len(resolved_tars) > 1:
+            train_urls = resolved_tars[:-val_count]
+            val_urls = resolved_tars[-val_count:]
+        else:
+            train_urls = resolved_tars
+            val_urls = []
+
         if args.use_dali:
             print("[train-dino] Detected WebDataset tarballs. Using NVIDIA DALI GPU loader.", flush=True)
             from ag_foundation.data.dali_wds_loader import build_dali_wds_dataloader
 
             train_loader = build_dali_wds_dataloader(
-                tar_urls=resolved_tars,
+                tar_urls=train_urls,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
                 epoch_batches=args.epoch_batches,
                 crop_size=args.crop_size,
             )
+            val_loader = build_dali_wds_dataloader(
+                tar_urls=val_urls,
+                batch_size=args.batch_size,
+                num_workers=args.num_workers,
+                epoch_batches=getattr(args, "val_epoch_batches", 1000),
+                crop_size=args.crop_size,
+            ) if val_urls else None
         else:
             print("[train-dino] Detected WebDataset tarballs in config. Using high-performance WDS CPU loader.", flush=True)
-            from ag_foundation.data.wds_loader import build_wds_dataloader
+            
+            def build_dino_wds_dataloader(tar_urls, batch_size, num_workers, epoch_batches):
+                if not tar_urls: return None
+                import webdataset as wds
+                from torch.utils.data import DataLoader
+                from torchvision import transforms
+                from ag_foundation.data.wds_loader import SizedWebDataset
+                
+                pipeline = (
+                    wds.WebDataset(tar_urls, resampled=True)
+                    .shuffle(1000)
+                    .decode("pil", handler=wds.warn_and_continue)
+                    .rename(image="jpg;png;jpeg;tif;tiff", handler=wds.warn_and_continue)
+                    .map_dict(image=transforms.Compose([
+                        transforms.Resize(1024),
+                        transforms.CenterCrop(1024),
+                        transforms.ToTensor()
+                    ]))
+                    .batched(batch_size, partial=False)
+                )
+                
+                dataset = SizedWebDataset(pipeline, epoch_batches) if epoch_batches else pipeline
+                return DataLoader(
+                    dataset,
+                    batch_size=None,
+                    num_workers=num_workers,
+                    pin_memory=True,
+                    prefetch_factor=2 if num_workers > 0 else None,
+                )
 
-            train_loader = build_wds_dataloader(
-                tar_urls=resolved_tars,
+            train_loader = build_dino_wds_dataloader(
+                train_urls,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
                 epoch_batches=args.epoch_batches,
-                crop_size=args.crop_size,
             )
-        val_loader = None
+            val_loader = build_dino_wds_dataloader(
+                val_urls,
+                batch_size=args.batch_size,
+                num_workers=args.num_workers,
+                epoch_batches=getattr(args, "val_epoch_batches", 1000),
+            )
     else:
         print("[train-dino] Scanning dataset directories and catalog (this may take several minutes on slow storage)...", flush=True)
         train_loader, val_loader = get_dataloaders(

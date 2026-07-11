@@ -1,5 +1,6 @@
 """Vision transformer and masked image modeling modules."""
 
+from .cls import RemoteSensingClassifier
 from .dino import DINOHead, RemoteSensingDINOModel
 from .mim import RemoteSensingMIMModel
 from .vit import (
@@ -17,6 +18,7 @@ __all__ = [
     "BandAdapter",
     "DEFAULT_PRETRAINED_SOURCE",
     "DINOHead",
+    "RemoteSensingClassifier",
     "RemoteSensingDINOModel",
     "RemoteSensingMIMModel",
     "RemoteSensingViT",

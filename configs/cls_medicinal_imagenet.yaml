@@ -1,0 +1,37 @@
+# Task 1: Classification — Medicinal Plant — ImageNet Supervised Baseline
+# Identical hyperparameters to MIM config for fair comparison
+
+data:
+  data_root: 'E:\AG_Dataset\Evaluation\Classification_Medicinal_Plant'
+  crop_size: 224
+  channels: 3
+  batch_size: 128
+  num_workers: 8
+  prefetch_factor: 2
+
+runtime:
+  output_dir: 'E:\AG_Dataset\runs\cls_medicinal_imagenet'
+  epochs: 100
+  seed: 42
+  precision: bf16
+  device: cuda
+  warmup_epochs: 5
+  gradient_accumulation_steps: 1
+  log_every: 10
+  grad_clip_norm: 1.0
+  early_stopping_patience: 15
+
+model:
+  model_name: B
+  pretrained_source: imagenet
+  pretrained_weights: ''  # Empty → loads ImageNet-supervised timm weights
+  layer_decay: 0.75
+  drop_rate: 0.1
+  attn_drop_rate: 0.1
+  drop_path_rate: 0.2
+  head_dropout: 0.2
+
+optimizer:
+  learning_rate: 0.001
+  weight_decay: 0.05
+  label_smoothing: 0.1

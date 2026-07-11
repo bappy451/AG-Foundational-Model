@@ -1,0 +1,64 @@
+# MIM Pretraining Configuration v2 — Rebuilt Shards
+# ====================================================
+# Uses the cleaned shards_v2 dataset (bounded 1024px RGB, ~2M images).
+# All images in shards are RGB, max 1024px min-side — no scale variance.
+#
+# Key changes from v1:
+#   - data_root updated to new shards directory
+#   - mask_ratio reduced from 0.75 → 0.60 (SimMIM optimal for agricultural texture)
+#   - epochs increased from 40 → 100
+#   - warmup_epochs increased from 2 → 5
+#   - epoch_batches tuned for ~2M image corpus at bs=64
+#   - output_dir changed to wds_mim_pretraining_v2 (keeps old run intact)
+#
+# Usage (Windows Local, RTX 4090):
+#   python -m ag_foundation train-mim --config configs/wds_mim_pretrain_v2.yaml
+#
+# Usage (Google Colab / Linux):
+#   python -m ag_foundation train-mim --config configs/wds_mim_pretrain_v2.yaml --use-dali
+
+data:
+  data_root: 'E:\AG_Dataset\shards\dataset-*.tar'
+  catalog_path: null
+  crop_size: 224
+  channels: 3
+  batch_size: 64
+  # epoch_batches: 2M images / 64 batch_size = 31250 steps → round to 32000
+  # With 4 grad_accum, effective updates per epoch = 8000
+  epoch_batches: 32000
+  num_workers: 12        # RTX 4090: 12 workers saturates the GPU
+  prefetch_factor: 4     # increased for better pipeline overlap
+  val_fraction: 0.02     # 2% of shards held out for validation monitoring
+
+runtime:
+  output_dir: ../runs/wds_mim_pretraining_v2
+  epochs: 100            # SimMIM optimal for domain-specific pretraining
+  seed: 42
+  precision: bf16
+  device: cuda
+  warmup_epochs: 5       # 5% of total — standard cosine schedule warmup
+  gradient_accumulation_steps: 4   # effective batch = 64 * 4 = 256
+  resume: true
+  resume_from: null
+  initialize_from: null
+  log_every: 50
+  save_visualizations: true
+  visualization_every: 5           # save reconstruction samples every 5 epochs
+  visualization_samples: 8
+
+model:
+  model_name: B
+  pretrained_backbone: false       # train from scratch with clean data
+  pretrained_source: null
+  pretrained_cfg: null
+  mask_ratio: 0.60                 # 0.60 optimal for SimMIM on agricultural data
+                                   # 0.75 (MAE) is too aggressive for small disease spots
+  gradient_checkpointing: true
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.0
+
+optimizer:
+  # base_lr = 1.5e-4 × (effective_batch / 256) = 1.5e-4 × 1.0 = 1.5e-4
+  learning_rate: 0.00015
+  weight_decay: 0.05               # slightly higher than v1 for 100-epoch run

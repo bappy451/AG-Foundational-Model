@@ -23,6 +23,10 @@ def _build_root_parser() -> argparse.ArgumentParser:
         choices=(
             "train-mim",
             "train-dino",
+            "train-cls",
+            "train-count",
+            "train-det",
+            "train-temporal",
             "audit-pretraining-data",
             "create-catalog",
             "create-demo-data",
@@ -116,6 +120,23 @@ def _dispatch(argv: list[str]) -> None:
         return
     if command == "train-dino":
         _run_train_dino(remainder)
+        return
+    if command == "train-cls":
+        from ag_foundation.training.cls_runner import main as train_cls_main
+        
+        train_cls_main(remainder)
+        return
+    if command == "train-count":
+        from ag_foundation.training.count_runner import main as train_count_main
+        train_count_main(remainder)
+        return
+    if command == "train-det":
+        from ag_foundation.training.det_runner import main as train_det_main
+        train_det_main(remainder)
+        return
+    if command == "train-temporal":
+        from ag_foundation.training.temporal_runner import main as train_temporal_main
+        train_temporal_main(remainder)
         return
     if command == "audit-pretraining-data":
         _run_audit_pretraining_data(remainder)

@@ -1,0 +1,308 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\providecommand{\texorpdfstring}[2]{#1}
+\usepackage{cvpr}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage{xcolor}
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+
+\title{Mid-Term Report: Sensor-Adaptive Agricultural Vision Foundation Models}
+
+\author{
+Md Min-Ha-Zul Abedin \and
+\href{https://auburn.instructure.com/courses/1739241/users/4120097}{Md Mehedi Hasan}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We study continual self-supervised pretraining of official Vision Transformer
+(ViT) checkpoints on a heterogeneous agricultural image corpus. The project
+targets transfer across crops, diseases, acquisition conditions, and sensing
+modalities while minimizing changes to the pretrained backbone. Since the
+proposal, we have implemented a unified framework supporting ImageNet-, MAE-,
+DINOv2-, and DINOv3-initialized ViT-S/B/L models; masked image modeling (MIM);
+DINO-style student--teacher training; and a learnable $1\!\times\!1$ spectral
+adapter for RGB and multiband inputs. The data layer now streams folders, ZIP
+and nested-ZIP archives, GeoTIFF, NumPy arrays, and WebDataset shards. A
+validated catalog contains 5,175,016 RGB images, substantially exceeding the
+412,454-image corpus available at proposal time. Engineering evaluation shows
+successful end-to-end MIM and DINO runs, five-band input support, MIM-to-DINO
+checkpoint transfer, deterministic resume, and 124 passing automated tests.
+These results establish implementation readiness, but they are not yet evidence
+of improved representation quality. Real multispectral coverage, duplicate
+control, source-balanced sampling, and downstream held-out-domain comparisons
+remain in progress. The next phase will establish ImageNet baselines and measure
+linear-probe, few-shot, and fine-tuning performance before scaling pretraining.
+\end{abstract}
+
+\section{Introduction}
+Agricultural vision systems encounter variation that is less prominent in many
+standard image benchmarks: the same crop changes with growth stage, stress,
+season, geography, management practice, camera, and illumination. Disease
+datasets are often composed of centered leaf photographs, whereas deployment
+may involve cluttered field scenes, unmanned aerial vehicle imagery, or
+multispectral rasters. Labels for these domains are costly and fragmented among
+species identification, disease classification, weed recognition, detection,
+segmentation, counting, and temporal monitoring. Consequently, a model that
+performs well on a random split of one dataset may transfer poorly to a new
+farm or sensor.
+
+Our project asks whether continual self-supervised pretraining can adapt an
+official pretrained ViT to agricultural visual structure without discarding the
+benefits of generic pretraining. We compare reconstruction-based MIM with
+view-invariant DINO-style self-distillation and will test a sequential
+MIM$\rightarrow$DINO schedule. A lightweight spectral adapter maps an arbitrary
+number of aligned bands to the three-channel interface of an official RGB ViT.
+This design keeps the backbone unchanged and makes sensor adaptation directly
+ablatable.
+
+At mid-term, the main achievement is a research-ready implementation and a much
+larger indexed corpus. The software now supports both objectives, multiple
+official checkpoint families, archive-scale streaming, reproducible state, and
+downstream task runners. However, the scientific hypothesis remains open:
+smoke-test losses and passing unit tests demonstrate correctness, not superior
+transfer. We therefore report engineering results separately from scientific
+results and reserve performance claims for controlled downstream experiments.
+
+\section{Background and Related Work}
+\textbf{Vision Transformers.} ViT represents an image as a sequence of patch
+tokens and applies a Transformer encoder, demonstrating that large-scale image
+pretraining can rival convolutional networks~\cite{dosovitskiy2021vit}. Our
+system uses official ViT-S, ViT-B, and ViT-L implementations rather than a
+project-specific transformer, allowing initialization and scale to be controlled
+across experiments.
+
+\textbf{Masked image modeling.} MAE masks a large fraction of image patches and
+learns to reconstruct their pixels, producing transferable representations with
+an asymmetric encoder--decoder design~\cite{he2022mae}. Related masked-image
+methods show that reconstruction or token prediction can provide an effective
+self-supervised signal~\cite{bao2022beit}. Agricultural lesions, venation, leaf
+edges, and canopy texture motivate testing whether this local reconstruction
+signal benefits domain adaptation.
+
+\textbf{Self-distillation.} DINO trains a student to match the centered and
+sharpened predictions of an exponential-moving-average (EMA) teacher under
+different augmented views~\cite{caron2021dino}. DINOv2 demonstrates that careful
+data curation and self-distillation can produce robust visual features without
+labels~\cite{oquab2024dinov2}. Reconstruction and self-distillation emphasize
+different invariances, motivating MIM-only, DINO-only, and sequential training
+under a shared data and backbone stack.
+
+\textbf{Agricultural transfer and spectral adaptation.} PlantVillage helped
+establish deep learning for image-based plant-disease recognition, but its
+controlled backgrounds also illustrate the difference between benchmark and
+field conditions~\cite{hughes2015plantvillage,mohanty2016using}. Remote-sensing
+foundation models such as SatMAE adapt masked pretraining to temporal and
+multispectral satellite imagery~\cite{cong2022satmae}. In contrast, our adapter
+preserves an official RGB backbone and learns a small sensor-specific projection,
+which enables a controlled comparison against RGB-only input and direct
+patch-embedding expansion.
+
+\section{Approach}
+\subsection{Data and Sampling}
+The proposal reported 412,454 images from 13 downloaded datasets. The current
+validated catalog indexes 5,175,016 loader-visible images across approximately
+1~TB of ZIP and TAR archives. Sources cover plant species, diseases, seedlings,
+weeds, and crop imagery, but the present catalog remains overwhelmingly RGB.
+Each catalog record stores a stable sample key, source identity, and portable
+archive-member path. Large sources are converted to roughly 1~GB WebDataset
+shards after RGB conversion, bounded resizing, and validation. Parallel workers
+process one archive at a time to reduce archive-open and seek overhead.
+
+To prevent a large species collection from dominating training, the planned
+sampler first selects a source and then samples within that source. Validation
+splits are group-disjoint when source metadata permits. Before final experiments,
+we will freeze the manifest, record licenses and versions, and remove exact and
+near-duplicate clusters before creating train and held-out-domain partitions.
+
+\begin{table}[t]
+\centering
+\caption{Corpus status at proposal and mid-term. Counts describe indexed files,
+not unique biological observations.}
+\label{tab:corpus}
+\small
+\begin{tabular}{lrr}
+\toprule
+Property & Proposal & Mid-term \\
+\midrule
+Validated images & 412,454 & 5,175,016 \\
+Local storage & 35.86 GB & $\sim$1 TB \\
+Primary modality & RGB & RGB \\
+Real multispectral archive & No & No \\
+Archive streaming & Audit only & ZIP/TAR/WDS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Sensor-Adaptive Backbone}
+For an input $\mathbf{x}\in\mathbb{R}^{C\times H\times W}$, a learnable
+$1\!\times\!1$ convolution projects the $C$ sensor bands into the three channels
+expected by an official pretrained ViT:
+\begin{equation}
+ \mathbf{z}_{h,w}=A\mathbf{x}_{h,w}+\mathbf{b},\qquad
+ A\in\mathbb{R}^{3\times C}.
+ \label{eq:adapter}
+\end{equation}
+For RGB, $A$ is initialized to the $3\times3$ identity and $\mathbf{b}=0$.
+For multiband input, available RGB-like channels initialize the corresponding
+outputs; weights for additional bands begin at zero but remain trainable. The
+adapted image is normalized with the statistics associated with the selected
+official checkpoint, then patchified by the unchanged ViT. The adapter adds only
+$3C+3$ parameters and cleanly separates sensor mixing from spatial feature
+learning.
+
+\subsection{Self-Supervised Objectives}
+In MIM, a random set $\mathcal{M}$ masks 75\% of patch tokens. A linear
+reconstruction head predicts the adapted RGB patch $\mathbf{p}_i$ from encoded
+token $\mathbf{h}_i$; loss is evaluated only at masked positions:
+\begin{equation}
+ \mathcal{L}_{\mathrm{MIM}}=
+ \frac{1}{|\mathcal{M}|}\sum_{i\in\mathcal{M}}
+ \left\|g(\mathbf{h}_i)-\mathbf{p}_i\right\|_2^2.
+ \label{eq:mim}
+\end{equation}
+
+For DINO-style training, the student receives global and local crops while the
+teacher receives paired global crops. With student temperature $\tau_s$, teacher
+temperature $\tau_t$, and running center $\mathbf{c}$, the cross-view loss is
+\begin{equation}
+ \mathcal{L}_{\mathrm{DINO}}=-\sum_k
+ q_t^{(k)}\log q_s^{(k)},\quad
+ q_t=\mathrm{softmax}((\mathbf{o}_t-\mathbf{c})/\tau_t).
+ \label{eq:dino}
+\end{equation}
+The teacher parameters, including adapter, backbone, and projection head, are
+updated by $\theta_t\leftarrow m\theta_t+(1-m)\theta_s$. The framework supports
+ImageNet, MAE, DINOv2, and DINOv3 initialization and an explicit
+MIM$\rightarrow$DINO handoff that starts a new optimization run from a compatible
+MIM checkpoint.
+
+\subsection{Training and Evaluation Protocol}
+Training uses BF16 mixed precision, gradient accumulation, optional gradient
+checkpointing, cosine scheduling, and multi-process data loading. Every run
+stores resolved configuration, environment and Git metadata, metrics, figures,
+best/latest checkpoints, optimizer state, and random-number-generator state.
+WebDataset provides CPU streaming; NVIDIA DALI is available on Linux for GPU
+JPEG decoding. Development began on a single RTX~4090, and the next stage will
+use Auburn's Slurm cluster for longer controlled runs.
+
+Scientific evaluation will compare the unadapted official checkpoint, RGB-only
+continual pretraining, MIM, DINO, sequential MIM$\rightarrow$DINO, frozen versus
+trainable adapters, and direct patch-embedding expansion. Classification will
+report accuracy and macro-F1; detection, segmentation, and counting will use
+mAP, IoU/Dice, and MAE/RMSE as appropriate. Linear probing, few-shot subsets,
+and full fine-tuning will be repeated across at least three seeds. The primary
+test sets will hold out whole sources, crops, geographies, seasons, or sensors,
+with mean, standard deviation, and paired comparisons reported where splits are
+shared.
+
+\section{Intermediate and Preliminary Results}
+\subsection{Verified Engineering Results}
+Table~\ref{tab:results} summarizes completed checks. End-to-end runs produced
+checkpoints, metrics, training curves, MIM reconstructions, DINO augmented views,
+and student--teacher similarity matrices. Five-band float32 arrays passed through
+the learnable adapter and official ImageNet ViT-S. DINO also ran from an official
+DINOv2 ViT-S checkpoint with its patch-14 geometry, and a compatible MIM
+checkpoint successfully initialized a new five-band DINO run. Two-epoch resume
+tests restored optimizer, scheduler, scaler, history, RNG, and loader state.
+
+\begin{table}[t]
+\centering
+\caption{Mid-term implementation validation. ``Pass'' indicates successful
+execution and expected artifacts, not a downstream accuracy result.}
+\label{tab:results}
+\small
+\begin{tabular}{p{0.48\linewidth}p{0.18\linewidth}p{0.19\linewidth}}
+\toprule
+Check & Input & Result \\
+\midrule
+MIM, official ImageNet ViT-S & 5-band NPY & Pass \\
+DINO, official ImageNet ViT-S & RGB PNG & Pass \\
+DINO, official DINOv2 ViT-S & RGB PNG & Pass \\
+MIM$\rightarrow$DINO initialization & 5-band NPY & Pass \\
+Two-epoch checkpoint resume & RGB/5-band & Pass \\
+Automated test suite & 124 tests & 124 pass \\
+Shard builder smoke test & ZIP/plain & 2 pass \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The automated suite covers RGB, NPY, GeoTIFF, ZIP and nested-ZIP loading;
+group-disjoint splits; NoData handling; undersized-image padding; official model
+selection; adapter initialization; MIM and DINO tensor behavior; EMA updates;
+paired crop replay; strict configuration parsing; atomic checkpointing; and
+RoPE-based DINOv3 backbones. Recent shard-builder tests additionally verify
+parallel archive grouping and valid TAR output. These checks reduce the risk
+that a long pretraining run fails because of data format, checkpoint, or model
+geometry errors.
+
+\subsection{Interpretation and Remaining Gaps}
+The corpus expansion and successful pipelines satisfy the mid-term engineering
+milestone: the planned model can now be trained reproducibly at archive scale.
+The results also support the feasibility of the spectral interface because the
+same official backbone accepts both RGB and five-band tensors without replacing
+its patch embedding. They do \emph{not}, however, test whether additional bands
+improve predictions; the five-band data used for verification are synthetic,
+and the catalog lacks a verified real multispectral archive.
+
+No model is yet shown to outperform its official ImageNet or DINO initialization
+on a held-out agricultural benchmark. We therefore make no claim of improved
+accuracy, robustness, or label efficiency at this stage. The largest immediate
+risks are duplicate leakage, imbalance from the 306k-image PlantNet subset and
+other large sources, RGB-only bias, and I/O saturation during multi-GPU training.
+The first three are addressed by manifest freezing, duplicate clustering,
+source-balanced sampling, and external domain splits; the last will be measured
+by comparing CPU WebDataset and DALI throughput before requesting more GPUs.
+
+The next milestone is a ViT-S experiment matrix on frozen data: official
+initialization, MIM, DINO, and sequential MIM$\rightarrow$DINO, followed by
+linear probing and low-label fine-tuning on source-disjoint disease and species
+benchmarks. Only recipes that improve repeated-seed transfer will scale to ViT-B.
+In parallel, we will add a licensed real multispectral source and evaluate
+frozen/trainable adapters against direct patch-embedding expansion. This order
+prioritizes evidence over model size and keeps the final conclusions aligned with
+the data actually available.
+
+{\small
+\begin{thebibliography}{9}
+\bibitem{dosovitskiy2021vit}
+A. Dosovitskiy et al. An Image Is Worth 16x16 Words: Transformers for Image
+Recognition at Scale. \textit{ICLR}, 2021.
+
+\bibitem{he2022mae}
+K. He et al. Masked Autoencoders Are Scalable Vision Learners.
+\textit{CVPR}, 2022.
+
+\bibitem{bao2022beit}
+H. Bao et al. BEiT: BERT Pre-Training of Image Transformers.
+\textit{ICLR}, 2022.
+
+\bibitem{caron2021dino}
+M. Caron et al. Emerging Properties in Self-Supervised Vision Transformers.
+\textit{ICCV}, 2021.
+
+\bibitem{oquab2024dinov2}
+M. Oquab et al. DINOv2: Learning Robust Visual Features without Supervision.
+\textit{TMLR}, 2024.
+
+\bibitem{hughes2015plantvillage}
+D. Hughes and M. Salath\'e. An Open Access Repository of Images on Plant Health
+to Enable the Development of Mobile Disease Diagnostics. \textit{CoRR}, 2015.
+
+\bibitem{mohanty2016using}
+S. Mohanty, D. Hughes, and M. Salath\'e. Using Deep Learning for Image-Based
+Plant Disease Detection. \textit{Frontiers in Plant Science}, 2016.
+
+\bibitem{cong2022satmae}
+Y. Cong et al. SatMAE: Pre-training Transformers for Temporal and Multi-Spectral
+Satellite Imagery. \textit{NeurIPS}, 2022.
+\end{thebibliography}
+}
+
+\end{document}
