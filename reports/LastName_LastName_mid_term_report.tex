@@ -32,8 +32,8 @@ adapter for RGB and multiband inputs. The data layer now streams folders, ZIP
 and nested-ZIP archives, GeoTIFF, NumPy arrays, and WebDataset shards. A
 validated catalog contains 5,175,016 RGB images, substantially exceeding the
 412,454-image corpus available at proposal time. Engineering evaluation shows
-successful end-to-end MIM and DINO runs, five-band input support, MIM-to-DINO
-checkpoint transfer, deterministic resume, and 124 passing automated tests.
+successful end-to-end MIM and DINO runs, five-band input support, and a
+474-epoch SparK--YOLO run whose best validation loss decreased by 18.46\%.
 These results establish implementation readiness, but they are not yet evidence
 of improved representation quality. Real multispectral coverage, duplicate
 control, source-balanced sampling, and downstream held-out-domain comparisons
@@ -82,7 +82,8 @@ across experiments.
 learns to reconstruct their pixels, producing transferable representations with
 an asymmetric encoder--decoder design~\cite{he2022mae}. Related masked-image
 methods show that reconstruction or token prediction can provide an effective
-self-supervised signal~\cite{bao2022beit}. Agricultural lesions, venation, leaf
+self-supervised signal~\cite{bao2022beit}. SparK extends this principle to
+convolutional encoders by operating on a sparse hierarchy~\cite{tian2023spark}. Agricultural lesions, venation, leaf
 edges, and canopy texture motivate testing whether this local reconstruction
 signal benefits domain adaptation.
 
@@ -233,6 +234,48 @@ Shard builder smoke test & ZIP/plain & 2 pass \\
 \end{tabular}
 \end{table}
 
+
+\subsection{Long-Run SparK--YOLO Pretraining}
+We also evaluated the convolutional branch in a 500-epoch SparK run using the
+WebDataset pipeline and a YOLO11-L backbone. Initialization loaded the official
+YOLO checkpoint, inserted $1\!\times\!1$ expansion bridges where dense and sparse
+channel dimensions differed, and transferred 215 tensors into the sparse
+encoder. Each epoch comprised 4,000 training batches. The learning rate warmed
+from $2\!\times\!10^{-6}$ to $10^{-5}$ over the first five epochs, remained near
+that value through the early run, and then followed a cosine decay toward
+$10^{-6}$.
+
+At the time of analysis, 474 epochs were complete and epoch 475 had processed
+1,232 of 4,000 batches. Validation loss fell from 0.8071 at epoch 1 to a best of
+0.6581 at epoch 472, an 18.46\% relative reduction. The corresponding training
+loss was 0.6524, leaving a gap of only 0.0057. Table~\ref{tab:spark-run} shows
+representative checkpoints along the trajectory. Most improvement occurred in
+the first 100 epochs; progress thereafter was slower but persistent, with new
+minima at epochs 168, 257, 297, 353, 411, 427, 452, and 472. Over the final 25
+complete epochs, validation loss averaged 0.6610 with a standard deviation of
+0.0014. This narrow band indicates a stable late-stage plateau rather than
+divergence. The last observed validation loss, 0.6615, was slightly above the
+minimum, so downstream experiments will use the saved best checkpoint rather
+than the terminal state.
+
+\begin{table}[t]
+\centering
+\caption{Selected points from the SparK--YOLO pretraining log. Epoch 475 was
+still running and is therefore excluded.}
+\label{tab:spark-run}
+\small
+\begin{tabular}{rrrr}
+\toprule
+Epoch & Train & Validation & LR \\
+\midrule
+1   & 0.8250 & 0.8071 & $2\!\times\!10^{-6}$ \\
+100 & 0.6782 & 0.6808 & $9\!\times\!10^{-6}$ \\
+297 & 0.6601 & 0.6598 & $4\!\times\!10^{-6}$ \\
+472 & 0.6524 & \textbf{0.6581} & $1\!\times\!10^{-6}$ \\
+474 & 0.6431 & 0.6615 & $1\!\times\!10^{-6}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 The automated suite covers RGB, NPY, GeoTIFF, ZIP and nested-ZIP loading;
 group-disjoint splits; NoData handling; undersized-image padding; official model
 selection; adapter initialization; MIM and DINO tensor behavior; EMA updates;
@@ -243,8 +286,14 @@ that a long pretraining run fails because of data format, checkpoint, or model
 geometry errors.
 
 \subsection{Interpretation and Remaining Gaps}
-The corpus expansion and successful pipelines satisfy the mid-term engineering
-milestone: the planned model can now be trained reproducibly at archive scale.
+The corpus expansion, successful pipelines, and four-day SparK--YOLO run satisfy
+the mid-term engineering milestone: the planned models can now train
+reproducibly at archive scale. The long-run loss trajectory is meaningful
+evidence that sparse conversion, transferred YOLO weights, checkpoint selection,
+and WebDataset streaming remain numerically stable beyond smoke-test duration.
+It is not evidence that the learned representation improves a recognition task:
+reconstruction loss measures the pretext objective and can decline without
+improving transfer.
 The results also support the feasibility of the spectral interface because the
 same official backbone accepts both RGB and five-band tensors without replacing
 its patch embedding. They do \emph{not}, however, test whether additional bands
@@ -282,6 +331,10 @@ K. He et al. Masked Autoencoders Are Scalable Vision Learners.
 \bibitem{bao2022beit}
 H. Bao et al. BEiT: BERT Pre-Training of Image Transformers.
 \textit{ICLR}, 2022.
+
+\bibitem{tian2023spark}
+K. Tian, Y. Jiang, Q. Diao, C. Lin, L. Wang, and Z. Yuan. Designing BERT for
+Convolutional Networks: Sparse and Hierarchical Masked Modeling. \textit{ICLR}, 2023.
 
 \bibitem{caron2021dino}
 M. Caron et al. Emerging Properties in Self-Supervised Vision Transformers.

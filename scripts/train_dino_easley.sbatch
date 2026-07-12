@@ -38,6 +38,7 @@ if ! command -v conda >/dev/null 2>&1; then
 fi
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate "$CONDA_ENV_NAME"
+export PYTHONNOUSERSITE=1
 cd "$PROJECT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
@@ -59,8 +60,8 @@ export TORCH_HOME="/scratch/$USER/ag-foundation/cache/torch"
 export HF_HOME="/scratch/$USER/ag-foundation/cache/huggingface"
 mkdir -p "$TORCH_HOME" "$HF_HOME"
 
-# Load the NVIDIA/CUDA drivers
-module load cuda11.0/toolkit/11.8.0
+# The PyTorch wheel includes its CUDA runtime; use the node's NVIDIA driver directly.
+# Loading a CUDA toolkit module here can override libcuda and break initialization.
 
 echo "GPU status:"
 nvidia-smi

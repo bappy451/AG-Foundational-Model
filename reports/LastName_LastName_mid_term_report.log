@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.25)  10 JUL 2026 23:48
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.6.25)  11 JUL 2026 23:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -523,42 +523,47 @@ s/mza0288/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/base/8r.enc}
 
 
 ] [2]
-[3] (LastName_LastName_mid_term_report.aux)
+[3] [4
+
+] (LastName_LastName_mid_term_report.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
  ***********
 Package rerunfilecheck Info: File `LastName_LastName_mid_term_report.out' has n
 ot changed.
-(rerunfilecheck)             Checksum: C54D029D789EBC314F71F0C81851D308;1784.
+(rerunfilecheck)             Checksum: 0BA72C4227C7AF3F37447461FE698C29;2006.
  ) 
 Here is how much of TeX's memory you used:
- 15055 strings out of 467871
- 239410 string characters out of 5417408
- 699663 words of memory out of 5000000
- 43493 multiletter control sequences out of 15000+600000
- 663241 words of font info for 239 fonts, out of 8000000 for 9000
+ 15077 strings out of 467871
+ 239685 string characters out of 5417408
+ 700814 words of memory out of 5000000
+ 43500 multiletter control sequences out of 15000+600000
+ 664909 words of font info for 246 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,11n,98p,1032b,461s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,11n,98p,1032b,462s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/mza0288/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/c
 m/cmbx10.pfb><C:/Users/mza0288/AppData/Local/Programs/MiKTeX/fonts/type1/public
 /amsfonts/cm/cmex10.pfb><C:/Users/mza0288/AppData/Local/Programs/MiKTeX/fonts/t
 ype1/public/amsfonts/cm/cmmi10.pfb><C:/Users/mza0288/AppData/Local/Programs/MiK
 TeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/mza0288/AppData/Local/Pr
 ograms/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/mza0288/AppDat
-a/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/mza02
-88/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/
-Users/mza0288/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy
-7.pfb><C:/Users/mza0288/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfon
-ts/cm/cmsy9.pfb><C:/Users/mza0288/AppData/Local/Programs/MiKTeX/fonts/type1/pub
-lic/amsfonts/symbols/msbm10.pfb><C:/Users/mza0288/AppData/Local/Programs/MiKTeX
-/fonts/type1/urw/times/utmb8a.pfb><C:/Users/mza0288/AppData/Local/Programs/MiKT
-eX/fonts/type1/urw/times/utmr8a.pfb><C:/Users/mza0288/AppData/Local/Programs/Mi
-KTeX/fonts/type1/urw/times/utmri8a.pfb>
-Output written on LastName_LastName_mid_term_report.pdf (3 pages, 178162 bytes)
+a/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Users/mza02
+88/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Us
+ers/mza0288/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.p
+fb><C:/Users/mza0288/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/
+cm/cmsy10.pfb><C:/Users/mza0288/AppData/Local/Programs/MiKTeX/fonts/type1/publi
+c/amsfonts/cm/cmsy6.pfb><C:/Users/mza0288/AppData/Local/Programs/MiKTeX/fonts/t
+ype1/public/amsfonts/cm/cmsy7.pfb><C:/Users/mza0288/AppData/Local/Programs/MiKT
+eX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/Users/mza0288/AppData/Local/Pro
+grams/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb><C:/Users/mza0288/A
+ppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmb8a.pfb><C:/Users/mza0288
+/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Users/mza02
+88/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
+Output written on LastName_LastName_mid_term_report.pdf (4 pages, 212987 bytes)
 .
 PDF statistics:
- 155 PDF objects out of 1000 (max. 8388607)
- 28 named destinations out of 1000 (max. 500000)
- 41041 words of extra memory for PDF output out of 42996 (max. 10000000)
+ 183 PDF objects out of 1000 (max. 8388607)
+ 32 named destinations out of 1000 (max. 500000)
+ 45145 words of extra memory for PDF output out of 51595 (max. 10000000)
 
