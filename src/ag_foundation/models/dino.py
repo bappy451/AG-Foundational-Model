@@ -246,8 +246,13 @@ class RemoteSensingDINOModel(nn.Module):
             
             return {"cls": cls_logits, "patch": patch_logits}
 
-    def forward_student_views(self, views: Sequence[torch.Tensor]) -> list[dict[str, Any]]:
-        return [self._forward_student_view(view) for view in views]
+    def forward_student_views(
+        self, views: Sequence[torch.Tensor], num_global_views: int = 2
+    ) -> list[dict[str, Any]]:
+        return [
+            self._forward_student_view(view, compute_patch_logits=(i < num_global_views))
+            for i, view in enumerate(views)
+        ]
 
     def forward_teacher_views(self, views: Sequence[torch.Tensor]) -> list[dict[str, Any]]:
         return [self._forward_teacher_view(view) for view in views]

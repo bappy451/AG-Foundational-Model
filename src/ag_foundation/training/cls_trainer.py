@@ -91,11 +91,11 @@ class ClassificationTrainer:
         return contextlib.nullcontext()
 
     def _trainable_parameters(self):
-        return [parameter for _, parameter in self._trainable_parameter_items]
+        return [parameter for _, parameter in self.model.named_parameters() if parameter.requires_grad]
 
     def _validate_gradients(self) -> None:
-        for name, parameter in self._trainable_parameter_items:
-            if parameter.grad is not None and not torch.isfinite(parameter.grad).all():
+        for name, parameter in self.model.named_parameters():
+            if parameter.requires_grad and parameter.grad is not None and not torch.isfinite(parameter.grad).all():
                 raise FloatingPointError(f"Encountered a non-finite gradient in parameter '{name}'.")
 
     def _current_learning_rate(self) -> float:
@@ -252,7 +252,12 @@ class ClassificationTrainer:
                 labels = moved_batch["label"]
 
                 with self._autocast_context():
-                    logits = self.model(images)
+                    logits_orig = self.model(images)
+                    if getattr(self, "use_tta", True):
+                        logits_flip = self.model(torch.flip(images, dims=[-1]))
+                        logits = 0.5 * (logits_orig + logits_flip)
+                    else:
+                        logits = logits_orig
                     loss = F.cross_entropy(logits, labels, weight=self.class_weights)
 
                 if not torch.isfinite(loss):

@@ -54,7 +54,11 @@ class DINOMultiCropAugmenter:
 
         images = images.to(dtype=torch.float32)
         if self.deterministic:
+            import torch.nn.functional as F
             base = images.clamp(0.0, 1.0)
+            target_size = self.config.image_size if isinstance(self.config.image_size, tuple) else (self.config.image_size, self.config.image_size)
+            if base.shape[-2:] != target_size:
+                base = F.interpolate(base, size=target_size, mode="bilinear", align_corners=False)
             return [base.clone() for _ in range(self.config.num_global_crops)]
 
         views = []
@@ -88,7 +92,11 @@ class DINOMultiCropAugmenter:
 
         images = images.to(dtype=torch.float32)
         if self.deterministic:
+            import torch.nn.functional as F
             base = images.clamp(0.0, 1.0)
+            target_size = self.config.image_size if isinstance(self.config.image_size, tuple) else (self.config.image_size, self.config.image_size)
+            if base.shape[-2:] != target_size:
+                base = F.interpolate(base, size=target_size, mode="bilinear", align_corners=False)
             return [base.clone() for _ in range(self.config.num_global_crops)]
 
         views = []
@@ -525,6 +533,8 @@ class DINOTrainer:
                     f"grad={last_gradient_norm:.4f} lr={self._current_learning_rate():.6f} "
                     f"wd={self._current_weight_decay():.5f} temp={teacher_temperature:.4f} ema={last_teacher_momentum:.6f}"
                 )
+            if step_index >= num_batches:
+                break
 
         result = {name: (value / total_batches if total_batches else float("nan")) for name, value in totals.items()}
         result.update({
@@ -569,6 +579,8 @@ class DINOTrainer:
                 for name in totals:
                     totals[name] += float(components[name].detach().cpu())
                 batches += 1
+                if batches >= len(self.val_loader):
+                    break
         result = {name: (value / batches if batches else float("nan")) for name, value in totals.items()}
         result["batches"] = batches
         print(f"train-dino epoch={epoch_index + 1} val_loss={result['loss']:.6f}")
@@ -768,6 +780,25 @@ class DINOTrainer:
             for path in visualization_paths:
                 if not path.name.endswith("_latest.png"):
                     print(f"[artifacts] Model output: {path}")
+
+            import subprocess
+            import sys
+            try:
+                debug_dir = output_dir / "debug" / f"epoch_{epoch_index + 1}"
+                subprocess.run([
+                    sys.executable,
+                    str(Path(__file__).resolve().parent.parent.parent.parent / "scripts" / "visualize_dino_features.py"),
+                    "--image_dir",
+                    r"E:\AG_Dataset\01_Evaluation\Classification_Medicinal_Plant\train",
+                    "--num_random", "10",
+                    "--checkpoint",
+                    str(output_dir / "last.pt"),
+                    "--output",
+                    str(debug_dir)
+                ], check=False)
+                print(f"[artifacts] DINO Feature Visualizations (10 images): {debug_dir}")
+            except Exception as e:
+                print(f"Failed to generate DINO visualization: {e}")
 
         end_time = time.time()
         system_info["end_time"] = end_time

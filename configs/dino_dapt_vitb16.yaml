@@ -1,0 +1,43 @@
+data:
+  data_root: "E:/AG_Dataset/shards/dataset-*.tar"
+  crop_size: 224
+  channels: 3
+  batch_size: 32
+  num_workers: 8
+  epoch_batches: 4000
+  val_fraction: 0.02
+
+runtime:
+  output_dir: "E:/AG_Dataset/AG-Foundational-Model/runs/dinov3_dapt"
+  epochs: 20
+  seed: 42
+  precision: "bf16"
+  gradient_accumulation_steps: 8
+  warmup_epochs: 2
+
+model:
+  model_name: "B"
+  pretrained_backbone: true
+  pretrained_source: "dinov3"
+  head_nlayers: 3
+  num_global_crops: 2
+  num_local_crops: 8
+  global_crop_scale: [0.32, 1.0]
+  local_crop_scale: [0.05, 0.32]
+  student_temperature: 0.1
+  teacher_temperature: 0.07
+  teacher_temperature_start: 0.04
+  teacher_temperature_warmup_epochs: 2
+  dino_loss_weight: 1.0
+  ibot_loss_weight: 1.0
+  koleo_loss_weight: 0.1
+  teacher_momentum_start: 0.996
+  teacher_momentum_end: 1.0
+  gradient_checkpointing: true
+  drop_path_rate: 0.3
+
+optimizer:
+  learning_rate: 0.0005
+  weight_decay: 0.04
+  weight_decay_end: 0.4
+  min_learning_rate: 1.0e-06

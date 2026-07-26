@@ -165,7 +165,9 @@ def run_train_cls(
         # Handle prefixes if loaded from MIM
         cleaned_state_dict = {}
         for k, v in state_dict.items():
-            if k.startswith("backbone."):
+            if k.startswith("student_backbone."):
+                cleaned_state_dict[k.replace("student_backbone.", "")] = v
+            elif k.startswith("backbone."):
                 cleaned_state_dict[k.replace("backbone.", "")] = v
         loaded_keys = backbone.load_state_dict(cleaned_state_dict, strict=False)
         print(f"Loaded pretrained backbone from {pretrained_weights}")
@@ -270,9 +272,19 @@ def run_train_cls(
     
     # Save config snapshot for reproducibility
     _save_config_snapshot(config, output_dir, args.config)
-    print(f"Config snapshot saved to {output_dir / 'config_snapshot.yaml'}")
+    freeze_backbone_epochs = int(model_cfg.get("freeze_backbone_epochs", 5 if model_cfg.get("pretrained_source") == "dinov3" else 0))
     
     for epoch in range(epochs):
+        # LP-FT Two-Stage Fine-Tuning
+        if freeze_backbone_epochs > 0:
+            if epoch < freeze_backbone_epochs:
+                model.backbone.requires_grad_(False)
+                if epoch == 0:
+                    print(f"[LP-FT] Stage 1: Backbone frozen for epochs 1-{freeze_backbone_epochs} (Linear Probing head only)")
+            elif epoch == freeze_backbone_epochs:
+                model.backbone.requires_grad_(True)
+                print(f"[LP-FT] Stage 2: Backbone unfrozen at epoch {epoch + 1} (End-to-end LLRD Fine-Tuning)")
+
         trainer._apply_epoch_learning_rate(epoch, epochs)
         train_metrics = trainer.train_epoch(epoch, epochs)
         val_metrics = trainer.evaluate(epoch)

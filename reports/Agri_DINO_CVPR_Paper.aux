@@ -1,0 +1,83 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{savary2019global}
+\citation{mohanty2016using}
+\@writefile{toc}{\contentsline {section}{\numberline {1}\hskip -1em.~Introduction}{1}{section.1}\protected@file@percent }
+\citation{chen2020simple}
+\citation{caron2021emerging}
+\citation{oquab2024dinov2}
+\citation{zhou2022ibot}
+\citation{bao2022beit}
+\citation{he2022masked}
+\citation{hughes2016open}
+\citation{vanhorn2018inaturalist}
+\citation{goeau2022plantclef}
+\citation{kumar2022fine}
+\citation{ben2022bitfit}
+\citation{zhai2019large}
+\@writefile{toc}{\contentsline {section}{\numberline {2}\hskip -1em.~Related Work}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}\hskip -1em.~Self-Supervised Visual Representation Learning}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}\hskip -1em.~Masked Image Modeling}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}\hskip -1em.~Agricultural Computer Vision}{2}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}\hskip -1em.~Fine-Tuning Strategies for Vision Transformers}{2}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}\hskip -1em.~Foundation Models in Specialized Domains}{2}{subsection.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}\hskip -1em.~Benchmark Design in Specialized Visual Domains}{2}{subsection.2.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}\hskip -1em.~Agri-DINO}{2}{section.3}\protected@file@percent }
+\citation{kumar2022fine}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces  \textbf  {Agri-DINO pipeline overview.} \emph  {Phase 1 (green):} A ViT-Base/16 student is trained via DINO momentum distillation on 5.17M unlabeled agricultural images. The teacher's parameters are updated by exponential moving average (EMA). \emph  {Phase 2 (red):} The pre-trained backbone is transferred to downstream tasks via a two-stage protocol: brief linear probing stabilizes the classification head before the full backbone is unfrozen with domain-calibrated layer-wise learning rate decay (LLRD, $\gamma {=}0.75$). Test-Time Augmentation (TTA) further improves inference accuracy. }}{3}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:pipeline}{{1}{3}{\textbf {Agri-DINO pipeline overview.} \emph {Phase 1 (green):} A ViT-Base/16 student is trained via DINO momentum distillation on 5.17M unlabeled agricultural images. The teacher's parameters are updated by exponential moving average (EMA). \emph {Phase 2 (red):} The pre-trained backbone is transferred to downstream tasks via a two-stage protocol: brief linear probing stabilizes the classification head before the full backbone is unfrozen with domain-calibrated layer-wise learning rate decay (LLRD, $\gamma {=}0.75$). Test-Time Augmentation (TTA) further improves inference accuracy}{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}\hskip -1em.~Pre-Training Corpus Construction}{3}{subsection.3.1}\protected@file@percent }
+\newlabel{sec:corpus}{{3.1}{3}{\texorpdfstring {\hskip -1em.~}{}Pre-Training Corpus Construction}{subsection.3.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}\hskip -1em.~Self-Supervised Pre-Training Objective}{3}{subsection.3.2}\protected@file@percent }
+\newlabel{sec:pretrain}{{3.2}{3}{\texorpdfstring {\hskip -1em.~}{}Self-Supervised Pre-Training Objective}{subsection.3.2}{}}
+\newlabel{eq:dino}{{1}{3}{\texorpdfstring {\hskip -1em.~}{}Self-Supervised Pre-Training Objective}{equation.1}{}}
+\newlabel{eq:ema}{{2}{3}{\texorpdfstring {\hskip -1em.~}{}Self-Supervised Pre-Training Objective}{equation.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}\hskip -1em.~Two-Stage LP-FT with Domain-Calibrated LLRD}{3}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:lpft}{{3.3}{3}{\texorpdfstring {\hskip -1em.~}{}Two-Stage LP-FT with Domain-Calibrated LLRD}{subsection.3.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{The catastrophic forgetting problem.}{3}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Stage 1: Linear Probing (Epochs $1 \leq e \leq E_w$).}{3}{section*.3}\protected@file@percent }
+\newlabel{eq:freeze}{{3}{3}{Stage 1: Linear Probing (Epochs $1 \leq e \leq E_w$)}{equation.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{Stage 2: End-to-End LLRD Fine-Tuning ($e > E_w$).}{3}{section*.4}\protected@file@percent }
+\newlabel{eq:llrd}{{4}{3}{Stage 2: End-to-End LLRD Fine-Tuning ($e > E_w$)}{equation.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}\hskip -1em.~High-Resolution Tokenization and Test-Time Augmentation}{4}{subsection.3.4}\protected@file@percent }
+\newlabel{sec:resolution}{{3.4}{4}{\texorpdfstring {\hskip -1em.~}{}High-Resolution Tokenization and Test-Time Augmentation}{subsection.3.4}{}}
+\newlabel{eq:tta}{{5}{4}{\texorpdfstring {\hskip -1em.~}{}High-Resolution Tokenization and Test-Time Augmentation}{equation.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}\hskip -1em.~Experiments}{4}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}\hskip -1em.~Datasets and Implementation}{4}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}\hskip -1em.~Comparison with Baseline Initialization Strategies}{4}{subsection.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces  \textbf  {Main results on MedicinalPlant.} All models use ViT-Base/16 at $256\!\times \!256$. \textbf  {Bold}: best result. \underline  {Underline}: second-best. $\dagger $: our method uses \emph  {zero} human labels during pre-training. }}{4}{table.caption.5}\protected@file@percent }
+\newlabel{tab:main}{{1}{4}{\textbf {Main results on MedicinalPlant.} All models use ViT-Base/16 at $256\!\times \!256$. \textbf {Bold}: best result. \underline {Underline}: second-best. $\dagger $: our method uses \emph {zero} human labels during pre-training}{table.caption.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces  \textbf  {Ablation study on MedicinalPlant.} Starting from a na\"ive baseline (no LP-FT, $224\!\times \!224$, no TTA), we progressively add each proposed component. Each row inherits all settings from rows above it. $\uparrow $: improvement over previous row. }}{4}{table.caption.6}\protected@file@percent }
+\newlabel{tab:ablation}{{2}{4}{\textbf {Ablation study on MedicinalPlant.} Starting from a na\"ive baseline (no LP-FT, $224\!\times \!224$, no TTA), we progressively add each proposed component. Each row inherits all settings from rows above it. $\uparrow $: improvement over previous row}{table.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}\hskip -1em.~Ablation Study}{4}{subsection.4.3}\protected@file@percent }
+\newlabel{sec:ablation}{{4.3}{4}{\texorpdfstring {\hskip -1em.~}{}Ablation Study}{subsection.4.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}\hskip -1em.~Convergence Analysis}{4}{subsection.4.4}\protected@file@percent }
+\newlabel{sec:convergence}{{4.4}{4}{\texorpdfstring {\hskip -1em.~}{}Convergence Analysis}{subsection.4.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces  \textbf  {Training dynamics of Agri-DINO (MedicinalPlant).} Epoch 5 marks the LP $\rightarrow $ LLRD transition. Train/Val Acc are top-1; Val Loss is cross-entropy. }}{5}{table.caption.7}\protected@file@percent }
+\newlabel{tab:training}{{3}{5}{\textbf {Training dynamics of Agri-DINO (MedicinalPlant).} Epoch 5 marks the LP $\rightarrow $ LLRD transition. Train/Val Acc are top-1; Val Loss is cross-entropy}{table.caption.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces  \textbf  {PlantSeg results under fragmented vs.\ corrected taxonomy.} Fragmented (300 micro-classes) vs.\ corrected (20 disease categories). All models use ViT-Base/16 at $256\!\times \!256$. }}{5}{table.caption.8}\protected@file@percent }
+\newlabel{tab:plantseg}{{4}{5}{\textbf {PlantSeg results under fragmented vs.\ corrected taxonomy.} Fragmented (300 micro-classes) vs.\ corrected (20 disease categories). All models use ViT-Base/16 at $256\!\times \!256$}{table.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}\hskip -1em.~Analysis: Micro-Class Fragmentation in PlantSeg}{5}{subsection.4.5}\protected@file@percent }
+\newlabel{sec:plantseg}{{4.5}{5}{\texorpdfstring {\hskip -1em.~}{}Analysis: Micro-Class Fragmentation in PlantSeg}{subsection.4.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}\hskip -1em.~Discussion}{5}{section.5}\protected@file@percent }
+\bibcite{savary2019global}{{1}{}{{}}{{}}}
+\bibcite{mohanty2016using}{{2}{}{{}}{{}}}
+\bibcite{caron2021emerging}{{3}{}{{}}{{}}}
+\bibcite{oquab2024dinov2}{{4}{}{{}}{{}}}
+\bibcite{zhou2022ibot}{{5}{}{{}}{{}}}
+\bibcite{bao2022beit}{{6}{}{{}}{{}}}
+\bibcite{he2022masked}{{7}{}{{}}{{}}}
+\bibcite{chen2020simple}{{8}{}{{}}{{}}}
+\bibcite{dosovitskiy2021an}{{9}{}{{}}{{}}}
+\bibcite{kumar2022fine}{{10}{}{{}}{{}}}
+\bibcite{hughes2016open}{{11}{}{{}}{{}}}
+\bibcite{vanhorn2018inaturalist}{{12}{}{{}}{{}}}
+\bibcite{goeau2022plantclef}{{13}{}{{}}{{}}}
+\bibcite{ben2022bitfit}{{14}{}{{}}{{}}}
+\bibcite{zhai2019large}{{15}{}{{}}{{}}}
+\providecommand\NAT@force@numbers{}\NAT@force@numbers
+\@writefile{toc}{\contentsline {section}{\numberline {6}\hskip -1em.~Conclusion}{6}{section.6}\protected@file@percent }
+\gdef \@abspage@last{6}

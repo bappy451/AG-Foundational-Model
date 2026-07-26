@@ -1,0 +1,57 @@
+# ============================================================
+#  PlantSeg OBB  –  YOLO11-L Comparison Experiment Config
+# ============================================================
+#
+#  Runs ALL experiments below sequentially with one command:
+#    conda run -n ag-foundation python scripts/run_yolo_downstream.py
+#
+#  Results are saved to:
+#    runs/<project>/<name>/
+# ============================================================
+
+# ─── Dataset ────────────────────────────────────────────────
+data:    E:\AG_Dataset\Evaluation\PlantSeg\data.yaml
+task:    obb
+project: E:\AG_Dataset\AG-Foundational-Model\runs
+
+# ─── Experiments (run sequentially) ─────────────────────────
+experiments:
+  - name:  plantseg_spark_yolo11l
+    model: E:\AG_Dataset\AG-Foundational-Model\runs\spark_yolo_full\spark_yolo11l-obb.pt
+    label: SparK Pretrained (ours)
+
+  - name:  plantseg_baseline_yolo11l
+    model: yolo11l-obb.pt
+    label: Official Ultralytics (ImageNet)
+
+# ─── Shared Training Hyperparameters ────────────────────────
+epochs:        50
+batch:         16      # fixed batch size
+imgsz:         640
+workers:       8
+
+# ─── Optimizer ──────────────────────────────────────────────
+optimizer:     AdamW
+lr0:           0.001    # initial learning rate
+lrf:           0.01     # final LR = lr0 * lrf
+weight_decay:  0.0005
+warmup_epochs: 3.0
+momentum:      0.937
+cos_lr:        true     # cosine LR schedule
+
+# ─── Regularisation ─────────────────────────────────────────
+patience:         15    # early stopping patience (epochs)
+label_smoothing:  0.1
+dropout:          0.0
+
+# ─── Augmentation ───────────────────────────────────────────
+hsv_h:     0.015
+hsv_s:     0.7
+hsv_v:     0.4
+degrees:   0.0
+translate: 0.1
+scale:     0.5
+flipud:    0.0
+fliplr:    0.5
+mosaic:    1.0
+mixup:     0.0

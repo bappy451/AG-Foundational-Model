@@ -57,8 +57,14 @@ from typing import Iterator
 # Config
 # ---------------------------------------------------------------------------
 
-MAX_SIDE: int = 1024          # Bounded resize target (px)
-MIN_SIDE: int = 64            # Images smaller than this on any side are skipped
+MAX_SIDE: int = 1024          # Bounded resize target (px) — downscale if min-side > this
+MIN_SIDE: int = 256           # Hard skip if min(H,W) < this.
+                              # 256px is the minimum useful size for 640×640 YOLO crops
+                              # with standard augmentations (random crop, scale jitter).
+                              # This includes: Plants Leafs Dataset (256×256),
+                              #                Rice Plant Diseases Dataset (300×300),
+                              #                PlantVillage (256×256), PlantifyDr (256×256),
+                              #                Plant Disease Detection (256×256) etc.
 JPEG_QUALITY: int = 92        # Re-encode quality — 92 is visually lossless
 PROGRESS_EVERY: int = 500     # Print a line every N images written
 

@@ -1,5 +1,5 @@
 data:
-  data_root: 'E:\AG_Dataset\Evaluation\Classification_Medicinal_Plant'
+  data_root: 'E:\AG_Dataset\01_Evaluation\Classification_Medicinal_Plant'
   crop_size: 224
   channels: 3
   batch_size: 128
@@ -7,7 +7,7 @@ data:
   prefetch_factor: 2
 
 runtime:
-  output_dir: ../runs/cls_finetuning_imagenet_baseline
+  output_dir: 'E:\AG_Dataset\AG-Foundational-Model\runs\cls_medicinal_plant_imagenet'
   epochs: 50
   seed: 42
   precision: bf16

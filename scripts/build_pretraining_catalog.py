@@ -20,15 +20,28 @@ Rules applied
 
 Excluded datasets (KNOWN_EXCLUDES) — rationale
 -----------------------------------------------
-  GeoPlant*.zip            : 128×128 grayscale satellite tiles — wrong domain/scale
-  Chili Plant Disease*.zip : < 500 images each — statistically negligible
-  Rice Leaf Diseases*.zip  : 120 images each — noise
-  rice+leaf+diseases.zip   : duplicate of Rice Leaf Diseases, also 120 images
-  PlantCLEF2024single*.tar : Full-res version (288 GB) — overlaps with 800px version
-  Toxic Plant*.zip         : Evaluation set — must not contaminate pretraining
-  Indian Medicinal*.zip    : Evaluation set
-  Pea Plant*.zip           : Evaluation set
-  Agriculture crop images* : Evaluation set (<1100 images)
+  GeoPlant*.zip                  : 128×128 px AND 53% grayscale satellite tiles — wrong domain/scale
+  DeepWeeds*.zip                 : 256×256 px drone POV — out-of-distribution for close-field model
+  Chili Plant Disease*.zip       : <500 images each — statistically negligible
+  Rice Leaf Diseases Dataset.zip : 120 images — noise (not Rice Plant diseases dataset.zip which is KEPT)
+  rice+leaf+diseases.zip         : duplicate of Rice Leaf Diseases, also 120 images
+  Agriculture-Vision-2021.tar.gz : Aerial/satellite imagery — out-of-distribution for close-field model
+  FAIR1M/                        : Remote sensing — out-of-distribution
+  PlantCLEF2024single*.tar       : Full-res version (288 GB) — overlaps with 800px version, keep 800px
+  Toxic Plant*.zip               : Evaluation set — must not contaminate pretraining
+  Indian Medicinal*.zip          : Evaluation set
+  Pea Plant*.zip                 : Evaluation set
+  Agriculture crop images*.zip   : Evaluation set (<1100 images)
+
+Included datasets (by user decision — kept despite borderline resolution)
+-------------------------------------------------------------------------
+  Plants leafs Dataset-022.zip   : 256×256 px, 190k images — included for scale
+  Rice Plant diseases dataset.zip : 300×300 px, 4,684 images — included for crop diversity
+
+Note on Cotton Plant Disease:
+  60% of images are grayscale (mode=L). The shard builder's _to_rgb() converts them
+  to RGB automatically, but they contribute minimal spectral information.
+  The MIN_SIDE filter in build_wds_shards.py handles resolution gating at write time.
 
 Catalog schema (CSV columns)
 -----------------------------
@@ -94,28 +107,41 @@ KNOWN_DUPLICATES: dict[str, str] = {
 }
 
 # Known bad/excluded datasets — skip entire archive.
-# These are matched by checking if the archive filename STARTS WITH any prefix here.
+# These are matched by checking if the archive filename EXACTLY MATCHES any entry here.
 KNOWN_EXCLUDES: set[str] = {
-    # 128×128 grayscale satellite patches — wrong domain/scale for plant foundation model
+    # ── Resolution / Domain filters ────────────────────────────────────────────
+    # 128×128 px AND 53% grayscale satellite tiles — completely wrong for close-field YOLO
     "GeoPlant_ Spatial Plant Species Prediction Dataset-008.zip",
-    # Too small — < 500 images each, statistical noise
+    # 256×256 px drone overhead POV — out-of-distribution for close-field model
+    "DeepWeeds- A Multiclass Weed Species Image Dataset for Deep Learning.zip",
+    # Aerial / satellite remote sensing — out-of-distribution for close-field foundation model
+    "Agriculture-Vision-2021.tar.gz",
+
+    # ── Too small — statistical noise ─────────────────────────────────────────
+    # <500 images each
     "Chili Plant Disease Detection.zip",
     "Chili Plant Disease.zip",
-    # 120 images each — noise + duplicates
+    # 120 images each — noise + duplicates of each other
     "Rice Leaf Diseases Dataset.zip",
     "rice+leaf+diseases.zip",
-    # PlantCLEF full-resolution overlaps with 800px version (both contain same images)
-    # Keep the 800px version: PlantCLEF2024singleplanttrainingdata_800_max_side_size.tar
+
+    # ── Duplicate archives ─────────────────────────────────────────────────────
+    # PlantCLEF full-resolution (281 GB) overlaps with the 800px version
+    # Keep: PlantCLEF2024singleplanttrainingdata_800_max_side_size.tar
     "PlantCLEF2024singleplanttrainingdata.tar",
-    # Evaluation-only sets — must NOT be in pretraining to avoid data leakage
+
+    # ── Evaluation-only — must NOT be in pretraining (data leakage) ───────────
     "Toxic Plant Classification.zip",
     "Indian Medicinal Plant Image Dataset.zip",
     "Pea Plant dataset.zip",
     "Agriculture crop images.zip",
-    # Evaluation sets already used as downstream benchmarks
+    # These are downstream segmentation / disease benchmarks
     "Paddy Doctor- Paddy Disease Classification.zip",
     "PlantSeg_ A Large-Scale In-the-wild Dataset for Plant Disease Segmentation.zip",
     "Edible wild plants.zip",
+
+    # ── FAIR1M directory excluded — remote sensing ─────────────────────────────
+    # Handled separately in scan_directory() via the dirs filter below
 }
 
 # Print a live progress line after this many image members (for big TARs)
@@ -289,8 +315,10 @@ def build_catalog(pretraining_root: Path, output_path: Path) -> None:
     zip_files = sorted(pretraining_root.glob("*.zip"))
     tar_plain  = sorted(pretraining_root.glob("*.tar"))
     tar_gz     = sorted(pretraining_root.glob("*.tar.gz"))
+    # Exclude FAIR1M (remote sensing/satellite) and standard non-data dirs
+    EXCLUDED_DIRS = {"Evaluation", ".git", "__pycache__", "FAIR1M"}
     dirs       = [d for d in sorted(pretraining_root.iterdir())
-                  if d.is_dir() and d.name not in ("Evaluation", ".git", "__pycache__")]
+                  if d.is_dir() and d.name not in EXCLUDED_DIRS]
 
     print(f"Discovered:")
     print(f"  {len(zip_files)} ZIP archives")

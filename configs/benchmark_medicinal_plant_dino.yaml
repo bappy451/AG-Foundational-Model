@@ -1,0 +1,35 @@
+data:
+  data_root: 'E:\AG_Dataset\01_Evaluation\Classification_Medicinal_Plant'
+  crop_size: 256
+  channels: 3
+  batch_size: 128
+  num_workers: 8
+  prefetch_factor: 2
+
+runtime:
+  output_dir: 'E:\AG_Dataset\AG-Foundational-Model\runs\benchmark\medicinal_plant_dino'
+  epochs: 50
+  seed: 42
+  precision: bf16
+  device: cuda
+  warmup_epochs: 5
+  gradient_accumulation_steps: 1
+  log_every: 10
+  grad_clip_norm: 1.0
+  early_stopping_patience: 10
+
+model:
+  model_name: B
+  pretrained_source: dinov3
+  pretrained_weights: 'E:\AG_Dataset\AG-Foundational-Model\runs\dinov3_dapt_full_scale\best.pt'
+  layer_decay: 0.75
+  freeze_backbone_epochs: 5
+  drop_rate: 0.1
+  attn_drop_rate: 0.1
+  drop_path_rate: 0.3
+  head_dropout: 0.5
+
+optimizer:
+  learning_rate: 0.0003
+  weight_decay: 0.1
+  label_smoothing: 0.2

@@ -399,7 +399,15 @@ class RemoteSensingViT(nn.Module):
                 device=patch_tokens.device,
                 dtype=patch_tokens.dtype,
             )
-            tokens = torch.cat((cls_token, patch_tokens), dim=1)
+            reg_token = getattr(self.backbone, "reg_token", None)
+            if reg_token is not None:
+                reg_token = reg_token.expand(patch_tokens.shape[0], -1, -1).to(
+                    device=patch_tokens.device,
+                    dtype=patch_tokens.dtype,
+                )
+                tokens = torch.cat((cls_token, reg_token, patch_tokens), dim=1)
+            else:
+                tokens = torch.cat((cls_token, patch_tokens), dim=1)
         else:
             tokens = patch_tokens
 
