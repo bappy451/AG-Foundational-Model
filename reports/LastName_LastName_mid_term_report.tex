@@ -14,113 +14,110 @@
 
 \author{
 Md Min-Ha-Zul Abedin \and
-\href{https://auburn.instructure.com/courses/1739241/users/4120097}{Md Mehedi Hasan}
-}
+Md Mehedi Hasan}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-We study continual self-supervised pretraining of official Vision Transformer
-(ViT) checkpoints on a heterogeneous agricultural image corpus. The project
-targets transfer across crops, diseases, acquisition conditions, and sensing
-modalities while minimizing changes to the pretrained backbone. Since the
-proposal, we have implemented a unified framework supporting ImageNet-, MAE-,
-DINOv2-, and DINOv3-initialized ViT-S/B/L models; masked image modeling (MIM);
-DINO-style student--teacher training; and a learnable $1\!\times\!1$ spectral
-adapter for RGB and multiband inputs. The data layer now streams folders, ZIP
-and nested-ZIP archives, GeoTIFF, NumPy arrays, and WebDataset shards. A
-validated catalog contains 5,175,016 RGB images, substantially exceeding the
-412,454-image corpus available at proposal time. Engineering evaluation shows
-successful end-to-end MIM and DINO runs, five-band input support, and a
-474-epoch SparK--YOLO run whose best validation loss decreased by 18.46\%.
-These results establish implementation readiness, but they are not yet evidence
-of improved representation quality. Real multispectral coverage, duplicate
-control, source-balanced sampling, and downstream held-out-domain comparisons
-remain in progress. The next phase will establish ImageNet baselines and measure
-linear-probe, few-shot, and fine-tuning performance before scaling pretraining.
+This project investigates continual self-supervised pretraining of official
+Vision Transformer (ViT) and Yolo checkpoints on a diverse agricultural image corpus.
+Our aim is to improve transfer across crops, diseases, acquisition settings, and
+sensor modalities without substantially changing the pretrained backbone. Since
+the proposal, we have built a single training stack that supports ViT-S/B/L
+models initialized from ImageNet checkpoints; masked
+image modeling (MIM); DINO-style student--teacher training; and a learnable
+$1\!\times\!1$ spectral adapter for RGB and multiband inputs. The data pipeline
+can stream ordinary folders, ZIP and nested-ZIP archives, GeoTIFFs, NumPy arrays,
+and WebDataset shards. The validated catalog now contains 5,175,016 RGB images,
+up from 412,454 images at proposal time. We have verified end-to-end MIM and
+DINO training, five-band inputs, and a 474-epoch SparK--YOLO run whose best
+validation loss fell by 18.46\%. These are encouraging engineering results, but
+they do not yet demonstrate better representations. Real multispectral data,
+duplicate control, source-balanced sampling, and held-out-domain comparisons are
+still being completed. The next phase will set ImageNet baselines and compare
+linear-probe, few-shot, and fine-tuning performance before larger runs begin.
 \end{abstract}
 
 \section{Introduction}
-Agricultural vision systems encounter variation that is less prominent in many
-standard image benchmarks: the same crop changes with growth stage, stress,
-season, geography, management practice, camera, and illumination. Disease
-datasets are often composed of centered leaf photographs, whereas deployment
-may involve cluttered field scenes, unmanned aerial vehicle imagery, or
-multispectral rasters. Labels for these domains are costly and fragmented among
-species identification, disease classification, weed recognition, detection,
-segmentation, counting, and temporal monitoring. Consequently, a model that
-performs well on a random split of one dataset may transfer poorly to a new
-farm or sensor.
+Agricultural imagery varies in ways that standard image benchmarks often do not
+capture. A crop can look different across growth stages, stress conditions,
+seasons, locations, management practices, cameras, and lighting. Disease
+benchmarks frequently contain centered leaf images, while practical systems must
+handle cluttered field scenes, unmanned aerial vehicle imagery, or multispectral
+rasters. Labels are also expensive to collect and are scattered across tasks such
+as species identification, disease diagnosis, weed recognition, detection,
+segmentation, counting, and temporal monitoring. A model that performs well on
+a random split of one dataset may therefore fail to transfer to a new farm or a
+different sensor.
 
-Our project asks whether continual self-supervised pretraining can adapt an
-official pretrained ViT to agricultural visual structure without discarding the
-benefits of generic pretraining. We compare reconstruction-based MIM with
-view-invariant DINO-style self-distillation and will test a sequential
-MIM$\rightarrow$DINO schedule. A lightweight spectral adapter maps an arbitrary
-number of aligned bands to the three-channel interface of an official RGB ViT.
-This design keeps the backbone unchanged and makes sensor adaptation directly
-ablatable.
+We ask whether continual self-supervised pretraining can adapt an official ViT
+to agricultural visual structure while retaining the benefits of generic
+pretraining. The study compares reconstruction-based MIM with view-invariant
+DINO-style self-distillation and will also test a sequential
+MIM$\rightarrow$DINO schedule. A lightweight spectral adapter maps any number
+of aligned input bands to the three channels expected by an official RGB ViT.
+Keeping the backbone fixed makes the effect of sensor adaptation easier to
+measure.
 
-At mid-term, the main achievement is a research-ready implementation and a much
-larger indexed corpus. The software now supports both objectives, multiple
-official checkpoint families, archive-scale streaming, reproducible state, and
-downstream task runners. However, the scientific hypothesis remains open:
-smoke-test losses and passing unit tests demonstrate correctness, not superior
-transfer. We therefore report engineering results separately from scientific
-results and reserve performance claims for controlled downstream experiments.
+At this midpoint, the project has a working research infrastructure and a much
+larger indexed corpus. The software supports both objectives, several official
+checkpoint families, archive-scale streaming, reproducible runs, and downstream
+task runners. The central scientific question, however, remains open. Passing
+tests and decreasing pretext losses show that the pipeline works; they do not
+show that it transfers better. For that reason, we separate engineering evidence
+from scientific results and defer performance claims until controlled downstream
+experiments are complete.
 
 \section{Background and Related Work}
-\textbf{Vision Transformers.} ViT represents an image as a sequence of patch
-tokens and applies a Transformer encoder, demonstrating that large-scale image
-pretraining can rival convolutional networks~\cite{dosovitskiy2021vit}. Our
-system uses official ViT-S, ViT-B, and ViT-L implementations rather than a
-project-specific transformer, allowing initialization and scale to be controlled
-across experiments.
+\textbf{Vision Transformers.} ViT treats an image as a sequence of patch tokens
+processed by a Transformer encoder. With sufficiently large-scale pretraining,
+this approach can match strong convolutional models~\cite{dosovitskiy2021vit}.
+We use official ViT-S, ViT-B, and ViT-L implementations rather than a custom
+transformer so that initialization and model scale remain controlled across
+experiments.
 
-\textbf{Masked image modeling.} MAE masks a large fraction of image patches and
-learns to reconstruct their pixels, producing transferable representations with
-an asymmetric encoder--decoder design~\cite{he2022mae}. Related masked-image
-methods show that reconstruction or token prediction can provide an effective
-self-supervised signal~\cite{bao2022beit}. SparK extends this principle to
-convolutional encoders by operating on a sparse hierarchy~\cite{tian2023spark}. Agricultural lesions, venation, leaf
-edges, and canopy texture motivate testing whether this local reconstruction
-signal benefits domain adaptation.
+\textbf{Masked image modeling.} MAE hides a large fraction of image patches and
+trains an asymmetric encoder--decoder to reconstruct them, yielding transferable
+features~\cite{he2022mae}. Other masked-image methods similarly show that
+reconstruction or token prediction can provide a useful self-supervised
+signal~\cite{bao2022beit}. SparK applies the same broad idea to convolutional
+encoders through a sparse hierarchy~\cite{tian2023spark}. Agricultural lesions,
+leaf venation, edges, and canopy texture make this local reconstruction signal
+worth testing for domain adaptation.
 
-\textbf{Self-distillation.} DINO trains a student to match the centered and
-sharpened predictions of an exponential-moving-average (EMA) teacher under
-different augmented views~\cite{caron2021dino}. DINOv2 demonstrates that careful
-data curation and self-distillation can produce robust visual features without
-labels~\cite{oquab2024dinov2}. Reconstruction and self-distillation emphasize
-different invariances, motivating MIM-only, DINO-only, and sequential training
-under a shared data and backbone stack.
+\textbf{Self-distillation.} DINO trains a student to match the centered,
+sharpened outputs of an exponential-moving-average (EMA) teacher from different
+augmented views~\cite{caron2021dino}. DINOv2 showed that careful curation and
+self-distillation can produce robust visual features without labels~\cite{oquab2024dinov2}. Because reconstruction and self-distillation emphasize
+different invariances, we evaluate MIM-only, DINO-only, and sequential training
+with the same data and backbone stack.
 
 \textbf{Agricultural transfer and spectral adaptation.} PlantVillage helped
 establish deep learning for image-based plant-disease recognition, but its
-controlled backgrounds also illustrate the difference between benchmark and
-field conditions~\cite{hughes2015plantvillage,mohanty2016using}. Remote-sensing
-foundation models such as SatMAE adapt masked pretraining to temporal and
-multispectral satellite imagery~\cite{cong2022satmae}. In contrast, our adapter
-preserves an official RGB backbone and learns a small sensor-specific projection,
-which enables a controlled comparison against RGB-only input and direct
-patch-embedding expansion.
+controlled backgrounds also highlight the gap between benchmark and field
+conditions~\cite{hughes2015plantvillage,mohanty2016using}. Remote-sensing models
+such as SatMAE extend masked pretraining to temporal and multispectral satellite
+imagery~\cite{cong2022satmae}. Our approach instead keeps an official RGB
+backbone and learns a small sensor-specific projection. This gives us a direct
+comparison with RGB-only input and with patch-embedding expansion.
 
 \section{Approach}
 \subsection{Data and Sampling}
-The proposal reported 412,454 images from 13 downloaded datasets. The current
-validated catalog indexes 5,175,016 loader-visible images across approximately
-1~TB of ZIP and TAR archives. Sources cover plant species, diseases, seedlings,
-weeds, and crop imagery, but the present catalog remains overwhelmingly RGB.
-Each catalog record stores a stable sample key, source identity, and portable
-archive-member path. Large sources are converted to roughly 1~GB WebDataset
-shards after RGB conversion, bounded resizing, and validation. Parallel workers
-process one archive at a time to reduce archive-open and seek overhead.
+The proposal described 412,454 images from 13 downloaded datasets. The validated
+catalog now indexes 5,175,016 images visible to the loaders, stored across about
+1~TB of ZIP and TAR archives. It includes plant species, disease, seedling, weed,
+and crop imagery, although nearly all samples are still RGB. Each record retains
+a stable sample key, source identifier, and portable archive-member path. For
+large sources, we create WebDataset shards of roughly 1~GB after RGB conversion,
+bounded resizing, and validation. The preprocessing workers handle one archive
+at a time, which avoids repeated archive opens and expensive seeks.
 
-To prevent a large species collection from dominating training, the planned
-sampler first selects a source and then samples within that source. Validation
-splits are group-disjoint when source metadata permits. Before final experiments,
-we will freeze the manifest, record licenses and versions, and remove exact and
-near-duplicate clusters before creating train and held-out-domain partitions.
+To keep a single large collection from dominating training, the planned sampler
+will choose a source first and a sample second. When source metadata permits,
+validation splits will be group-disjoint. Before the final experiments, we will
+freeze the manifest, record dataset versions and licenses, and remove exact and
+near-duplicate clusters before defining training and held-out-domain partitions.
 
 \begin{table}[t]
 \centering
@@ -143,7 +140,7 @@ Archive streaming & Audit only & ZIP/TAR/WDS \\
 
 \subsection{Sensor-Adaptive Backbone}
 For an input $\mathbf{x}\in\mathbb{R}^{C\times H\times W}$, a learnable
-$1\!\times\!1$ convolution projects the $C$ sensor bands into the three channels
+$1\!\times\!1$ convolution projects the $C$ sensor bands to the three channels
 expected by an official pretrained ViT:
 \begin{equation}
  \mathbf{z}_{h,w}=A\mathbf{x}_{h,w}+\mathbf{b},\qquad
@@ -152,16 +149,16 @@ expected by an official pretrained ViT:
 \end{equation}
 For RGB, $A$ is initialized to the $3\times3$ identity and $\mathbf{b}=0$.
 For multiband input, available RGB-like channels initialize the corresponding
-outputs; weights for additional bands begin at zero but remain trainable. The
-adapted image is normalized with the statistics associated with the selected
-official checkpoint, then patchified by the unchanged ViT. The adapter adds only
-$3C+3$ parameters and cleanly separates sensor mixing from spatial feature
-learning.
+outputs; the additional-band weights start at zero but can be learned. We then
+normalize the adapted image using the statistics for the selected checkpoint and
+feed it to the unchanged ViT patch embedding. The adapter adds just $3C+3$
+parameters, separating sensor mixing from spatial feature learning.
 
 \subsection{Self-Supervised Objectives}
-In MIM, a random set $\mathcal{M}$ masks 75\% of patch tokens. A linear
-reconstruction head predicts the adapted RGB patch $\mathbf{p}_i$ from encoded
-token $\mathbf{h}_i$; loss is evaluated only at masked positions:
+In MIM, we mask a random set $\mathcal{M}$ containing 75\% of the patch tokens.
+A linear reconstruction head predicts the adapted RGB patch $\mathbf{p}_i$ from
+the encoded token $\mathbf{h}_i$, and the loss is evaluated only at masked
+positions:
 \begin{equation}
  \mathcal{L}_{\mathrm{MIM}}=
  \frac{1}{|\mathcal{M}|}\sum_{i\in\mathcal{M}}
@@ -178,40 +175,42 @@ temperature $\tau_t$, and running center $\mathbf{c}$, the cross-view loss is
  q_t=\mathrm{softmax}((\mathbf{o}_t-\mathbf{c})/\tau_t).
  \label{eq:dino}
 \end{equation}
-The teacher parameters, including adapter, backbone, and projection head, are
-updated by $\theta_t\leftarrow m\theta_t+(1-m)\theta_s$. The framework supports
-ImageNet, MAE, DINOv2, and DINOv3 initialization and an explicit
-MIM$\rightarrow$DINO handoff that starts a new optimization run from a compatible
+The teacher parameters---adapter, backbone, and projection head---are updated by
+$\theta_t\leftarrow m\theta_t+(1-m)\theta_s$. The implementation supports
+ImageNet, MAE, DINOv2, and DINOv3 initialization, as well as an explicit
+MIM$\rightarrow$DINO handoff that begins a new optimization run from a compatible
 MIM checkpoint.
 
 \subsection{Training and Evaluation Protocol}
 Training uses BF16 mixed precision, gradient accumulation, optional gradient
-checkpointing, cosine scheduling, and multi-process data loading. Every run
-stores resolved configuration, environment and Git metadata, metrics, figures,
-best/latest checkpoints, optimizer state, and random-number-generator state.
-WebDataset provides CPU streaming; NVIDIA DALI is available on Linux for GPU
-JPEG decoding. Development began on a single RTX~4090, and the next stage will
-use Auburn's Slurm cluster for longer controlled runs.
+checkpointing, cosine learning-rate schedules, and multi-process data loading.
+Each run saves the resolved configuration, environment and Git metadata,
+metrics, figures, best and latest checkpoints, optimizer state, and
+random-number-generator state. WebDataset handles CPU streaming, while NVIDIA
+DALI is available on Linux for GPU JPEG decoding. Development began on a single
+RTX~4090; the next stage will use Auburn's Slurm cluster for longer controlled
+runs.
 
-Scientific evaluation will compare the unadapted official checkpoint, RGB-only
-continual pretraining, MIM, DINO, sequential MIM$\rightarrow$DINO, frozen versus
-trainable adapters, and direct patch-embedding expansion. Classification will
-report accuracy and macro-F1; detection, segmentation, and counting will use
-mAP, IoU/Dice, and MAE/RMSE as appropriate. Linear probing, few-shot subsets,
-and full fine-tuning will be repeated across at least three seeds. The primary
-test sets will hold out whole sources, crops, geographies, seasons, or sensors,
-with mean, standard deviation, and paired comparisons reported where splits are
-shared.
+The evaluation will compare the unadapted official checkpoint with RGB-only
+continual pretraining, MIM, DINO, sequential MIM$\rightarrow$DINO, frozen and
+trainable adapters, and direct patch-embedding expansion. We will report
+accuracy and macro-F1 for classification; mAP, IoU/Dice, and MAE/RMSE will be
+used for detection, segmentation, and counting as appropriate. Linear probes,
+few-shot subsets, and full fine-tuning will each be repeated with at least three
+seeds. The main test sets will hold out entire sources, crops, geographic areas,
+seasons, or sensors, and shared splits will include means, standard deviations,
+and paired comparisons.
 
 \section{Intermediate and Preliminary Results}
 \subsection{Verified Engineering Results}
-Table~\ref{tab:results} summarizes completed checks. End-to-end runs produced
-checkpoints, metrics, training curves, MIM reconstructions, DINO augmented views,
-and student--teacher similarity matrices. Five-band float32 arrays passed through
-the learnable adapter and official ImageNet ViT-S. DINO also ran from an official
-DINOv2 ViT-S checkpoint with its patch-14 geometry, and a compatible MIM
-checkpoint successfully initialized a new five-band DINO run. Two-epoch resume
-tests restored optimizer, scheduler, scaler, history, RNG, and loader state.
+Table~\ref{tab:results} summarizes the completed checks. End-to-end runs
+produced checkpoints, metrics, training curves, MIM reconstructions, DINO
+augmented views, and student--teacher similarity matrices. Five-band float32
+arrays successfully passed through the learnable adapter and an official
+ImageNet ViT-S. DINO also ran from an official DINOv2 ViT-S checkpoint using its
+patch-14 geometry, and a compatible MIM checkpoint initialized a new five-band
+DINO run. In two-epoch resume tests, the optimizer, scheduler, scaler, history,
+random state, and loader state were all restored.
 
 \begin{table}[t]
 \centering
@@ -236,27 +235,26 @@ Shard builder smoke test & ZIP/plain & 2 pass \\
 
 
 \subsection{Long-Run SparK--YOLO Pretraining}
-We also evaluated the convolutional branch in a 500-epoch SparK run using the
-WebDataset pipeline and a YOLO11-L backbone. Initialization loaded the official
-YOLO checkpoint, inserted $1\!\times\!1$ expansion bridges where dense and sparse
-channel dimensions differed, and transferred 215 tensors into the sparse
-encoder. Each epoch comprised 4,000 training batches. The learning rate warmed
-from $2\!\times\!10^{-6}$ to $10^{-5}$ over the first five epochs, remained near
-that value through the early run, and then followed a cosine decay toward
-$10^{-6}$.
+We also evaluated the convolutional branch with a 500-epoch SparK run using the
+WebDataset pipeline and a YOLO11-L backbone. We initialized from the official
+YOLO checkpoint, inserted $1\!\times\!1$ expansion bridges where the dense and
+sparse channel dimensions differed, and transferred 215 tensors to the sparse
+encoder. Each epoch contained 4,000 training batches. The learning rate warmed
+from $2\!\times\!10^{-6}$ to $10^{-5}$ during the first five epochs, stayed near
+that value early in the run, and then decayed toward $10^{-6}$ on a cosine
+schedule.
 
-At the time of analysis, 474 epochs were complete and epoch 475 had processed
-1,232 of 4,000 batches. Validation loss fell from 0.8071 at epoch 1 to a best of
-0.6581 at epoch 472, an 18.46\% relative reduction. The corresponding training
-loss was 0.6524, leaving a gap of only 0.0057. Table~\ref{tab:spark-run} shows
-representative checkpoints along the trajectory. Most improvement occurred in
-the first 100 epochs; progress thereafter was slower but persistent, with new
-minima at epochs 168, 257, 297, 353, 411, 427, 452, and 472. Over the final 25
-complete epochs, validation loss averaged 0.6610 with a standard deviation of
-0.0014. This narrow band indicates a stable late-stage plateau rather than
-divergence. The last observed validation loss, 0.6615, was slightly above the
-minimum, so downstream experiments will use the saved best checkpoint rather
-than the terminal state.
+When we analyzed the run, 474 epochs had completed and epoch 475 was 1,232 of
+4,000 batches in progress. Validation loss decreased from 0.8071 at epoch 1 to
+0.6581 at epoch 472, a relative reduction of 18.46\%. Training loss at that
+point was 0.6524, for a gap of 0.0057. Table~\ref{tab:spark-run} lists selected
+checkpoints. Most of the improvement arrived in the first 100 epochs. After
+that, the curve improved more slowly but still reached new minima at epochs 168,
+257, 297, 353, 411, 427, 452, and 472. Across the final 25 completed epochs,
+validation loss averaged 0.6610 with a standard deviation of 0.0014. This tight
+range suggests a stable late-stage plateau rather than divergence. The final
+observed validation loss (0.6615) was slightly above the minimum, so subsequent
+experiments will use the saved best checkpoint rather than the terminal state.
 
 \begin{table}[t]
 \centering
@@ -276,47 +274,47 @@ Epoch & Train & Validation & LR \\
 \bottomrule
 \end{tabular}
 \end{table}
-The automated suite covers RGB, NPY, GeoTIFF, ZIP and nested-ZIP loading;
-group-disjoint splits; NoData handling; undersized-image padding; official model
-selection; adapter initialization; MIM and DINO tensor behavior; EMA updates;
-paired crop replay; strict configuration parsing; atomic checkpointing; and
-RoPE-based DINOv3 backbones. Recent shard-builder tests additionally verify
-parallel archive grouping and valid TAR output. These checks reduce the risk
-that a long pretraining run fails because of data format, checkpoint, or model
+The automated suite covers RGB, NPY, GeoTIFF, ZIP, and nested-ZIP loading;
+group-disjoint splits; NoData handling; padding for undersized images; official
+model selection; adapter initialization; MIM and DINO tensor behavior; EMA
+updates; paired-crop replay; strict configuration parsing; atomic checkpointing;
+and RoPE-based DINOv3 backbones. Recent shard-builder tests also check parallel
+archive grouping and valid TAR output. Together, these tests reduce the chance
+that a long pretraining run fails because of data-format, checkpoint, or model-
 geometry errors.
 
 \subsection{Interpretation and Remaining Gaps}
-The corpus expansion, successful pipelines, and four-day SparK--YOLO run satisfy
-the mid-term engineering milestone: the planned models can now train
-reproducibly at archive scale. The long-run loss trajectory is meaningful
-evidence that sparse conversion, transferred YOLO weights, checkpoint selection,
-and WebDataset streaming remain numerically stable beyond smoke-test duration.
-It is not evidence that the learned representation improves a recognition task:
-reconstruction loss measures the pretext objective and can decline without
+The expanded corpus, working pipelines, and four-day SparK--YOLO run meet the
+mid-term engineering milestone: the planned models can now train reproducibly at
+archive scale. The long run gives useful evidence that sparse conversion,
+transferred YOLO weights, checkpoint selection, and WebDataset streaming remain
+numerically stable beyond a smoke test. It does not show that the representation
+improves a recognition task, since reconstruction loss can decrease without
 improving transfer.
-The results also support the feasibility of the spectral interface because the
-same official backbone accepts both RGB and five-band tensors without replacing
-its patch embedding. They do \emph{not}, however, test whether additional bands
-improve predictions; the five-band data used for verification are synthetic,
-and the catalog lacks a verified real multispectral archive.
 
-No model is yet shown to outperform its official ImageNet or DINO initialization
-on a held-out agricultural benchmark. We therefore make no claim of improved
-accuracy, robustness, or label efficiency at this stage. The largest immediate
-risks are duplicate leakage, imbalance from the 306k-image PlantNet subset and
-other large sources, RGB-only bias, and I/O saturation during multi-GPU training.
-The first three are addressed by manifest freezing, duplicate clustering,
-source-balanced sampling, and external domain splits; the last will be measured
-by comparing CPU WebDataset and DALI throughput before requesting more GPUs.
+The same official backbone also accepts RGB and five-band tensors without a
+replacement patch embedding, which supports the feasibility of the spectral
+interface. It does \emph{not} tell us whether extra bands improve predictions.
+The five-band inputs used for verification are synthetic, and the catalog still
+lacks a verified real multispectral archive.
+
+No model has yet outperformed its official ImageNet or DINO initialization on a
+held-out agricultural benchmark. Accordingly, we do not claim improved accuracy,
+robustness, or label efficiency at this stage. The main risks are duplicate
+leakage, imbalance from the 306k-image PlantNet subset and other large sources,
+RGB-only bias, and I/O saturation during multi-GPU training. We will address the
+first three through manifest freezing, duplicate clustering, source-balanced
+sampling, and external domain splits. Before requesting more GPUs, we will
+measure the remaining risk by comparing CPU WebDataset and DALI throughput.
 
 The next milestone is a ViT-S experiment matrix on frozen data: official
-initialization, MIM, DINO, and sequential MIM$\rightarrow$DINO, followed by
-linear probing and low-label fine-tuning on source-disjoint disease and species
-benchmarks. Only recipes that improve repeated-seed transfer will scale to ViT-B.
-In parallel, we will add a licensed real multispectral source and evaluate
-frozen/trainable adapters against direct patch-embedding expansion. This order
-prioritizes evidence over model size and keeps the final conclusions aligned with
-the data actually available.
+initialization, MIM, DINO, and sequential MIM$\rightarrow$DINO. We will then run
+linear probes and low-label fine-tuning on source-disjoint disease and species
+benchmarks. Only approaches that improve transfer consistently across seeds will
+move on to ViT-B. In parallel, we will add a licensed real multispectral source
+and compare frozen and trainable adapters with direct patch-embedding expansion.
+This sequence keeps the conclusions tied to the evidence and to the data that
+are actually available.
 
 {\small
 \begin{thebibliography}{9}
