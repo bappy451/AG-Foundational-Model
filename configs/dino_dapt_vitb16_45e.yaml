@@ -1,3 +1,10 @@
+# ==============================================================================
+# Agri-DINO DAPT Pretraining Configuration (Extended +25 Epochs)
+# Continues self-supervised domain-adaptive pretraining (DAPT) for another 25 epochs
+# (Total epochs: 20 completed + 25 new = 45 total epochs).
+# Automatically resumes student/teacher weights, optimizer, and scaler state from last.pt.
+# ==============================================================================
+
 data:
   data_root: "E:/AG_Dataset/shards/dataset-*.tar"
   crop_size: 224
@@ -8,14 +15,14 @@ data:
   val_fraction: 0.02
 
 runtime:
-  output_dir: "E:/AG_Dataset/AG-Foundational-Model/runs/dinov3_dapt_full_scale"
-  epochs: 100
-  resume: true
-  resume_from: "E:/AG_Dataset/AG-Foundational-Model/runs/dinov3_dapt_full_scale/last.pt"
+  output_dir: "E:/AG_Dataset/AG-Foundational-Model/runs/dinov3_dapt"
+  epochs: 45
   seed: 42
   precision: "bf16"
-  gradient_accumulation_steps: 32
+  gradient_accumulation_steps: 8
   warmup_epochs: 2
+  resume: true
+  resume_from: "E:/AG_Dataset/AG-Foundational-Model/runs/dinov3_dapt/last.pt"
 
 model:
   model_name: "B"
@@ -39,7 +46,7 @@ model:
   drop_path_rate: 0.3
 
 optimizer:
-  learning_rate: 0.00002
+  learning_rate: 0.0005
   weight_decay: 0.04
   weight_decay_end: 0.4
   min_learning_rate: 1.0e-06
