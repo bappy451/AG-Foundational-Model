@@ -1,0 +1,13 @@
+{
+  "status": "pass",
+  "checkedAt": "2026-07-27T01:49:02.900Z",
+  "workspace": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_technical",
+  "finalPptx": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/reports/Agri_DINO_Eighth_Grade_Presentation.pptx",
+  "starterPptx": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_technical/template-starter.pptx",
+  "mapPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_technical/template-frame-map.json",
+  "starterLayoutDir": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_technical/template-starter-layout",
+  "finalLayoutDir": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_technical/final-inspect/template-inspect/layouts",
+  "editDir": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_technical",
+  "issueCount": 0,
+  "issues": []
+}

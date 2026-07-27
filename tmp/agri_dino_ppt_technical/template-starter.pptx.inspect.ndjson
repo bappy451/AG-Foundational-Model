@@ -1,0 +1,196 @@
+{"kind":"deck","id":"pr/dwh1xs","name":"Deck"}
+{"kind":"layout","layoutId":"/ppt/slideMasters/slideMaster1.xml","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout1.xml","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/icuwkg","slide":1,"title":"Agri-DINO:","textShapes":6}
+{"kind":"shape","id":"sh/ofmp47eh","slide":1,"bbox":[0,0,20,720]}
+{"kind":"textbox","id":"sh/jed0j69g","slide":1,"name":"title","text":"Agri-DINO:\nDomain-adaptive self-supervision","textPreview":"Agri-DINO: | Domain-adaptive self-supervision","textChars":43,"textLines":2,"bbox":[72,92,720,150]}
+{"kind":"textbox","id":"sh/yd4za18v","slide":1,"text":"Fine-grained plant recognition","textPreview":"Fine-grained plant recognition","textChars":30,"textLines":1,"bbox":[72,272,720,68]}
+{"kind":"textbox","id":"sh/xcvihwra","slide":1,"text":"Method: self-supervised pretraining + two-stage fine-tuning","textPreview":"Method: self-supervised pretraining + two-stage fine-tuning","textChars":59,"textLines":1,"bbox":[72,350,620,64]}
+{"kind":"textbox","id":"sh/wbmh8rq5","slide":1,"text":"Md Min-Ha-Zul Abedin  ·  Md Mehedi Hasan\nAuburn University","textPreview":"Md Min-Ha-Zul Abedin  ·  Md Mehedi Hasan | Auburn University","textChars":58,"textLines":2,"bbox":[72,570,520,46]}
+{"kind":"shape","id":"sh/bad0f69k","slide":1,"bbox":[860,120,300,430]}
+{"kind":"shape","id":"sh/a9kz618z","slide":1,"bbox":[916,208,135.3,72.6]}
+{"kind":"shape","id":"sh/h8fit07u","slide":1,"bbox":[983.65,236.05,102.3,56.1]}
+{"kind":"shape","id":"sh/g761kvq9","slide":1,"bbox":[952.3,269.05,115.5,0]}
+{"kind":"textbox","id":"sh/2d472xwr","slide":1,"text":"1.52M","textPreview":"1.52M","textChars":5,"textLines":1,"bbox":[902,322,220,64]}
+{"kind":"textbox","id":"sh/ned8v2xc","slide":1,"text":"unlabeled photos\n59.67% top-1 accuracy","textPreview":"unlabeled photos | 59.67% top-1 accuracy","textChars":38,"textLines":2,"bbox":[898,398,224,66]}
+{"kind":"notes","id":"nt/icuwkg","slide":1,"text":"[Sources]\n- Agri_DINO_CVPR_Paper.tex and Agri_DINO_CVPR_Paper.pdf (project method, results, and figures).\n\nFormal opening: introduce Agri-DINO as a self-supervised plant-recognition project. The cover summarizes the method and headline result; the following slides explain the problem, training recipe, and evidence."}
+{"kind":"slide","id":"sl/8xetyl","slide":2,"title":"01  /  THE PROBLEM","textShapes":12}
+{"kind":"textbox","id":"sh/j2xs7a5w","slide":2,"text":"01  /  THE PROBLEM","textPreview":"01  /  THE PROBLEM","textChars":18,"textLines":1,"bbox":[72,44,400,22]}
+{"kind":"textbox","id":"sh/p8725kzi","slide":2,"text":"A plant can look different without changing its name","textPreview":"A plant can look different without changing its name","textChars":52,"textLines":1,"bbox":[72,78,1136,64]}
+{"kind":"textbox","id":"sh/4ny1wfyx","slide":2,"text":"A computer must learn the important clues, not the background noise.","textPreview":"A computer must learn the important clues, not the background noise.","textChars":68,"textLines":1,"bbox":[72,148,1000,34]}
+{"kind":"shape","id":"sh/fi5kzqhg","slide":2,"bbox":[72,250,292,240]}
+{"kind":"shape","id":"sh/uhwjq5gv","slide":2,"bbox":[176,286,84,84]}
+{"kind":"shape","id":"sh/hkn210z6","slide":2,"bbox":[198,305,58,26]}
+{"kind":"shape","id":"sh/gje1svy1","slide":2,"bbox":[186,328,70,0]}
+{"kind":"textbox","id":"sh/zepkbuhk","slide":2,"text":"Different light","textPreview":"Different light","textChars":15,"textLines":1,"bbox":[96,396,244,28]}
+{"kind":"textbox","id":"sh/edg32pgz","slide":2,"text":"Shadows can hide spots.","textPreview":"Shadows can hide spots.","textChars":23,"textLines":1,"bbox":[96,431,244,34]}
+{"kind":"shape","id":"sh/of2547yt","slide":2,"bbox":[416,250,292,240]}
+{"kind":"shape","id":"sh/9gbmxcze","slide":2,"bbox":[520,286,84,84]}
+{"kind":"shape","id":"sh/mdkn2xg3","slide":2,"bbox":[542,305,58,26]}
+{"kind":"shape","id":"sh/net4v2h8","slide":2,"bbox":[530,328,70,0]}
+{"kind":"textbox","id":"sh/0ril07yx","slide":2,"text":"Different angle","textPreview":"Different angle","textChars":15,"textLines":1,"bbox":[440,396,244,28]}
+{"kind":"textbox","id":"sh/1crmtszi","slide":2,"text":"Leaves can look smaller.","textPreview":"Leaves can look smaller.","textChars":24,"textLines":1,"bbox":[440,431,244,34]}
+{"kind":"shape","id":"sh/ep03yxgr","slide":2,"bbox":[760,250,292,240]}
+{"kind":"shape","id":"sh/zq94r2hc","slide":2,"bbox":[864,286,84,84]}
+{"kind":"shape","id":"sh/cnilwnyl","slide":2,"bbox":[886,305,58,26]}
+{"kind":"shape","id":"sh/dormpsz6","slide":2,"bbox":[874,328,70,0]}
+{"kind":"textbox","id":"sh/t8zadkny","slide":2,"text":"Busy background","textPreview":"Busy background","textChars":15,"textLines":1,"bbox":[784,396,244,28]}
+{"kind":"textbox","id":"sh/s7qtkfmd","slide":2,"text":"Soil and tools can distract.","textPreview":"Soil and tools can distract.","textChars":28,"textLines":1,"bbox":[784,431,244,34]}
+{"kind":"textbox","id":"sh/76hsba5s","slide":2,"text":"The hard part is not only naming a plant. It is recognizing the same plant in many real-world situations.","textPreview":"The hard part is not only naming a plant. It is recognizing the same plant in many real-world situations.","textChars":105,"textLines":1,"bbox":[160,565,960,46]}
+{"kind":"shape","id":"sh/658bip47","slide":2,"bbox":[72,681,1136,0]}
+{"kind":"textbox","id":"sh/54za9knm","slide":2,"text":"AGRI-DINO  /  PROJECT PRESENTATION","textPreview":"AGRI-DINO  /  PROJECT PRESENTATION","textChars":34,"textLines":1,"bbox":[72,691,430,16]}
+{"kind":"textbox","id":"sh/k36tgfmh","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1160,689,48,18]}
+{"kind":"notes","id":"nt/8xetyl","slide":2,"text":"[Sources]\n- Agri_DINO_CVPR_Paper.tex and Agri_DINO_CVPR_Paper.pdf (project method, results, and figures).\n\nUse the three examples to make domain shift concrete before introducing the model."}
+{"kind":"slide","id":"sl/kku9g1","slide":3,"title":"02  /  THE BIG IDEA","textShapes":12}
+{"kind":"textbox","id":"sh/jupwz25c","slide":3,"text":"02  /  THE BIG IDEA","textPreview":"02  /  THE BIG IDEA","textChars":19,"textLines":1,"bbox":[72,44,400,22]}
+{"kind":"textbox","id":"sh/9wbidoz6","slide":3,"text":"Let the model learn from many plant photos before the test","textPreview":"Let the model learn from many plant photos before the test","textChars":58,"textLines":1,"bbox":[72,78,1136,64]}
+{"kind":"textbox","id":"sh/8v21kjil","slide":3,"text":"It first learns what plant images usually look like, then learns a smaller job.","textPreview":"It first learns what plant images usually look like, then learns a smaller job.","textChars":79,"textLines":1,"bbox":[72,148,1000,34]}
+{"kind":"shape","id":"sh/z6907eho","slide":3,"bbox":[72,250,430,250]}
+{"kind":"textbox","id":"sh/e50ze90j","slide":3,"text":"STEP 1","textPreview":"STEP 1","textChars":6,"textLines":1,"bbox":[104,278,130,24]}
+{"kind":"textbox","id":"sh/lsri9ozu","slide":3,"text":"Learn from\nunlabeled photos","textPreview":"Learn from | unlabeled photos","textChars":27,"textLines":2,"bbox":[104,316,310,72]}
+{"kind":"textbox","id":"sh/07ihgji9","slide":3,"text":"No answer key is needed.\nThe model compares views\nof the same picture.","textPreview":"No answer key is needed. | The model compares views | of the same picture.","textChars":70,"textLines":3,"bbox":[104,410,300,64]}
+{"kind":"shape","id":"sh/j2d0jih8","slide":3,"bbox":[548,340,148,70]}
+{"kind":"shape","id":"sh/i1kjqd0n","slide":3,"bbox":[748,250,430,250]}
+{"kind":"textbox","id":"sh/sjixwrmt","slide":3,"text":"STEP 2","textPreview":"STEP 2","textChars":6,"textLines":1,"bbox":[780,278,130,24]}
+{"kind":"textbox","id":"sh/tkry5wne","slide":3,"text":"Learn a\nsmall task","textPreview":"Learn a | small task","textChars":18,"textLines":2,"bbox":[780,316,310,72]}
+{"kind":"textbox","id":"sh/6h0fuh4n","slide":3,"text":"Now use a small labeled\ndataset to answer a question,\nsuch as: “Which plant is this?”","textPreview":"Now use a small labeled | dataset to answer a question, | such as: “Which plant is this?”","textChars":85,"textLines":3,"bbox":[780,410,340,64]}
+{"kind":"textbox","id":"sh/7i9g3m58","slide":3,"text":"This is like studying a big picture book before taking a short quiz.","textPreview":"This is like studying a big picture book before taking a short quiz.","textChars":68,"textLines":1,"bbox":[185,568,910,44]}
+{"kind":"shape","id":"sh/kfyxs7mh","slide":3,"bbox":[72,681,1136,0]}
+{"kind":"textbox","id":"sh/5gre1cn2","slide":3,"text":"AGRI-DINO  /  PROJECT PRESENTATION","textPreview":"AGRI-DINO  /  PROJECT PRESENTATION","textChars":34,"textLines":1,"bbox":[72,691,430,16]}
+{"kind":"textbox","id":"sh/itgfqx4r","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1160,689,48,18]}
+{"kind":"notes","id":"nt/kku9g1","slide":3,"text":"[Sources]\n- Agri_DINO_CVPR_Paper.tex and Agri_DINO_CVPR_Paper.pdf (project method, results, and figures).\n\nExplain self-supervised learning with the picture-book analogy. Keep the focus on learning first, testing later."}
+{"kind":"slide","id":"sl/2yu3cd","slide":4,"title":"03  /  HOW AGRI-DINO LEARNS","textShapes":14}
+{"kind":"textbox","id":"sh/8z69sbed","slide":4,"text":"03  /  HOW AGRI-DINO LEARNS","textPreview":"03  /  HOW AGRI-DINO LEARNS","textChars":27,"textLines":1,"bbox":[72,44,400,22]}
+{"kind":"textbox","id":"sh/b6l0ja9c","slide":4,"text":"The model looks at the same image in different ways","textPreview":"The model looks at the same image in different ways","textChars":51,"textLines":1,"bbox":[72,78,1136,64]}
+{"kind":"textbox","id":"sh/qlczq58r","slide":4,"text":"Different crops and views help it focus on the plant, not one exact picture.","textPreview":"Different crops and views help it focus on the plant, not one exact picture.","textChars":76,"textLines":1,"bbox":[72,148,1000,34]}
+{"kind":"textbox","id":"sh/lcnip4re","slide":4,"text":"One plant photo","textPreview":"One plant photo","textChars":15,"textLines":1,"bbox":[92,246,190,28]}
+{"kind":"shape","id":"sh/0be1wzq9","slide":4,"bbox":[90,292,190,190]}
+{"kind":"shape","id":"sh/za50nu9o","slide":4,"bbox":[132,350,100,54]}
+{"kind":"shape","id":"sh/y9wjup83","slide":4,"bbox":[174,372,82,42]}
+{"kind":"shape","id":"sh/1gjid0ra","slide":4,"bbox":[150,386,95,0]}
+{"kind":"textbox","id":"sh/gfahkvap","slide":4,"text":"crop","textPreview":"crop","textChars":4,"textLines":1,"bbox":[116,514,70,36]}
+{"kind":"textbox","id":"sh/mp4byhg3","slide":4,"text":"zoom","textPreview":"zoom","textChars":4,"textLines":1,"bbox":[196,514,70,36]}
+{"kind":"shape","id":"sh/nqds7mho","slide":4,"bbox":[330,356,100,52]}
+{"kind":"shape","id":"sh/ormt0ry9","slide":4,"bbox":[468,248,266,280]}
+{"kind":"textbox","id":"sh/9sva9wzu","slide":4,"text":"Two learners compare\nthe views","textPreview":"Two learners compare | the views","textChars":30,"textLines":2,"bbox":[496,270,210,56]}
+{"kind":"shape","id":"sh/at4b21gf","slide":4,"bbox":[522,360,76,76]}
+{"kind":"textbox","id":"sh/budsb6hk","slide":4,"text":"student","textPreview":"student","textChars":7,"textLines":1,"bbox":[502,443,116,24]}
+{"kind":"shape","id":"sh/wvmt4by5","slide":4,"bbox":[612,360,76,76]}
+{"kind":"textbox","id":"sh/xwfadwzq","slide":4,"text":"teacher","textPreview":"teacher","textChars":7,"textLines":1,"bbox":[592,443,116,24]}
+{"kind":"shape","id":"sh/yxob61gb","slide":4,"bbox":[594,397,24,0]}
+{"kind":"textbox","id":"sh/jixsf6hw","slide":4,"text":"Are the important clues\nstill the same?","textPreview":"Are the important clues | still the same?","textChars":39,"textLines":2,"bbox":[504,475,194,38]}
+{"kind":"shape","id":"sh/vmxs36d4","slide":4,"bbox":[790,356,100,52]}
+{"kind":"shape","id":"sh/uloru1wj","slide":4,"bbox":[948,248,250,280]}
+{"kind":"textbox","id":"sh/hoza5gvu","slide":4,"text":"Better plant\nfeatures","textPreview":"Better plant | features","textChars":21,"textLines":2,"bbox":[980,310,186,72]}
+{"kind":"textbox","id":"sh/gnq9wbep","slide":4,"text":"The model keeps\nuseful patterns and\nignores distractions.","textPreview":"The model keeps | useful patterns and | ignores distractions.","textChars":57,"textLines":3,"bbox":[980,408,186,66]}
+{"kind":"shape","id":"sh/7yxsz6ds","slide":4,"bbox":[72,681,1136,0]}
+{"kind":"textbox","id":"sh/6xorq1w7","slide":4,"text":"AGRI-DINO  /  PROJECT PRESENTATION","textPreview":"AGRI-DINO  /  PROJECT PRESENTATION","textChars":34,"textLines":1,"bbox":[72,691,430,16]}
+{"kind":"textbox","id":"sh/tkfa1gvy","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1160,689,48,18]}
+{"kind":"notes","id":"nt/2yu3cd","slide":4,"text":"[Sources]\n- Agri_DINO_CVPR_Paper.tex and Agri_DINO_CVPR_Paper.pdf (project method, results, and figures).\n\nThe technical names are not needed here: student and teacher are simply two views that help the model check its own learning."}
+{"kind":"slide","id":"sl/knn9fc","slide":5,"title":"04  /  ADAPTING TO A NEW TASK","textShapes":15}
+{"kind":"textbox","id":"sh/s3u9kn2d","slide":5,"text":"04  /  ADAPTING TO A NEW TASK","textPreview":"04  /  ADAPTING TO A NEW TASK","textChars":29,"textLines":1,"bbox":[72,44,400,22]}
+{"kind":"textbox","id":"sh/87a90bml","slide":5,"text":"Warm up first, then fine-tune carefully","textPreview":"Warm up first, then fine-tune carefully","textChars":39,"textLines":1,"bbox":[72,78,1136,64]}
+{"kind":"textbox","id":"sh/98jqtgn6","slide":5,"text":"The two-step training recipe helps a small plant dataset work with a large model.","textPreview":"The two-step training recipe helps a small plant dataset work with a large model.","textChars":81,"textLines":1,"bbox":[72,148,1000,34]}
+{"kind":"textbox","id":"sh/yh87u1oj","slide":5,"text":"A large model already knows useful visual patterns.","textPreview":"A large model already knows useful visual patterns.","textChars":51,"textLines":1,"bbox":[110,220,1060,34]}
+{"kind":"shape","id":"sh/zih8n654","slide":5,"bbox":[92,310,300,170]}
+{"kind":"textbox","id":"sh/03qpwr6p","slide":5,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[120,332,52,52]}
+{"kind":"textbox","id":"sh/l4zqpwna","slide":5,"text":"Warm up the\nnew answer head","textPreview":"Warm up the | new answer head","textChars":27,"textLines":2,"bbox":[190,332,168,58]}
+{"kind":"textbox","id":"sh/idcr6l43","slide":5,"text":"Keep the main model still\nfor a few epochs.","textPreview":"Keep the main model still | for a few epochs.","textChars":43,"textLines":2,"bbox":[120,416,230,42]}
+{"kind":"shape","id":"sh/jel8zq58","slide":5,"bbox":[432,360,120,50]}
+{"kind":"shape","id":"sh/z2xwvax0","slide":5,"bbox":[620,310,300,170]}
+{"kind":"textbox","id":"sh/e1of25wf","slide":5,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[648,332,52,52]}
+{"kind":"textbox","id":"sh/14fex0f6","slide":5,"text":"Fine-tune\nall layers gently","textPreview":"Fine-tune | all layers gently","textChars":27,"textLines":2,"bbox":[718,332,168,58]}
+{"kind":"textbox","id":"sh/036x4fel","slide":5,"text":"Later layers change more;\nearly layers change less.","textPreview":"Later layers change more; | early layers change less.","textChars":51,"textLines":2,"bbox":[648,416,230,42]}
+{"kind":"shape","id":"sh/nqxwzaxc","slide":5,"bbox":[960,360,120,50]}
+{"kind":"shape","id":"sh/m5of65wr","slide":5,"bbox":[1132,310,82,170]}
+{"kind":"textbox","id":"sh/9sze1kv2","slide":5,"text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[1144,340,60,60]}
+{"kind":"textbox","id":"sh/orqx8fex","slide":5,"text":"test","textPreview":"test","textChars":4,"textLines":1,"bbox":[1145,420,58,28]}
+{"kind":"textbox","id":"sh/buhw3ud8","slide":5,"text":"We also test a flipped version of the image and average the answers.","textPreview":"We also test a flipped version of the image and average the answers.","textChars":68,"textLines":1,"bbox":[204,568,872,44]}
+{"kind":"shape","id":"sh/at8fapwn","slide":5,"bbox":[72,681,1136,0]}
+{"kind":"textbox","id":"sh/61cridk7","slide":5,"text":"AGRI-DINO  /  PROJECT PRESENTATION","textPreview":"AGRI-DINO  /  PROJECT PRESENTATION","textChars":34,"textLines":1,"bbox":[72,691,430,16]}
+{"kind":"textbox","id":"sh/72l8rils","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1160,689,48,18]}
+{"kind":"notes","id":"nt/knn9fc","slide":5,"text":"[Sources]\n- Agri_DINO_CVPR_Paper.tex and Agri_DINO_CVPR_Paper.pdf (project method, results, and figures).\n\nThis slide explains LP-FT and LLRD without relying on acronyms. The key idea is to protect useful old knowledge while learning the new task."}
+{"kind":"slide","id":"sl/p70sdn","slide":6,"title":"05  /  MAIN RESULT","textShapes":15}
+{"kind":"textbox","id":"sh/rqxsfe5g","slide":6,"text":"05  /  MAIN RESULT","textPreview":"05  /  MAIN RESULT","textChars":18,"textLines":1,"bbox":[72,44,400,22]}
+{"kind":"textbox","id":"sh/fupwbix0","slide":6,"text":"Pretraining gave the model a 10-point jump","textPreview":"Pretraining gave the model a 10-point jump","textChars":42,"textLines":1,"bbox":[72,78,1136,64]}
+{"kind":"textbox","id":"sh/etgvidgf","slide":6,"text":"On the MedicinalPlant test, Agri-DINO was almost as accurate as supervised ImageNet pretraining.","textPreview":"On the MedicinalPlant test, Agri-DINO was almost as accurate as supervised ImageNet pretraining.","textChars":96,"textLines":1,"bbox":[72,148,1000,34]}
+{"kind":"textbox","id":"sh/ds7e98fu","slide":6,"text":"Random start","textPreview":"Random start","textChars":12,"textLines":1,"bbox":[118,255,206,28]}
+{"kind":"shape","id":"sh/sredg3y9","slide":6,"bbox":[338,252,470,28]}
+{"kind":"shape","id":"sh/rq5w7ix4","slide":6,"bbox":[338,252,356.84,28]}
+{"kind":"textbox","id":"sh/qpwvedgj","slide":6,"text":"49.35%","textPreview":"49.35%","textChars":6,"textLines":1,"bbox":[820,254,70,28]}
+{"kind":"textbox","id":"sh/5one58fy","slide":6,"text":"Agri-DINO","textPreview":"Agri-DINO","textChars":9,"textLines":1,"bbox":[118,325,206,28]}
+{"kind":"shape","id":"sh/43edc3yd","slide":6,"bbox":[338,322,470,28]}
+{"kind":"shape","id":"sh/qpsvid8z","slide":6,"bbox":[338,322,431.46,28]}
+{"kind":"textbox","id":"sh/bq1wripk","slide":6,"text":"59.67%","textPreview":"59.67%","textChars":6,"textLines":1,"bbox":[820,324,70,28]}
+{"kind":"textbox","id":"sh/cradkn65","slide":6,"text":"ImageNet (supervised)","textPreview":"ImageNet (supervised)","textChars":21,"textLines":1,"bbox":[118,395,206,28]}
+{"kind":"shape","id":"sh/dsjets7q","slide":6,"bbox":[338,392,470,28]}
+{"kind":"shape","id":"sh/2l8ved83","slide":6,"bbox":[338,392,433.77,28]}
+{"kind":"textbox","id":"sh/3mhcnipo","slide":6,"text":"59.99%","textPreview":"59.99%","textChars":6,"textLines":1,"bbox":[820,394,70,28]}
+{"kind":"shape","id":"sh/onadgnq9","slide":6,"bbox":[928,244,250,215]}
+{"kind":"textbox","id":"sh/pojup87e","slide":6,"text":"+10.32","textPreview":"+10.32","textChars":6,"textLines":1,"bbox":[960,278,184,60]}
+{"kind":"textbox","id":"sh/ex8vat8r","slide":6,"text":"percentage points\nabove a random start","textPreview":"percentage points | above a random start","textChars":38,"textLines":2,"bbox":[960,350,184,48]}
+{"kind":"textbox","id":"sh/fyhcjypc","slide":6,"text":"Why this matters","textPreview":"Why this matters","textChars":16,"textLines":1,"bbox":[120,520,240,28]}
+{"kind":"textbox","id":"sh/j2dsbu54","slide":6,"text":"The model learned useful plant patterns before it ever saw the small test set's labels.","textPreview":"The model learned useful plant patterns before it ever saw the small test set's labels.","textChars":87,"textLines":1,"bbox":[120,556,950,44]}
+{"kind":"shape","id":"sh/i14ripoj","slide":6,"bbox":[72,681,1136,0]}
+{"kind":"textbox","id":"sh/54fad4na","slide":6,"text":"AGRI-DINO  /  PROJECT PRESENTATION","textPreview":"AGRI-DINO  /  PROJECT PRESENTATION","textChars":34,"textLines":1,"bbox":[72,691,430,16]}
+{"kind":"textbox","id":"sh/43mtkz6p","slide":6,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1160,689,48,18]}
+{"kind":"notes","id":"nt/p70sdn","slide":6,"text":"[Sources]\n- Agri_DINO_CVPR_Paper.tex and Agri_DINO_CVPR_Paper.pdf (project method, results, and figures).\n\nPoint out that Agri-DINO is 0.32 points below the supervised ImageNet baseline, so the claim is competitive transfer, not a victory over every baseline."}
+{"kind":"slide","id":"sl/rvx9f7","slide":7,"title":"06  /  WHAT HELPED MOST","textShapes":22}
+{"kind":"textbox","id":"sh/vexk36dc","slide":7,"text":"06  /  WHAT HELPED MOST","textPreview":"06  /  WHAT HELPED MOST","textChars":23,"textLines":1,"bbox":[72,44,400,22]}
+{"kind":"textbox","id":"sh/xojqxgfm","slide":7,"text":"Small training choices made a big difference","textPreview":"Small training choices made a big difference","textChars":44,"textLines":1,"bbox":[72,78,1136,64]}
+{"kind":"textbox","id":"sh/wna94by1","slide":7,"text":"The biggest jump came from the warm-up step before full fine-tuning.","textPreview":"The biggest jump came from the warm-up step before full fine-tuning.","textChars":68,"textLines":1,"bbox":[72,148,1000,34]}
+{"kind":"shape","id":"sh/jq18zqxs","slide":7,"bbox":[112,518,930,0]}
+{"kind":"shape","id":"sh/ypsr6lg7","slide":7,"bbox":[112,518,930,0]}
+{"kind":"textbox","id":"sh/lsjq10fi","slide":7,"text":"0","textPreview":"0","textChars":1,"textLines":1,"bbox":[72,509,30,20]}
+{"kind":"shape","id":"sh/kra98vyx","slide":7,"bbox":[112,438,930,0]}
+{"kind":"textbox","id":"sh/zux8n6x8","slide":7,"text":"20","textPreview":"20","textChars":2,"textLines":1,"bbox":[72,429,30,20]}
+{"kind":"shape","id":"sh/eto7u1gn","slide":7,"bbox":[112,358,930,0]}
+{"kind":"textbox","id":"sh/8jmxo7ql","slide":7,"text":"40","textPreview":"40","textChars":2,"textLines":1,"bbox":[72,349,30,20]}
+{"kind":"shape","id":"sh/9kvyhcr6","slide":7,"bbox":[112,278,930,0]}
+{"kind":"textbox","id":"sh/mh4fmxsv","slide":7,"text":"60","textPreview":"60","textChars":2,"textLines":1,"bbox":[72,269,30,20]}
+{"kind":"shape","id":"sh/7idwf290","slide":7,"bbox":[112,377.24,150,140.76]}
+{"kind":"textbox","id":"sh/wnmxs7qx","slide":7,"text":"35.19","textPreview":"35.19","textChars":5,"textLines":1,"bbox":[112,343.24,150,28]}
+{"kind":"textbox","id":"sh/hofylcri","slide":7,"text":"No warm-up","textPreview":"No warm-up","textChars":10,"textLines":1,"bbox":[104,536,166,48]}
+{"kind":"shape","id":"sh/ul4fqh8r","slide":7,"bbox":[302,358.72,150,159.28]}
+{"kind":"textbox","id":"sh/vmdgjm9c","slide":7,"text":"39.82","textPreview":"39.82","textChars":5,"textLines":1,"bbox":[302,324.72,150,28]}
+{"kind":"textbox","id":"sh/cr2xgnad","slide":7,"text":"Higher resolution","textPreview":"Higher resolution","textChars":17,"textLines":1,"bbox":[294,536,166,48]}
+{"kind":"shape","id":"sh/dsbe9sry","slide":7,"bbox":[492,308.36,150,209.64]}
+{"kind":"textbox","id":"sh/do3udoj2","slide":7,"text":"52.41","textPreview":"52.41","textChars":5,"textLines":1,"bbox":[492,274.36,150,28]}
+{"kind":"textbox","id":"sh/snudkj2h","slide":7,"text":"+ warm-up","textPreview":"+ warm-up","textChars":9,"textLines":1,"bbox":[484,536,166,48]}
+{"kind":"shape","id":"sh/rmlcbe1w","slide":7,"bbox":[682,286.48,150,231.52]}
+{"kind":"textbox","id":"sh/qlcvi9kb","slide":7,"text":"57.88","textPreview":"57.88","textChars":5,"textLines":1,"bbox":[682,252.48,150,28]}
+{"kind":"textbox","id":"sh/1cnuhojy","slide":7,"text":"+ gentle updates","textPreview":"+ gentle updates","textChars":16,"textLines":1,"bbox":[674,536,166,48]}
+{"kind":"shape","id":"sh/0budoj2d","slide":7,"bbox":[872,279.32,150,238.68]}
+{"kind":"textbox","id":"sh/falcfe1s","slide":7,"text":"59.67","textPreview":"59.67","textChars":5,"textLines":1,"bbox":[872,245.32,150,28]}
+{"kind":"textbox","id":"sh/e9cvm9kn","slide":7,"text":"+ flip test","textPreview":"+ flip test","textChars":11,"textLines":1,"bbox":[864,536,166,48]}
+{"kind":"shape","id":"sh/pgnel8ja","slide":7,"bbox":[1010,270,210,220]}
+{"kind":"textbox","id":"sh/ofeds32p","slide":7,"text":"+12.59","textPreview":"+12.59","textChars":6,"textLines":1,"bbox":[1032,304,166,54]}
+{"kind":"textbox","id":"sh/m9ojq1wv","slide":7,"text":"points from\nthe warm-up","textPreview":"points from | the warm-up","textChars":23,"textLines":2,"bbox":[1032,370,166,52]}
+{"kind":"textbox","id":"sh/7ax0z6dg","slide":7,"text":"The recipe is not magic. The order of the steps matters.","textPreview":"The recipe is not magic. The order of the steps matters.","textChars":56,"textLines":1,"bbox":[170,588,930,38]}
+{"kind":"shape","id":"sh/8b61sbe1","slide":7,"bbox":[72,681,1136,0]}
+{"kind":"textbox","id":"sh/9cfi1gv6","slide":7,"text":"AGRI-DINO  /  PROJECT PRESENTATION","textPreview":"AGRI-DINO  /  PROJECT PRESENTATION","textChars":34,"textLines":1,"bbox":[72,691,430,16]}
+{"kind":"textbox","id":"sh/udoju1wr","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1160,689,48,18]}
+{"kind":"notes","id":"nt/rvx9f7","slide":7,"text":"[Sources]\n- Agri_DINO_CVPR_Paper.tex and Agri_DINO_CVPR_Paper.pdf (project method, results, and figures).\n\nStress that this is a cumulative experiment: each bar adds one ingredient to the previous setting."}
+{"kind":"slide","id":"sl/u5ldqp","slide":8,"title":"07  /  TAKEAWAYS","textShapes":13}
+{"kind":"textbox","id":"sh/g7mt43ux","slide":8,"text":"07  /  TAKEAWAYS","textPreview":"07  /  TAKEAWAYS","textChars":16,"textLines":1,"bbox":[72,44,400,22]}
+{"kind":"textbox","id":"sh/gbedo3i9","slide":8,"text":"A simple recipe can help computers read plant images","textPreview":"A simple recipe can help computers read plant images","textChars":52,"textLines":1,"bbox":[72,78,1136,64]}
+{"kind":"textbox","id":"sh/hc7ex8zu","slide":8,"text":"The project gives us a useful starting point—and a reminder to check the data carefully.","textPreview":"The project gives us a useful starting point—and a reminder to check the data carefully.","textChars":88,"textLines":1,"bbox":[72,148,1000,34]}
+{"kind":"shape","id":"sh/idgvqd0f","slide":8,"bbox":[90,250,270,220]}
+{"kind":"shape","id":"sh/3epwzih0","slide":8,"bbox":[116,280,22,22]}
+{"kind":"textbox","id":"sh/4fydsnil","slide":8,"text":"Learn first","textPreview":"Learn first","textChars":11,"textLines":1,"bbox":[152,274,180,30]}
+{"kind":"textbox","id":"sh/pg7e1sz6","slide":8,"text":"Use many unlabeled plant photos to learn visual patterns.","textPreview":"Use many unlabeled plant photos to learn visual patterns.","textChars":57,"textLines":1,"bbox":[116,338,218,86]}
+{"kind":"shape","id":"sh/qhgvud0r","slide":8,"bbox":[430,250,270,220]}
+{"kind":"shape","id":"sh/ripw3ihw","slide":8,"bbox":[456,280,22,22]}
+{"kind":"textbox","id":"sh/nip8vatw","slide":8,"text":"Adapt gently","textPreview":"Adapt gently","textChars":12,"textLines":1,"bbox":[492,274,180,30]}
+{"kind":"textbox","id":"sh/mhg725sb","slide":8,"text":"Warm up the new task, then update the model carefully.","textPreview":"Warm up the new task, then update the model carefully.","textChars":54,"textLines":1,"bbox":[456,338,218,86]}
+{"kind":"shape","id":"sh/9krqxkb2","slide":8,"bbox":[770,250,270,220]}
+{"kind":"shape","id":"sh/ojip4fah","slide":8,"bbox":[796,280,22,22]}
+{"kind":"textbox","id":"sh/zuporat0","slide":8,"text":"Check labels","textPreview":"Check labels","textChars":12,"textLines":1,"bbox":[832,274,180,30]}
+{"kind":"textbox","id":"sh/etg7y5sf","slide":8,"text":"A confusing label system can make a good model look bad.","textPreview":"A confusing label system can make a good model look bad.","textChars":56,"textLines":1,"bbox":[796,338,218,86]}
+{"kind":"shape","id":"sh/1g7qt0bq","slide":8,"bbox":[160,532,960,72]}
+{"kind":"textbox","id":"sh/0fyp0fa5","slide":8,"text":"Big idea: better examples + careful training = better plant recognition.","textPreview":"Big idea: better examples + careful training = better plant recognition.","textChars":72,"textLines":1,"bbox":[190,552,900,32]}
+{"kind":"textbox","id":"sh/jat83ut4","slide":8,"text":"Questions?","textPreview":"Questions?","textChars":10,"textLines":1,"bbox":[72,640,400,30]}
+{"kind":"shape","id":"sh/ip07apsj","slide":8,"bbox":[72,681,1136,0]}
+{"kind":"textbox","id":"sh/u54b2tcr","slide":8,"text":"AGRI-DINO  /  PROJECT PRESENTATION","textPreview":"AGRI-DINO  /  PROJECT PRESENTATION","textChars":34,"textLines":1,"bbox":[72,691,430,16]}
+{"kind":"textbox","id":"sh/f6dsvydc","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1160,689,48,18]}
+{"kind":"notes","id":"nt/u5ldqp","slide":8,"text":"[Sources]\n- Agri_DINO_CVPR_Paper.tex and Agri_DINO_CVPR_Paper.pdf (project method, results, and figures).\n\nClose by returning to the opening idea: the model should recognize the same plant even when the picture changes."}

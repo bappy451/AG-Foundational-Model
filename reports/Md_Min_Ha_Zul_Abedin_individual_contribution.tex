@@ -1,0 +1,54 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
+
+\setstretch{1.08}
+\setlist[itemize]{leftmargin=*,itemsep=3pt,topsep=4pt}
+\setlist[enumerate]{leftmargin=*,itemsep=3pt,topsep=4pt}
+
+\title{\textbf{Final Project -- Individual Contribution Statement}\\[0.4em]
+       \large Agri-DINO: Domain-Adaptive Self-Supervision for Fine-Grained Plant Recognition}
+\author{Md Min-Ha-Zul Abedin\\
+Auburn University}
+\date{}
+
+\begin{document}
+\maketitle
+
+I contributed equally to the project. My primary responsibility was the
+representation-learning pipeline and the first-pass manuscript draft.
+
+\section*{Code and experiments}
+
+\begin{itemize}
+  \item Audited and cleaned the 28-source pre-training pool: removed duplicate
+        archives, excluded evaluation datasets, filtered unsuitable resolutions,
+        converted grayscale images to RGB, and created WebDataset shards.
+  \item Implemented bounded multi-scale cropping and the DINO-style
+        student--teacher objective with EMA updates, initialized from DINOv3
+        ViT-Base/16.
+  \item Implemented LP-FT, LLRD ($\gamma=0.75$), $256\times256$ inputs, and
+        horizontal-flip TTA; organized the training configurations and scripts.
+  \item Ran the main MedicinalPlant transfer experiments, tracked training
+        curves, and prepared the pipeline and training-dynamics figures.
+\end{itemize}
+
+\section*{Writing and analysis}
+I drafted the abstract, Introduction, Methodology, and portions of the
+Discussion. I wrote the corpus-audit and training descriptions, prepared figure
+captions, checked notation and reported values, and helped interpret the
+cumulative ablation without presenting it as independent causal evidence.
+
+\section*{Shared work}
+With Md Mehedi Hasan, I selected the research questions, reviewed the
+literature, checked the final numbers, edited the complete paper, and verified
+the final LaTeX/PDF output.
+
+\end{document}

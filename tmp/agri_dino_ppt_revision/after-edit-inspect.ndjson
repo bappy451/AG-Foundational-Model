@@ -1,0 +1,15 @@
+{"kind":"layout","layoutId":"/ppt/slideMasters/slideMaster1.xml","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout1.xml","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/y90nupkv","slide":1,"title":"Agri-DINO:","textShapes":6}
+{"kind":"shape","id":"sh/ul4vaxgb","slide":1,"bbox":[0,0,20,720]}
+{"kind":"textbox","id":"sh/547294r6","slide":1,"name":"title","text":"Agri-DINO:\nDomain-adaptive self-supervision","textPreview":"Agri-DINO: | Domain-adaptive self-supervision","textChars":43,"textLines":2,"bbox":[72,92,720,150]}
+{"kind":"textbox","id":"sh/k3yl0zql","slide":1,"text":"Fine-grained plant recognition","textPreview":"Fine-grained plant recognition","textChars":30,"textLines":1,"bbox":[72,272,720,68]}
+{"kind":"textbox","id":"sh/7qp4be9c","slide":1,"text":"Method: self-supervised pretraining + two-stage fine-tuning","textPreview":"Method: self-supervised pretraining + two-stage fine-tuning","textChars":59,"textLines":1,"bbox":[72,350,620,64]}
+{"kind":"textbox","id":"sh/65g3298r","slide":1,"text":"Md Min-Ha-Zul Abedin  ·  Md Mehedi Hasan\nAuburn University","textPreview":"Md Min-Ha-Zul Abedin  ·  Md Mehedi Hasan | Auburn University","textChars":58,"textLines":2,"bbox":[72,570,520,46]}
+{"kind":"shape","id":"sh/ts7md4r2","slide":1,"bbox":[860,120,300,430]}
+{"kind":"shape","id":"sh/sryl4zqx","slide":1,"bbox":[916,208,135.3,72.6]}
+{"kind":"shape","id":"sh/fu94fe98","slide":1,"bbox":[983.65,236.05,102.3,56.1]}
+{"kind":"shape","id":"sh/utg3698n","slide":1,"bbox":[952.3,269.05,115.5,0]}
+{"kind":"textbox","id":"sh/wn6dc7eh","slide":1,"text":"1.52M","textPreview":"1.52M","textChars":5,"textLines":1,"bbox":[902,322,220,64]}
+{"kind":"textbox","id":"sh/hofulsf2","slide":1,"text":"unlabeled photos\n59.67% top-1 accuracy","textPreview":"unlabeled photos | 59.67% top-1 accuracy","textChars":38,"textLines":2,"bbox":[898,398,224,66]}
+{"kind":"notes","id":"nt/y90nupkv","slide":1,"text":"[Sources]\n- Agri_DINO_CVPR_Paper.tex and Agri_DINO_CVPR_Paper.pdf (project method, results, and figures).\n\nFormal opening: introduce Agri-DINO as a self-supervised plant-recognition project. The cover summarizes the method and headline result; the following slides explain the problem, training recipe, and evidence."}

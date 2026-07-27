@@ -1,0 +1,1 @@
+Slide 1: changed the cover headline from informal wording to the formal Agri-DINO project title, clarified the training method, and added the 59.67% (+10.32 pp vs. random) result beneath the existing 1.52M metric. No new visual primitives were added; existing inherited text frames were edited in place.
