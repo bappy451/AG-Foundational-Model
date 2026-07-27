@@ -1,0 +1,67 @@
+{
+  "outputSlides": [
+    {
+      "outputSlide": 1,
+      "sourceSlide": 1,
+      "narrativeRole": "opening thesis",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        { "shapeId": "sh/547294r6", "action": "rewrite", "reason": "Replace informal cover headline with the formal project title." },
+        { "shapeId": "sh/k3yl0zql", "action": "rewrite", "reason": "Use the project name as the formal title accent." },
+        { "shapeId": "sh/7qp4be9c", "action": "rewrite", "reason": "Add a concise methodology line to the title slide." },
+        { "shapeId": "sh/wn6dc7eh", "action": "rewrite", "reason": "Keep the large pretraining-data metric while making it formal." },
+        { "shapeId": "sh/hofulsf2", "action": "rewrite", "reason": "Add the headline result beneath the data metric." }
+      ]
+    },
+    {
+      "outputSlide": 2,
+      "sourceSlide": 2,
+      "narrativeRole": "problem explainer",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 3,
+      "sourceSlide": 3,
+      "narrativeRole": "method overview",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 4,
+      "sourceSlide": 4,
+      "narrativeRole": "method visual explainer",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 5,
+      "sourceSlide": 5,
+      "narrativeRole": "training procedure",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 6,
+      "sourceSlide": 6,
+      "narrativeRole": "keep current results slide",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 7,
+      "sourceSlide": 7,
+      "narrativeRole": "keep current ablation slide",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 8,
+      "sourceSlide": 8,
+      "narrativeRole": "keep current closing slide",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    }
+  ],
+  "omittedSourceSlides": []
+}

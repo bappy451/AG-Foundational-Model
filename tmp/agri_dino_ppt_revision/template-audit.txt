@@ -1,0 +1,5 @@
+Source deck: reports/Agri_DINO_Eighth_Grade_Presentation.pptx
+
+The source deck contains eight slides in a consistent white-background, navy/green/orange system. Slide 1 is a clean title/bumper layout with an accent rail and a right-side metric panel. Slides 2–8 use a repeated header/footer rhythm and editable diagram/text shapes. No external images or inherited PowerPoint placeholders were found in the rendered source inventory. The revision keeps the full eight-slide sequence and edits only inherited text on slide 1; all methodology and results visuals on slides 3–7 remain intact.
+
+Typography and spacing are preserved from the source deck. The title slide receives a formal paper-style title, one methodology line, and a compact results line in the existing text frames.

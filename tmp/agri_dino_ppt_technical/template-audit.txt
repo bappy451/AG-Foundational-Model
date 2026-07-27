@@ -1,0 +1,5 @@
+Source deck: reports/Agri_DINO_Eighth_Grade_Presentation.pptx
+
+The eight-slide source deck uses a white canvas, navy headings, green/orange evidence accents, and editable text/shape diagrams. This revision preserves that hierarchy and edits inherited text frames only. The technical additions are limited to names and settings already reported in Agri_DINO_CVPR_Paper.tex: DINO-style student–teacher pretraining, ViT-B/16, 1.52M images, two global plus four local crops, MedicinalPlant (1,301 images, 30 species, stratified 80/20 split), LP-FT, LLRD (gamma=0.75), and horizontal-flip TTA.
+
+No new external assets are introduced. Existing results and method visuals remain in place.

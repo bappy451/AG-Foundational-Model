@@ -1,0 +1,60 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
+
+\setstretch{1.08}
+\setlist[itemize]{leftmargin=*,itemsep=3pt,topsep=4pt}
+\setlist[enumerate]{leftmargin=*,itemsep=3pt,topsep=4pt}
+
+\title{\textbf{Final Project -- Individual Contribution Statement}\\[0.4em]
+       \large Agri-DINO: Domain-Adaptive Self-Supervision for Fine-Grained Plant Recognition}
+\author{Md Mehedi Hasan\\
+Auburn University}
+\date{}
+
+\begin{document}
+\maketitle
+
+I contributed equally to the project. My primary responsibility was downstream
+evaluation, benchmark validation, and the second-pass manuscript draft.
+
+\section*{Code and experiments}
+
+\begin{itemize}
+  \item Prepared the MedicinalPlant and PlantSeg layouts, verified the
+        stratified train/validation split, and organized the deterministic
+        evaluation harness.
+  \item Implemented and ran the random-initialization and ImageNet-21k baseline
+        configurations, documenting the difference between direct fine-tuning
+        and Agri-DINO's LP-FT protocol.
+  \item Implemented the cumulative ablations for resolution, LP warmup, LLRD,
+        and horizontal-flip TTA.
+  \item Audited the PlantSeg YOLO-to-classification conversion, traced the
+        sample-level filename parsing, and identified the inflation from 20
+        disease categories to 300 micro-classes.
+  \item Debugged evaluation scripts and checked class counts, labels,
+        preprocessing, input resolution, and metric computation.
+\end{itemize}
+
+\section*{Analysis and tables}
+I ran the baseline, ablation, and PlantSeg audit experiments. I analyzed
+validation accuracy, validation loss, training--validation gaps, and the
+LP-to-LLRD transition; prepared the main-results, ablation, training-dynamics,
+and PlantSeg tables; and checked the arithmetic and consistency of the reported
+values, captions, and claims.
+
+\section*{Writing and shared work}
+I drafted Related Work, Experiments, the PlantSeg analysis, and portions of the
+Discussion and Conclusion. I also edited the full manuscript for readability,
+protocol clarity, and reproducibility. With Md Min-Ha-Zul Abedin, I reviewed the
+literature, verified the final numbers, debugged the pipeline, and checked the
+final LaTeX/PDF output.
+
+\end{document}

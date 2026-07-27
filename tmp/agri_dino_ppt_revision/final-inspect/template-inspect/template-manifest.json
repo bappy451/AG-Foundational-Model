@@ -1,0 +1,106 @@
+{
+  "sourcePptx": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/reports/Agri_DINO_Eighth_Grade_Presentation.pptx",
+  "workspace": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect",
+  "outDir": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect",
+  "generatedAt": "2026-07-27T01:38:13.970Z",
+  "slideCount": 8,
+  "slideArtifacts": [
+    {
+      "slide": 1,
+      "previewPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/source-slides/source-slide-01.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-01.png",
+      "layoutPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/layouts/source-slide-01.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-01.layout.json"
+    },
+    {
+      "slide": 2,
+      "previewPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/source-slides/source-slide-02.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-02.png",
+      "layoutPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/layouts/source-slide-02.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-02.layout.json"
+    },
+    {
+      "slide": 3,
+      "previewPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/source-slides/source-slide-03.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-03.png",
+      "layoutPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/layouts/source-slide-03.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-03.layout.json"
+    },
+    {
+      "slide": 4,
+      "previewPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/source-slides/source-slide-04.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-04.png",
+      "layoutPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/layouts/source-slide-04.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-04.layout.json"
+    },
+    {
+      "slide": 5,
+      "previewPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/source-slides/source-slide-05.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-05.png",
+      "layoutPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/layouts/source-slide-05.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-05.layout.json"
+    },
+    {
+      "slide": 6,
+      "previewPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/source-slides/source-slide-06.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-06.png",
+      "layoutPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/layouts/source-slide-06.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-06.layout.json"
+    },
+    {
+      "slide": 7,
+      "previewPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/source-slides/source-slide-07.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-07.png",
+      "layoutPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/layouts/source-slide-07.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-07.layout.json"
+    },
+    {
+      "slide": 8,
+      "previewPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/source-slides/source-slide-08.png",
+      "previewRelativePath": "template-inspect/source-slides/source-slide-08.png",
+      "layoutPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/layouts/source-slide-08.layout.json",
+      "layoutRelativePath": "template-inspect/layouts/source-slide-08.layout.json"
+    }
+  ],
+  "inspectPath": "/Users/abedin/Desktop/AG_Project/AG-Foundational-Model/tmp/agri_dino_ppt_revision/final-inspect/template-inspect/template-inspect.ndjson",
+  "inspectRelativePath": "template-inspect/template-inspect.ndjson",
+  "inspectTruncated": true,
+  "inspectMetadata": {
+    "revision": "psfl2x",
+    "target": {
+      "id": "pr/njs17f"
+    },
+    "kind": {
+      "requested": "slide,textbox,shape,image,table,chart",
+      "tokens": [
+        "slide",
+        "textbox",
+        "shape",
+        "image",
+        "table",
+        "chart"
+      ]
+    },
+    "include": {
+      "tokens": []
+    },
+    "exclude": {
+      "tokens": []
+    },
+    "notices": []
+  },
+  "extractedMedia": [],
+  "fonts": [
+    "+mj-lt",
+    "+mn-lt",
+    "Arial",
+    "Calibri",
+    "Calibri Light"
+  ],
+  "packageParts": {
+    "mediaCount": 0,
+    "slideXmlCount": 8,
+    "chartCount": 0,
+    "tableSlideCount": 0
+  }
+}

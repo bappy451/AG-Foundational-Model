@@ -1,0 +1,95 @@
+{
+  "outputSlides": [
+    {
+      "outputSlide": 1,
+      "sourceSlide": 1,
+      "narrativeRole": "opening thesis",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        { "shapeId": "sh/7qp4be9c", "action": "rewrite", "reason": "Name the technical training recipe on the cover." }
+      ]
+    },
+    {
+      "outputSlide": 2,
+      "sourceSlide": 2,
+      "narrativeRole": "keep current problem slide",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    },
+    {
+      "outputSlide": 3,
+      "sourceSlide": 3,
+      "narrativeRole": "method overview",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        { "shapeId": "sh/d0jax03i", "action": "rewrite", "reason": "Clarify the DINO-style self-supervised setup." },
+        { "shapeId": "sh/obq90bml", "action": "rewrite", "reason": "Add the pretraining corpus scale to Step 1." },
+        { "shapeId": "sh/pcjqtg36", "action": "rewrite", "reason": "State that pretraining uses no human labels and multi-crop views." },
+        { "shapeId": "sh/m1c3mlsn", "action": "rewrite", "reason": "Name the downstream fine-tuning stage." },
+        { "shapeId": "sh/943mhgre", "action": "rewrite", "reason": "Add the MedicinalPlant dataset size and class count." },
+        { "shapeId": "sh/83ulovat", "action": "rewrite", "reason": "Give the audience a concise transfer-learning interpretation." }
+      ]
+    },
+    {
+      "outputSlide": 4,
+      "sourceSlide": 4,
+      "narrativeRole": "method visual explainer",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        { "shapeId": "sh/1cj2d8b6", "action": "rewrite", "reason": "Use a technical but readable title for the DINO comparison." },
+        { "shapeId": "sh/0ba143al", "action": "rewrite", "reason": "Identify the ViT-B/16 student–teacher backbone." },
+        { "shapeId": "sh/rm1k7yt4", "action": "rewrite", "reason": "Label the input as multi-crop views." },
+        { "shapeId": "sh/jadsz2xk", "action": "rewrite", "reason": "Name the student and EMA teacher roles." },
+        { "shapeId": "sh/h4fa9wfy", "action": "rewrite", "reason": "Explain the cross-view loss in plain technical language." },
+        { "shapeId": "sh/3ytsrmpw", "action": "rewrite", "reason": "Label the learned representation explicitly." },
+        { "shapeId": "sh/2xkrih8b", "action": "rewrite", "reason": "Add the two-global/four-local crop configuration." }
+      ]
+    },
+    {
+      "outputSlide": 5,
+      "sourceSlide": 5,
+      "narrativeRole": "training procedure",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        { "shapeId": "sh/dgbulwnm", "action": "rewrite", "reason": "Introduce LP-FT and LLRD without removing the accessible explanation." },
+        { "shapeId": "sh/cf2tcr61", "action": "rewrite", "reason": "Connect the recipe to downstream adaptation." },
+        { "shapeId": "sh/z2tcnm5s", "action": "rewrite", "reason": "Identify the DINOv3-initialized ViT-B/16 checkpoint." },
+        { "shapeId": "sh/032tgr6d", "action": "rewrite", "reason": "Name linear probing as LP." },
+        { "shapeId": "sh/n6dcr65o", "action": "rewrite", "reason": "Add the five-epoch frozen-backbone detail." },
+        { "shapeId": "sh/ahkvi1cb", "action": "rewrite", "reason": "Name layer-wise learning-rate decay as LLRD." },
+        { "shapeId": "sh/v2twb6dw", "action": "rewrite", "reason": "Add gamma and the gentle-update explanation." },
+        { "shapeId": "sh/j6dwfqds", "action": "rewrite", "reason": "Label the final test-time augmentation stage as TTA." },
+        { "shapeId": "sh/sb6xsvu9", "action": "rewrite", "reason": "Explain horizontal-flip test-time augmentation." }
+      ]
+    },
+    {
+      "outputSlide": 6,
+      "sourceSlide": 6,
+      "narrativeRole": "results evidence",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        { "shapeId": "sh/zi98nu94", "action": "rewrite", "reason": "Add the dataset size, class count, and fixed stratified split." },
+        { "shapeId": "sh/cbe5g3ih", "action": "rewrite", "reason": "Clarify when human labels are used." }
+      ]
+    },
+    {
+      "outputSlide": 7,
+      "sourceSlide": 7,
+      "narrativeRole": "ablation evidence",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        { "shapeId": "sh/cb2tkvap", "action": "rewrite", "reason": "Identify the dataset and input resolution for the ablation." },
+        { "shapeId": "sh/dcbud0ra", "action": "rewrite", "reason": "Explain that the bars are cumulative additions." },
+        { "shapeId": "sh/q143ylov", "action": "rewrite", "reason": "Name the LLRD setting and gamma value." }
+      ]
+    },
+    {
+      "outputSlide": 8,
+      "sourceSlide": 8,
+      "narrativeRole": "keep current closing slide",
+      "reuseMode": "duplicate-slide",
+      "editTargets": []
+    }
+  ],
+  "omittedSourceSlides": []
+}

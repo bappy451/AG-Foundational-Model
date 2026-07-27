@@ -2,7 +2,7 @@
 %%  Agri-DINO: Self-Supervised Domain-Adaptive Vision
 %%  Transformer Pre-Training for Fine-Grained Agricultural
 %%  and Botanical Phenotyping
-%%  CVPR 2026 Submission — Double-Blind Review Version
+%%  CVPR 2026 Submission - Double-Blind Review Version
 %% ============================================================
 \documentclass[10pt,twocolumn,letterpaper]{article}
 
@@ -40,7 +40,6 @@
 
 \author{
 Md Min-Ha-Zul Abedin \quad Md Mehedi Hasan\\
-Department of Computer Science and Software Engineering\\
 Auburn University\\
 {\tt\small \{mza0288,\;mzh0159\}@auburn.edu}
 }
@@ -53,18 +52,18 @@ Auburn University\\
 General-purpose vision foundation models are strong at broad recognition, but
 agricultural images often require decisions from subtle, local cues such as
 leaf venation, small lesions, and phenotypic variation across environments.
-We introduce \textbf{Agri-DINO}, a DINOv3-initialized Vision Transformer
+We introduce Agri-DINO, a DINOv3-initialized Vision Transformer
 adapted to agriculture through domain-adaptive pre-training (DAPT) on a
 curated corpus of \num{1.52} million high-purity botanical and phytopathological images (audited from a 2M+ candidate pool).
 The additional agricultural pre-training uses no downstream human labels.
 For downstream transfer, we evaluate a structured protocol that combines
-\textbf{two-stage linear probing then fine-tuning (LP-FT)},
-\textbf{layer-wise learning-rate decay (LLRD, $\gamma{=}0.75$)}, and
-\textbf{$256{\times}256$ tokenization}. The protocol is designed to limit
+two-stage linear probing then fine-tuning (LP-FT),
+layer-wise learning-rate decay (LLRD, $\gamma{=}0.75$), and
+$256{\times}256$ tokenization. The protocol is designed to limit
 feature drift on small downstream datasets. On a fixed stratified split of a
 fine-grained medicinal-plant classification dataset, Agri-DINO reaches
-\textbf{59.67\%} top-1 accuracy, a \textbf{+10.32-point} gain over random
-initialization and similar accuracy to supervised ImageNet-21k initialization.
+59.67\% top-1 accuracy, a +10.32-point gain over random initialization and
+similar accuracy to supervised ImageNet-21k initialization.
 The cumulative ablation quantifies the incremental contribution of each
 component. We also diagnose a benchmark-construction error that fragments
 disease labels into sample-specific micro-classes and makes the resulting
@@ -94,36 +93,38 @@ label requirement for pre-training, but it does not remove the adaptation
 problem: small downstream datasets can induce feature drift, and the standard
 $224\times224$ input can undersample fine biological structure.
 
-\noindent\textbf{This work} studies these issues through the following
-components of Agri-DINO:
+\noindent\textbf{This work} addresses these issues with three linked design
+choices:
 
-\noindent\textbf{C1. DINOv3-Initialized Agricultural Adaptation.}
+\noindent\textbf{C1.} DINOv3-Initialized Agricultural Adaptation.
 Starting from an official DINOv3 ViT-Base/16 checkpoint, we stream
-\num{1.52} million curated RGB images—systematically audited from 28+ public repositories to eliminate duplicate archives, $128{\times}128$ satellite tiles, and evaluation data leakage—through a DINO-style student--teacher
-distillation pipeline. The resulting 86M-parameter
-\texttt{ViT-Base/16} checkpoint is adapted to agricultural visual statistics
-without using the source labels.
+\num{1.52} million curated RGB images, audited across 28+ public repositories,
+through a DINO-style student--teacher distillation pipeline. The audit removes
+duplicate archives, sub-224-pixel satellite tiles, and the downstream datasets
+used in our evaluation. The resulting 86M-parameter \texttt{ViT-Base/16}
+checkpoint is adapted to agricultural visual statistics without using source
+labels.
 
-\noindent\textbf{C2. Two-Stage LP-FT Adaptation Protocol.}
+\noindent\textbf{C2.} Two-Stage LP-FT Adaptation Protocol.
 We evaluate a two-stage protocol: a brief linear-probing warmup to align the
 classification head, followed by backbone fine-tuning with layer-wise learning
 rate decay. In the cumulative ablation, the full protocol is 24.48 points above
 the no-LP, low-resolution, no-TTA baseline; this sequence is not an independent
 estimate of forgetting or of any single component's effect.
 
-\noindent\textbf{C3. Evaluation Protocol and Benchmark Audit.}
-We define standardized train/validation splits and evaluation scripts for
-downstream benchmarking, and we expose a micro-class fragmentation pathology in
-one YOLO-to-classification conversion that can distort the apparent task
-difficulty. We use ``Agri-Bench'' as shorthand for this protocol and audit, not
-as a claim of a fully released multi-task benchmark suite.
+\noindent\textbf{C3.} Evaluation Protocol and Benchmark Audit.
+We define the train/validation splits and evaluation scripts used in our
+experiments, and expose a micro-class fragmentation pathology in one
+YOLO-to-classification conversion that can distort apparent task difficulty.
+Here, ``Agri-Bench'' denotes this protocol and audit; it is not a claim of a
+fully released multi-task benchmark suite.
 
 On the reported medicinal-plant split, Agri-DINO performs similarly to
-supervised ImageNet-21k initialization under the reported adaptation protocols,
-without using downstream human labels during additional pre-training. We treat
-this result as evidence for the value of in-domain self-supervision on this
-split, not as a claim that one benchmark establishes general agricultural
-superiority.
+supervised ImageNet-21k initialization under the respective adaptation
+protocols, without using downstream human labels during additional
+pre-training. We therefore interpret the result as evidence that in-domain
+self-supervision is competitive on this split, not as evidence of general
+agricultural superiority.
 
 %% ─── 2. Related Work ────────────────────────────────────────
 \section{Related Work}
@@ -160,10 +161,11 @@ agricultural adaptation.
 
 We choose DINO as the primary objective because the downstream task is
 fine-grained classification: semantic separability and local-neighborhood
-structure are more directly aligned with the target than reconstruction fidelity
-alone. This is a task-motivated choice, not a claim that DINO dominates every
-SSL setting. Our corpus is roughly 27 times smaller than LVD-142M, so coverage
-of agricultural acquisition conditions is an important complement to scale.
+structure are directly relevant to the target, whereas reconstruction fidelity
+alone is not. This is a task-motivated choice, not a claim that DINO dominates
+every SSL setting. Although our corpus is much smaller than LVD-142M, its value
+comes from covering agricultural acquisition conditions that generic web data
+do not target explicitly.
 
 \subsection{Domain Adaptation}
 Domain-aligned pre-training has improved transfer in specialized domains such
@@ -198,10 +200,11 @@ Benchmark design is part of the scientific problem. VTAB~\cite{zhai2019large}
 shows that representation quality depends on the task suite, and agricultural
 benchmarks add further variation in class granularity, split strategy,
 preprocessing, and label quality. We therefore report the split, taxonomy, and
-input protocol explicitly and include a deterministic evaluation harness. Our
-contribution is a controlled joint study of DINO-based domain-adaptive
-pre-training, LP-FT/LLRD adaptation, and benchmark construction on a common
-ViT-Base/16 backbone—not a claim of universal agricultural superiority.
+input protocol explicitly and include a deterministic evaluation harness. We
+present a controlled joint study of DINO-based domain-adaptive pre-training,
+LP-FT/LLRD adaptation, and benchmark construction on a common ViT-Base/16
+backbone. The scope is deliberately narrower than a claim of universal
+agricultural superiority.
 
 %% ─── 3. Methodology ─────────────────────────────────────────
 \section{Agri-DINO}
@@ -297,28 +300,30 @@ ViT-Base/16 backbone—not a claim of universal agricultural superiority.
 }% end resizebox
 \caption{
   \textbf{Agri-DINO two-row end-to-end architecture and adaptation pipeline.}
-  \textbf{(a)~Phase 1 (Top Row — Self-Supervised Domain-Adaptive Pre-Training):} Unlabeled agricultural images from \texttt{Agri-Corpus-1.5M} undergo Bounded Multi-Scale Cropping to produce two global ($224\times224$) and four local ($96\times96$) views. A ViT-Base/16 student network $\theta_s$ is trained via cross-view distillation against an exponential moving average (EMA) teacher $\theta_t$ (with stop-gradient $\bot$) using centered projection heads and Sinkhorn normalization. Notice the clean vertical EMA update between the student and teacher networks.
-  \textbf{(b)~Phase 2 (Bottom Row — Structured Downstream Adaptation):} The resulting checkpoint $\theta_0$ transfers to downstream agricultural tasks without human pre-training labels. To prevent feature drift on small datasets, adaptation proceeds in two stages: a 5-epoch Linear Probing (LP) warmup with frozen transformer blocks to align the classifier head, followed by end-to-end fine-tuning with Layer-Wise Learning Rate Decay (LLRD, $\gamma{=}0.75$) to preserve early botanical edge and venation filters. Test-time augmentation (horizontal-flip TTA) produces the final consensus prediction~$\hat{y}$.
+  \textbf{(a)~Phase 1 (Top Row - Self-Supervised Domain-Adaptive Pre-Training):} Unlabeled agricultural images from \texttt{Agri-Corpus-1.5M} undergo bounded multi-scale cropping to produce two global ($224\times224$) and four local ($96\times96$) views. A ViT-Base/16 student $\theta_s$ is trained by cross-view distillation against an exponential moving average (EMA) teacher $\theta_t$, using centered projection heads and Sinkhorn normalization.
+  \textbf{(b)~Phase 2 (Bottom Row - Structured Downstream Adaptation):} The adapted checkpoint $\theta_0$ is transferred to downstream tasks without human pre-training labels. Adaptation uses a 5-epoch linear-probing (LP) warmup with frozen transformer blocks, followed by end-to-end fine-tuning with layer-wise learning-rate decay (LLRD, $\gamma{=}0.75$). Horizontal-flip test-time augmentation (TTA) yields the final consensus prediction~$\hat{y}$.
 }
 \label{fig:pipeline}
 \end{figure*}
 
 %% --- 3.1 Pre-Training Corpus Construction ---
-\subsection{Pre-Training Corpus Audit and Scale Normalization}
+\subsection{Pre-Training Corpus Audit}
 \label{sec:corpus}
 
 \noindent\textbf{Multi-Source Candidate Audit and Deduplication.}
-We construct our pre-training pool from 28 publicly available agricultural and botanical datasets (\texttt{Dataset.yml}), initially totaling over 2.07~million raw candidate images (926.9~GB). An audit of uncurated agricultural repositories reveals three systematic data pathologies that severely degrade self-supervised Vision Transformers: (i)~\emph{duplicate and leakage contamination}, wherein mirrored ZIP archives (e.g., duplicate releases of \texttt{Plant Disease Expert} and \texttt{Plant Leaves}) account for 15.9~GB of redundant tensors; (ii)~\emph{out-of-domain spatial resolution}, exemplified by \texttt{GeoPlant} (188,407 satellite patches at $128{\times}128$ px, 53\% grayscale), which falls below the standard $224{\times}224$ crop window and forces zero-padded border reconstruction; and (iii)~\emph{downstream benchmark leakage}, where evaluation targets overlap with pre-training sources. We strictly remove all duplicate archives, discard sub-224~px satellite patches and tiny datasets ($<200$ samples), and exclude all downstream evaluation benchmarks (\texttt{MedicinalPlant}, \texttt{PlantSeg}, \texttt{Edible Wild Plants}, \texttt{Pea Plant}, \texttt{Indian Medicinal Plants}) to guarantee zero data leakage.
+We construct our pre-training pool from 28 publicly available agricultural and botanical datasets (\texttt{Dataset.yml}), initially totaling over 2.07~million raw candidate images (926.9~GB). An audit of these repositories identified three recurring issues: (i)~\emph{duplicate and leakage contamination}, in which mirrored ZIP archives (including duplicate releases of \texttt{Plant Disease Expert} and \texttt{Plant Leaves}) account for 15.9~GB of redundant tensors; (ii)~\emph{out-of-domain spatial resolution}, exemplified by \texttt{GeoPlant} (188,407 satellite patches at $128{\times}128$ px, 53\% grayscale), which is smaller than the standard $224{\times}224$ crop window; and (iii)~\emph{downstream benchmark leakage}, where evaluation targets overlap with pre-training sources. We remove duplicate archives, discard sub-224~px satellite patches and tiny datasets ($<200$ samples), and exclude the downstream evaluation benchmarks (\texttt{MedicinalPlant}, \texttt{PlantSeg}, \texttt{Edible Wild Plants}, \texttt{Pea Plant}, and \texttt{Indian Medicinal Plants}) from pre-training.
 
 \noindent\textbf{Curated Taxonomy and Domain Distribution.}
-After deduplication and filtering, our curated pre-training corpus comprises \textbf{\num{1516428} high-purity RGB images} sharded into streaming WebDataset \texttt{.tar} archives. The corpus is structured across four complementary agricultural domains:
+After deduplication and filtering, the pre-training corpus contains
+\num{1516428} RGB images stored in streaming WebDataset \texttt{.tar}
+archives. The corpus spans four complementary agricultural domains:
 (1)~\emph{Foliar Pathology and Disease Lesions} ($\approx 70\%$, e.g., \texttt{PlantVillage} [162k], \texttt{PlantifyDr} [125k], \texttt{Plant Disease Expert} [200k], \texttt{Wheat Plant Diseases} [16k], \texttt{Ghana Crop Disease} [50k]), providing fine-grained chlorosis, necrosis, and rust patterns;
 (2)~\emph{Botanical Biodiversity and Taxonomy} ($\approx 20\%$, e.g., \texttt{PlantNet-300K} across 1,081 species, \texttt{Plants Leafs} [190k], \texttt{House Plant Species} [30k]), capturing diverse morphological structures;
 (3)~\emph{Weed and Seedling Discrimination} ($\approx 7\%$, e.g., \texttt{DeepWeeds} [17.5k], \texttt{Soybean Weed Detection} [30.6k], \texttt{CottonWeedDet3} [20k], \texttt{V2 Plant Seedlings} [11k]), providing in-field background clutter and occlusion; and
 (4)~\emph{Canopy Phenotyping and Aerial Surveys} ($\approx 3\%$, e.g., \texttt{OPPD} [47k], \texttt{UNL-CPPD} [50k], \texttt{Agriculture-Vision} [94k]), supplying macro-scale field structure.
 
 \noindent\textbf{Bounded Multi-Scale Cropping.}
-A second pathology in agricultural vision is extreme scale variance: candidate resolutions range from $31{\times}31$~px thumbnails to $6000{\times}4000$~px aerial field scans (\texttt{OPPD}, \texttt{CottonWeedDet3}), with 63.3\% of images falling either below 224~px or above 4096~px. Under naive ImageNet random cropping, a $224{\times}224$ crop on a 4096~px scan samples only 0.3\% of the image area—frequently capturing empty soil background. Conversely, 1-channel grayscale datasets (e.g., 60\% of \texttt{Cotton Plant Disease}) broadcast zero-chrominance RGB tensors. We resolve these issues by introducing a \textbf{Bounded Multi-Scale Crop} pipeline during WebDataset generation: any image with minimum side $>1024$~px is first rescaled to a 1024~px bounding frame, small images ($<224$~px) are bicubically upscaled, and 1-channel images are converted to true RGB. When DINO multi-crop augmentation (two global views at $0.4\text{--}1.0$ scale and four local views at $0.05\text{--}0.4$ scale) is applied to these bounded frames, every crop consistently samples semantically meaningful plant tissue.
+The corpus also exhibits substantial scale variance: candidate resolutions range from $31{\times}31$~px thumbnails to $6000{\times}4000$~px aerial field scans (\texttt{OPPD}, \texttt{CottonWeedDet3}), with 63.3\% of images falling below 224~px or above 4096~px. Under naive ImageNet random cropping, a $224{\times}224$ crop on a 4096~px scan covers only 0.3\% of the image area and can miss the relevant plant region. Conversely, 1-channel grayscale datasets (e.g., 60\% of \texttt{Cotton Plant Disease}) require explicit conversion to RGB. We address these issues with a \texttt{Bounded Multi-Scale Crop} pipeline during WebDataset generation: images with minimum side $>1024$~px are rescaled to a 1024~px bounding frame, images smaller than 224~px are bicubically upscaled, and 1-channel images are converted to RGB. DINO multi-crop augmentation then samples two global views at $0.4\text{--}1.0$ scale and four local views at $0.05\text{--}0.4$ scale.
 
 %% --- 3.2 Self-Supervised Pre-Training ---
 \subsection{Self-Supervised Pre-Training Objective}
@@ -354,19 +359,18 @@ with an exponential moving average:
 where $\lambda$ follows a cosine schedule that approaches 1 over training.
 
 %% --- 3.3 Two-Stage LP-FT ---
-\subsection{Two-Stage LP-FT with Domain-Calibrated LLRD}
+\subsection{Two-Stage LP-FT with LLRD}
 \label{sec:lpft}
 
 \paragraph{Motivation.}
 When a self-supervised ViT is fine-tuned end-to-end on a small downstream
-dataset $\mathcal{D}_{\mathrm{down}}$, the randomly initialized classification
-head can produce large early gradients before it has aligned with the frozen
-feature space. Such updates can distort pre-trained features and reduce
-out-of-distribution robustness~\cite{kumar2022fine}. We therefore separate head
-alignment from backbone adaptation. In our cumulative ablation, the full
-protocol is 24.48 points above the no-LP, low-resolution, no-TTA baseline; this
-difference includes several interventions and is not interpreted as a direct
-measurement of forgetting.
+dataset $\mathcal{D}_{\mathrm{down}}$, a randomly initialized classification
+head can generate large early gradients before it has aligned with the feature
+space. Such updates can distort useful pre-trained features~\cite{kumar2022fine}.
+We therefore separate head alignment from backbone adaptation. In the cumulative
+ablation, adding all components raises accuracy by 24.48 points over the no-LP,
+low-resolution, no-TTA baseline; this difference combines several interventions
+and is not a direct measurement of forgetting.
 
 \paragraph{Stage 1: Linear Probing (Epochs $1 \leq e \leq E_w$).}
 The backbone parameters $\theta_{\mathrm{bb}}$ are strictly frozen:
@@ -376,8 +380,8 @@ The backbone parameters $\theta_{\mathrm{bb}}$ are strictly frozen:
   \label{eq:freeze}
 \end{equation}
 Only $W_{\mathrm{head}} \sim \mathcal{N}(0, 0.02^2)$ is updated via AdamW.
-This warmup aligns the classification hyperplane with the frozen DINO feature
-space before any gradient signal reaches the backbone.
+This warmup aligns the classifier with the frozen DINO feature space before any
+gradient signal reaches the backbone.
 
 \paragraph{Stage 2: End-to-End LLRD Fine-Tuning ($e > E_w$).}
 The backbone is unfrozen and Layer-wise Learning Rate Decay (LLRD)
@@ -388,7 +392,7 @@ $L = 12$ for ViT-Base), the effective learning rate is:
   \label{eq:llrd}
 \end{equation}
 where $\gamma = 0.75$ is the decay factor used in our experiments. This assigns
-\emph{lower} learning rates to early blocks and \emph{higher} rates to upper
+lower learning rates to early blocks and higher rates to upper
 blocks. We use this value as a practical setting for the present benchmark; a
 broader sweep is needed before treating it as a universal calibration for
 self-supervised features.
@@ -404,7 +408,7 @@ spatially undersampled at the standard $224\times224$ resolution
 sequence length to $N_p = 256$ patches; the ViT positional embeddings are
 interpolated to this grid.
 
-At inference, we apply \textbf{test-time augmentation (TTA)} by averaging the
+At inference, we apply test-time augmentation (TTA) by averaging the
 pre-softmax logits for the original image and its horizontal reflection:
 \begin{equation}
   \hat{y}
@@ -420,9 +424,9 @@ is diagnostic.
 %% ─── 4. Experiments ─────────────────────────────────────────
 \section{Experiments}
 
-We organize the evaluation around four reader-facing questions: how Agri-DINO
-compares with standard initialization, which adaptation components matter, how
-the training dynamics evolve, and whether the PlantSeg benchmark is well-formed.
+We organize the evaluation around four questions: how Agri-DINO compares with
+standard initialization, which adaptation components matter, how training
+evolves, and whether the PlantSeg benchmark is well formed.
 
 \subsection{Datasets and Implementation}
 
@@ -440,8 +444,8 @@ We evaluate on two benchmarks:
 \end{itemize}
 
 \noindent\textbf{Implementation details.}
-All experiments run on a single NVIDIA RTX 4090 (24 GB VRAM) under
-PyTorch 2.0 with \texttt{bfloat16} mixed precision. We use the AdamW
+We run all experiments on a single NVIDIA RTX 4090 (24 GB VRAM) with
+PyTorch 2.0 and \texttt{bfloat16} mixed precision. We use the AdamW
 optimizer with base learning rate $\eta = 3\!\times\!10^{-4}$, weight
 decay 0.1, label smoothing 0.2, batch size 128, and 50 training epochs.
 A cosine annealing schedule governs $\eta$ after a 5-epoch warmup.
@@ -449,7 +453,7 @@ Gradient clipping at norm 1.0 and dropout (rate 0.1) are applied throughout.
 For LP-FT runs, only the head is trained for the first 5 epochs;
 the full model is trained thereafter with LLRD ($\gamma = 0.75$).
 
-\subsection{Comparison with Baseline Initialization Strategies}
+\subsection{Baseline Initialization Comparison}
 
 Table~\ref{tab:main} compares Agri-DINO with two initialization baselines on
 \texttt{MedicinalPlant}. All rows use the same ViT-Base/16 architecture and
@@ -487,13 +491,12 @@ ImageNet-21k (Sup.)      & 21k labels & Direct FT    & \underline{59.99} & +10.6
 \end{table}
 
 \noindent\textbf{Key findings.}
-Agri-DINO reaches \textbf{59.67\%} top-1 accuracy on this split, an absolute
-improvement of \textbf{+10.32 points} over random initialization. Its score is
-\textbf{0.32 points} below the reported ImageNet-21k baseline
-(\textbf{59.99\%}). Because the baseline rows use direct fine-tuning while
-Agri-DINO uses LP-FT, this comparison indicates competitive transfer under the
-reported protocols; it does not isolate pre-training from adaptation or establish
-equivalence across datasets and deployment conditions.
+Agri-DINO reaches 59.67\% top-1 accuracy on this split, an absolute improvement
+of +10.32 points over random initialization. Its score is 0.32 points below the
+reported ImageNet-21k baseline (59.99\%). Because the baseline rows use direct
+fine-tuning while Agri-DINO uses LP-FT, this comparison indicates competitive
+transfer under the reported protocols; it does not isolate pre-training from
+adaptation or establish equivalence across datasets and deployment conditions.
 
 \subsection{Ablation Study}
 \label{sec:ablation}
@@ -530,19 +533,25 @@ one component to the preceding configuration.
 \end{table}
 
 The cumulative ablation shows three practical effects. Increasing the input
-resolution from $224^2$ to $256^2$ adds \textbf{+4.63 points} (row b), consistent
-with the value of fine structure for botanical discrimination. Adding the LP
-warmup produces the largest incremental gain, \textbf{+12.59 points} (row c),
-which is consistent with early head--backbone mismatch being an important
-failure mode of direct adaptation. LLRD adds a further \textbf{+5.47 points}
-(row d), while horizontal-flip TTA adds \textbf{+1.79 points} at inference time
+resolution from $224^2$ to $256^2$ adds +4.63 points (row b), consistent with
+the value of fine structure for botanical discrimination. Adding the LP warmup
+produces the largest incremental gain, +12.59 points (row c), which is
+consistent with early head--backbone mismatch being an important failure mode
+of direct adaptation. LLRD adds a further +5.47 points (row d), while
+horizontal-flip TTA adds +1.79 points at inference time
 and requires no additional training. Because the rows are cumulative, these
 increments should not be interpreted as independent effects.
 
 \subsection{Training Dynamics and Layer-Wise Adaptation Analysis}
 \label{sec:convergence}
 
-Table~\ref{tab:training} and Figure~\ref{fig:dynamics} trace validation accuracy, loss trajectories, and layer-wise learning rate decay across the fine-tuning lifecycle. As illustrated in Figure~\ref{fig:dynamics}(a), the two-stage transition at epoch~5 (LP $\rightarrow$ LLRD) is followed by an immediate surge in validation accuracy as backbone gradients begin propagating, climbing from 39.2\% to 56.3\% by epoch~20 before plateauing at 59.67\%—matching supervised ImageNet-21k weights (59.99\%) and outperforming random initialization by +10.32 points.
+Table~\ref{tab:training} and Figure~\ref{fig:dynamics} trace validation
+accuracy, loss, and the layer-wise learning-rate profile throughout fine-tuning.
+In Figure~\ref{fig:dynamics}(a), the transition at epoch~5 (LP $\rightarrow$
+LLRD) is followed by a rapid increase in validation accuracy as backbone
+updates begin. Accuracy rises from 39.2\% at epoch~5 to 56.3\% at epoch~20,
+then levels off at 59.67\%, 0.32 points below the reported ImageNet-21k result
+and 10.32 points above scratch.
 
 \begin{table}[t]
 \centering
@@ -662,18 +671,25 @@ Table~\ref{tab:training} and Figure~\ref{fig:dynamics} trace validation accuracy
 \end{minipage}
 \caption{
   \textbf{Training dynamics and layer-wise adaptation profile of Agri-DINO.}
-  \textbf{(a)} Validation accuracy trajectories on \texttt{MedicinalPlant} across 50 fine-tuning epochs. During the initial 5-epoch Linear Probing (LP) warmup (gray shaded region), the classifier head aligns to the pre-trained feature space without disturbing backbone weights. When LLRD fine-tuning begins at epoch~6, Agri-DINO rapidly climbs to match supervised ImageNet-21k weights (\textbf{59.67\%} vs.\ \textbf{59.99\%}).
-  \textbf{(b)} Layer-Wise Learning Rate Decay (LLRD) multipliers $\eta_l/\eta_0 = \gamma^{12-l}$ across the 12 Transformer blocks of ViT-Base/16. Optimal decay ($\gamma{=}0.75$, green solid line) restricts weight updates in early layers ($l\le 4$, $\eta_l < 0.10\eta_0$) to preserve low-level botanical edge and venation filters, while allowing higher adaptation rates in later layers ($l\ge 10$) for task-specific semantic discrimination.
+  \textbf{(a)} Validation accuracy trajectories on \texttt{MedicinalPlant} across 50 fine-tuning epochs. During the initial 5-epoch linear-probing (LP) warmup (gray shaded region), the classifier head aligns to the pre-trained feature space while the backbone remains frozen. When LLRD fine-tuning begins at epoch~6, Agri-DINO reaches 59.67\%, close to the reported ImageNet-21k result of 59.99\%.
+  \textbf{(b)} Layer-wise learning-rate decay (LLRD) multipliers $\eta_l/\eta_0 = \gamma^{12-l}$ across the 12 ViT-Base/16 transformer blocks. With $\gamma{=}0.75$ (green solid line), early blocks ($l\le 4$) receive less than 10\% of the base rate, while later blocks receive larger updates for task-specific adaptation.
 }
 \label{fig:dynamics}
 \end{figure*}
 
-Figure~\ref{fig:dynamics}(b) visualizes the mechanical basis for this stability: under our optimal Layer-Wise Learning Rate Decay ($\gamma=0.75$), early Transformer blocks ($l \le 4$) receive less than 10\% of the base learning rate ($\eta_l / \eta_0 < 0.10$), preserving view-invariant biological edge and leaf-venation filters learned during self-supervision. Conversely, late layers ($l \ge 10$) adapt rapidly ($\eta_l / \eta_0 \ge 0.56$) to map these features to downstream disease classes. Across all checkpoints, validation loss decreases smoothly without divergence; the train--validation accuracy gap at epoch 50 ($\approx 25$ points) indicates residual overfitting on this 1.3K-image split, motivating stronger split regularization in future trials.
+Figure~\ref{fig:dynamics}(b) shows the resulting learning-rate profile. With
+$\gamma=0.75$, early Transformer blocks ($l \le 4$) receive less than 10\% of
+the base rate ($\eta_l / \eta_0 < 0.10$), while late blocks ($l \ge 10$) receive
+at least 56\%. This schedule is intended to limit changes to early features
+while allowing later layers to adapt to the downstream classes. Validation loss
+decreases smoothly across the recorded checkpoints; the train--validation gap
+at epoch 50 ($\approx 25$ points) nevertheless indicates residual overfitting
+on this 1.3K-image split.
 
 \subsection{Analysis: Micro-Class Fragmentation in PlantSeg}
 \label{sec:plantseg}
 
-All three initialization methods achieve only $\approx 2.6\%$ accuracy on
+All three initialization methods reach only $\approx 2.6\%$ accuracy on
 \texttt{PlantSeg} (Table~\ref{tab:plantseg}). Rather than interpreting this
 number as evidence that the visual task is intrinsically intractable, we audited
 the conversion pipeline and found a systematic benchmark pathology.
@@ -707,7 +723,7 @@ Agri-DINO (Ours) & SSL  & 2.63 & --- \\
 The automated conversion pipeline parsed sample-level file identifiers (e.g.,
 \texttt{banana-black-sigatoka-10-} and \texttt{banana-black-sigatoka-102-}) as
 distinct taxonomic classes, inflating the label space from the true
-\textbf{20} disease categories to \textbf{300 micro-classes}. With only a few
+20 disease categories to 300 micro-classes. With only a few
 hundred images, most classes then contain fewer than three training examples.
 The random-chance baseline is $100/300 \approx 0.33\%$; the observed
 2.42--2.78\% is only modestly informative given this fragmentation. We are
@@ -729,7 +745,7 @@ should not be extrapolated to field robustness or to other taxonomies without
 external and group-disjoint evaluation.
 
 \noindent\textbf{Why LP-FT helps in this setting.}
-The LP warmup contributes \textbf{+12.59 points} in our cumulative ablation, the
+The LP warmup contributes +12.59 points in our cumulative ablation, the
 largest single increment. A plausible explanation is that the randomly
 initialized head is initially mismatched to DINO's view-invariant feature
 space; fitting the head first reduces that mismatch before backbone updates
@@ -757,7 +773,7 @@ tests.
 We presented Agri-DINO, a DINOv3-initialized Vision Transformer adapted to
 fine-grained plant recognition with additional agricultural self-supervision and
 a two-stage LP-FT protocol. On one stratified medicinal-plant split, the
-reported Agri-DINO run improves accuracy by \textbf{+10.32 points} over random
+reported Agri-DINO run improves accuracy by +10.32 points over random
 initialization and is close to the ImageNet-21k baseline under different
 adaptation protocols. The cumulative ablation identifies the incremental gains
 from resolution, LP warmup, LLRD, and TTA, while the PlantSeg audit exposes an
@@ -766,6 +782,48 @@ classes. These results motivate broader evaluation, not a claim of universal
 agricultural superiority. Repeated seeds, leakage-safe splits, corpus-overlap
 audits, corrected PlantSeg labels, and external-domain tests are needed to
 establish how far the observed gains generalize.
+
+%% ─── 7. Division of Labor ────────────────────────────────────
+\section{Division of Labor}
+
+Both authors contributed equally to the project design, implementation,
+experimentation, analysis, and manuscript preparation. Responsibilities were
+divided by technical focus so that one author led the representation-learning
+pipeline and the other led evaluation and benchmark validation; both authors
+reviewed and approved all final results and text.
+
+\noindent\textbf{Md Min-Ha-Zul Abedin.}
+Abedin led the representation-learning and training components. In particular,
+he (i) designed the DINOv3-initialized agricultural adaptation pipeline;
+(ii) implemented the pre-training-corpus audit, deduplication, filtering, RGB
+conversion, bounded multi-scale cropping, and WebDataset sharding;
+(iii) implemented the DINO-style student--teacher objective, EMA updates,
+LP-FT schedule, LLRD, high-resolution tokenization, and test-time augmentation;
+(iv) ran the main transfer experiments and tracked training dynamics;
+and (v) prepared the pipeline diagram and the corresponding method and
+training-analysis figures. For the manuscript, he drafted the abstract,
+Introduction, Methodology, and portions of the Discussion, then participated
+in the revision and final proofreading of every section.
+
+\noindent\textbf{Md Mehedi Hasan.}
+Hasan led downstream evaluation and benchmark validation. In particular, he
+(i) prepared the MedicinalPlant and PlantSeg data splits and the deterministic
+evaluation harness; (ii) implemented the baseline initialization runs and the
+cumulative ablation configurations; (iii) audited the YOLO-to-classification
+conversion, identified the PlantSeg micro-class fragmentation error, and
+documented the corrected-taxonomy protocol; (iv) analyzed validation curves,
+accuracy gaps, and comparative results; and (v) prepared the results tables and
+benchmark-audit analysis. For the manuscript, he drafted Related Work,
+Experiments, the PlantSeg analysis, and portions of the Discussion and
+Conclusion, then participated in the revision and final proofreading of every
+section.
+
+\noindent\textbf{Joint work.}
+Both authors jointly selected the research questions, reviewed the literature,
+checked the reported numbers, interpreted the limitations, refined the claims,
+and edited the complete manuscript. Both authors also contributed to debugging,
+reproducibility checks, figure and table review, and the final submission
+package.
 
 %% ─── References ─────────────────────────────────────────────
 \footnotesize
