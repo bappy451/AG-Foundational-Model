@@ -4,7 +4,7 @@
 # Reference: CSRNet-style density map regression adapted for ViT backbones
 
 data:
-  data_root: 'E:\AG_Dataset\Evaluation\corn-kernel-counting\data'  # Extract first
+  data_root: 'E:\AG_Dataset\01_Evaluation\corn-kernel-counting\data'  # Extract first
   crop_size: 224
   batch_size: 32
   num_workers: 8

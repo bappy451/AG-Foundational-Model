@@ -24,6 +24,26 @@ import shutil
 logger = logging.getLogger("ag_foundation.train_cls")
 
 
+class MappedImageFolder(ImageFolder):
+    """ImageFolder that enforces a canonical class_to_idx mapping across train/valid splits."""
+    def __init__(self, root: str, transform: Any = None, class_to_idx: dict[str, int] | None = None):
+        super().__init__(root, transform=transform)
+        if class_to_idx is not None:
+            self.class_to_idx = class_to_idx
+            self.classes = [k for k, _ in sorted(class_to_idx.items(), key=lambda x: x[1])]
+            new_samples = []
+            for class_name, idx in self.class_to_idx.items():
+                target_dir = os.path.join(self.root, class_name)
+                if not os.path.isdir(target_dir):
+                    continue
+                for r, _, fnames in sorted(os.walk(target_dir, followlinks=True)):
+                    for fname in sorted(fnames):
+                        if fname.lower().endswith(('.jpg', '.jpeg', '.png', '.ppm', '.bmp', '.pgm', '.tif', '.tiff', '.webp')):
+                            new_samples.append((os.path.join(r, fname), idx))
+            self.samples = new_samples
+            self.targets = [s[1] for s in new_samples]
+
+
 def _save_config_snapshot(config: dict, output_dir: Path, config_path: str) -> None:
     """Save a snapshot of the config and source config path for reproducibility."""
     import yaml
@@ -96,8 +116,8 @@ def run_train_cls(
     if not os.path.exists(val_dir):
         val_dir = os.path.join(data_root, "test")
         
-    train_dataset = ImageFolder(train_dir, transform=train_transform)
-    val_dataset = ImageFolder(val_dir, transform=val_transform)
+    train_dataset = MappedImageFolder(train_dir, transform=train_transform)
+    val_dataset = MappedImageFolder(val_dir, transform=val_transform, class_to_idx=train_dataset.class_to_idx)
     
     # Save class map
     class_to_idx = train_dataset.class_to_idx
@@ -110,8 +130,10 @@ def run_train_cls(
     class_counts = Counter(train_labels)
     total_samples = len(train_labels)
     
-    # weights[i] = total / count of class i
-    weights = [total_samples / class_counts.get(i, 1) for i in range(len(class_to_idx))]
+    # Normalized inverse square-root class weights (mean = 1.0) for stable cross-entropy scaling
+    raw_weights = [1.0 / math.sqrt(class_counts.get(i, 1)) for i in range(len(class_to_idx))]
+    mean_weight = sum(raw_weights) / max(1, len(raw_weights))
+    weights = [w / mean_weight for w in raw_weights]
     class_weight_tensor = torch.tensor(weights, dtype=torch.float32)
         
     train_loader = DataLoader(
@@ -160,7 +182,7 @@ def run_train_cls(
                 f"Check that 'pretrained_weights' in the config is correct.\n"
                 f"If you want to use ImageNet weights, set 'pretrained_weights' to an empty string."
             )
-        checkpoint = torch.load(pretrained_weights, map_location="cpu")
+        checkpoint = torch.load(pretrained_weights, map_location="cpu", weights_only=False)
         state_dict = checkpoint.get("model_state_dict", checkpoint)
         # Handle prefixes if loaded from MIM
         cleaned_state_dict = {}

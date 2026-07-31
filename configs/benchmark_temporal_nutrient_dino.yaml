@@ -1,14 +1,13 @@
 data:
-  data_root: 'E:\AG_Dataset\01_Evaluation\Classification_Medicinal_Plant'
+  data_root: 'E:\AG_Dataset\01_Evaluation\longitudinal-nutrient-deficiency\data'
   crop_size: 224
-  channels: 3
-  batch_size: 128
+  batch_size: 64
   num_workers: 8
   prefetch_factor: 2
 
 runtime:
-  output_dir: 'E:\AG_Dataset\AG-Foundational-Model\runs\cls_medicinal_plant_full_scale'
-  epochs: 50
+  output_dir: 'E:\AG_Dataset\runs\benchmark\temporal_nutrient_dino'
+  epochs: 100
   seed: 42
   precision: bf16
   device: cuda
@@ -16,7 +15,7 @@ runtime:
   gradient_accumulation_steps: 1
   log_every: 10
   grad_clip_norm: 1.0
-  early_stopping_patience: 10
+  early_stopping_patience: 15
 
 model:
   model_name: B
@@ -24,12 +23,12 @@ model:
   pretrained_weights: 'E:\AG_Dataset\AG-Foundational-Model\runs\dinov3_dapt_full_scale\best.pt'
   freeze_backbone_epochs: 5
   layer_decay: 0.75
-  drop_rate: 0.1
-  attn_drop_rate: 0.1
-  drop_path_rate: 0.2
-  head_dropout: 0.2
+  drop_rate: 0.0
+  attn_drop_rate: 0.0
+  drop_path_rate: 0.1
+  temporal_hidden_dim: 512
+  temporal_dropout: 0.2
 
 optimizer:
-  learning_rate: 0.001
+  learning_rate: 0.0003
   weight_decay: 0.05
-  label_smoothing: 0.1

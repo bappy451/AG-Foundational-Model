@@ -5,7 +5,7 @@
 # Reference: AAAI 2021 Longitudinal Nutrient Deficiency dataset
 
 data:
-  data_root: 'E:\AG_Dataset\Evaluation\longitudinal-nutrient-deficiency\data'  # Extract first
+  data_root: 'E:\AG_Dataset\01_Evaluation\longitudinal-nutrient-deficiency\data'  # Extract first
   crop_size: 224
   batch_size: 64
   num_workers: 8

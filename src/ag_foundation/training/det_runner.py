@@ -130,7 +130,7 @@ def _collate_fn(batch):
     angle_targets = torch.stack([b[1][2] for b in batch])
     return {"image": images, "cls_target": cls_targets, "bbox_target": bbox_targets, "angle_target": angle_targets}
 
-def run_train_det(args: argparse.Namespace) -> str:
+def run_train_det(args: argparse.Namespace, *, progress_callback=None) -> str:
     config = _load_config(args.config)
     runtime_cfg = config.get("runtime", {})
     model_cfg = config.get("model", {})
@@ -145,7 +145,7 @@ def run_train_det(args: argparse.Namespace) -> str:
     output_dir = Path(runtime_cfg.get("output_dir", "../runs/det_finetuning"))
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    num_classes = model_cfg.get("num_classes", 10)
+    num_classes = model_cfg.get("num_classes") or 10
     train_dataset = PlantSegOBBDataset(data_root, split="train", crop_size=crop_size, num_classes=num_classes)
     val_dataset = PlantSegOBBDataset(data_root, split="valid", crop_size=crop_size, num_classes=num_classes)
         
@@ -167,7 +167,7 @@ def run_train_det(args: argparse.Namespace) -> str:
             config_dir = os.path.dirname(os.path.abspath(args.config))
             pretrained_weights = os.path.normpath(os.path.join(config_dir, pretrained_weights))
         if os.path.exists(pretrained_weights):
-            checkpoint = torch.load(pretrained_weights, map_location="cpu")
+            checkpoint = torch.load(pretrained_weights, map_location="cpu", weights_only=False)
             state_dict = checkpoint.get("model_state_dict", checkpoint)
             cleaned_state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items() if k.startswith("backbone.")}
             backbone.load_state_dict(cleaned_state_dict, strict=False)
@@ -189,10 +189,21 @@ def run_train_det(args: argparse.Namespace) -> str:
     
     best_loss = float("inf")
     
+    freeze_backbone_epochs = int(model_cfg.get("freeze_backbone_epochs", 5 if model_cfg.get("pretrained_source") == "dinov3" else 0))
     for epoch in range(epochs):
+        if freeze_backbone_epochs > 0:
+            if epoch < freeze_backbone_epochs:
+                for p in model.backbone.parameters():
+                    p.requires_grad = False
+                if epoch == 0:
+                    print(f"[LP-FT] Stage 1: Backbone frozen for epochs 1-{freeze_backbone_epochs} (Linear Probing head only)")
+            elif epoch == freeze_backbone_epochs:
+                for p in model.backbone.parameters():
+                    p.requires_grad = True
+                print(f"[LP-FT] Stage 2: Backbone unfrozen at epoch {epoch+1} (Full Fine-Tuning)")
         model.train()
         train_loss = 0.0
-        for batch in train_loader:
+        for batch_idx, batch in enumerate(train_loader, 1):
             images = batch["image"].to(device)
             cls_target = batch["cls_target"].to(device)
             bbox_target = batch["bbox_target"].to(device)
@@ -213,6 +224,15 @@ def run_train_det(args: argparse.Namespace) -> str:
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
+            if progress_callback is not None:
+                progress_callback(
+                    batch_idx,
+                    len(train_loader),
+                    description=f"train-det Epoch [{epoch+1}/{epochs}]",
+                    detail=f"loss: {loss.item():.4f}",
+                )
+            elif batch_idx % 5 == 0 or batch_idx == len(train_loader):
+                print(f"  [Epoch {epoch+1}/{epochs}] Batch {batch_idx}/{len(train_loader)} | loss={loss.item():.4f}", flush=True)
             
         model.eval()
         val_loss = 0.0
@@ -246,4 +266,9 @@ def run_train_det(args: argparse.Namespace) -> str:
 
 def main(argv: list[str] | None = None) -> None:
     args = parse_train_det_args(argv)
-    run_train_det(args)
+    from ag_foundation.progress import command_progress_context
+    with command_progress_context(argv) as progress:
+        progress_cb = progress.update if progress else None
+        summary = run_train_det(args, progress_callback=progress_cb)
+        if summary:
+            print(summary)

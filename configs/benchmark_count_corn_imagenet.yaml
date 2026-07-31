@@ -1,5 +1,3 @@
-# Task 3: Regression / Counting — Corn Kernel Counting — ImageNet Baseline
-
 data:
   data_root: 'E:\AG_Dataset\01_Evaluation\corn-kernel-counting\data'
   crop_size: 224
@@ -8,7 +6,7 @@ data:
   prefetch_factor: 2
 
 runtime:
-  output_dir: 'E:\AG_Dataset\runs\count_corn_imagenet'
+  output_dir: 'E:\AG_Dataset\runs\benchmark\count_corn_imagenet'
   epochs: 100
   seed: 42
   precision: bf16
@@ -22,7 +20,7 @@ runtime:
 model:
   model_name: B
   pretrained_source: imagenet
-  pretrained_weights: ''
+  freeze_backbone_epochs: 0
   layer_decay: 0.75
   drop_rate: 0.0
   attn_drop_rate: 0.0

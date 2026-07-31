@@ -54,6 +54,8 @@ class _TeeStream(io.TextIOBase):
             return 0
         self._terminal.write(text)
         self._log_handle.write(text)
+        if "\n" in text:
+            self.flush()
         return len(text)
 
     def flush(self) -> None:

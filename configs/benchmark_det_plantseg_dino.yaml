@@ -1,6 +1,3 @@
-# Task 2: OBB Detection — PlantSeg Disease Detection — ImageNet Baseline
-# Identical hyperparameters to MIM config for fair comparison
-
 data:
   data_root: 'E:\AG_Dataset\01_Evaluation\PlantSeg'
   crop_size: 640
@@ -9,7 +6,7 @@ data:
   prefetch_factor: 2
 
 runtime:
-  output_dir: 'E:\AG_Dataset\runs\det_plantseg_imagenet'
+  output_dir: 'E:\AG_Dataset\runs\benchmark\det_plantseg_dino'
   epochs: 50
   seed: 42
   precision: bf16
@@ -22,8 +19,9 @@ runtime:
 
 model:
   model_name: B
-  pretrained_source: imagenet
-  pretrained_weights: ''
+  pretrained_source: dinov3
+  pretrained_weights: 'E:\AG_Dataset\AG-Foundational-Model\runs\dinov3_dapt_full_scale\best.pt'
+  freeze_backbone_epochs: 5
   layer_decay: 0.75
   drop_rate: 0.0
   attn_drop_rate: 0.0
@@ -35,4 +33,3 @@ model:
 optimizer:
   learning_rate: 0.0002
   weight_decay: 0.05
-  label_smoothing: 0.0

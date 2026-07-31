@@ -4,7 +4,7 @@
 # Reference: ViTDet (Li et al. 2022), MAE fine-tuning recipe
 
 data:
-  data_root: 'E:\AG_Dataset\Evaluation\PlantSeg'  # Extract first: .\scripts\extract_datasets.ps1
+  data_root: 'E:\AG_Dataset\01_Evaluation\PlantSeg'  # Extract first: .\scripts\extract_datasets.ps1
   crop_size: 640      # Larger crop for detection (standard for aerial/drone imagery)
   batch_size: 8
   num_workers: 8

@@ -162,7 +162,7 @@ def run_train_count(
             config_dir = os.path.dirname(os.path.abspath(args.config))
             pretrained_weights = os.path.normpath(os.path.join(config_dir, pretrained_weights))
         if os.path.exists(pretrained_weights):
-            checkpoint = torch.load(pretrained_weights, map_location="cpu")
+            checkpoint = torch.load(pretrained_weights, map_location="cpu", weights_only=False)
             state_dict = checkpoint.get("model_state_dict", checkpoint)
             cleaned_state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items() if k.startswith("backbone.")}
             backbone.load_state_dict(cleaned_state_dict, strict=False)
@@ -170,8 +170,8 @@ def run_train_count(
         
     model = RemoteSensingCounting(
         backbone=backbone,
-        density_upsample_factor=model_cfg.get("density_upsample_factor", 4),
-        density_channels=model_cfg.get("density_channels", 256),
+        density_upsample_factor=model_cfg.get("density_upsample_factor") or 4,
+        density_channels=model_cfg.get("density_channels") or 256,
     )
     model.to(device)
     
@@ -182,10 +182,21 @@ def run_train_count(
     
     best_mae = float("inf")
     
+    freeze_backbone_epochs = int(model_cfg.get("freeze_backbone_epochs", 5 if model_cfg.get("pretrained_source") == "dinov3" else 0))
     for epoch in range(epochs):
+        if freeze_backbone_epochs > 0:
+            if epoch < freeze_backbone_epochs:
+                for p in model.backbone.parameters():
+                    p.requires_grad = False
+                if epoch == 0:
+                    print(f"[LP-FT] Stage 1: Backbone frozen for epochs 1-{freeze_backbone_epochs} (Linear Probing head only)")
+            elif epoch == freeze_backbone_epochs:
+                for p in model.backbone.parameters():
+                    p.requires_grad = True
+                print(f"[LP-FT] Stage 2: Backbone unfrozen at epoch {epoch+1} (Full Fine-Tuning)")
         model.train()
         train_loss = 0.0
-        for batch in train_loader:
+        for batch_idx, batch in enumerate(train_loader, 1):
             images = batch["image"].to(device)
             target_density = batch["density_map"].to(device)
             target_count = batch["count"].to(device)
@@ -200,6 +211,15 @@ def run_train_count(
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
+            if progress_callback is not None:
+                progress_callback(
+                    batch_idx,
+                    len(train_loader),
+                    description=f"train-count Epoch [{epoch+1}/{epochs}]",
+                    detail=f"loss: {loss.item():.4f}",
+                )
+            elif batch_idx % 5 == 0 or batch_idx == len(train_loader):
+                print(f"  [Epoch {epoch+1}/{epochs}] Batch {batch_idx}/{len(train_loader)} | loss={loss.item():.4f}", flush=True)
             
         model.eval()
         val_loss = 0.0
@@ -237,4 +257,9 @@ def run_train_count(
 
 def main(argv: list[str] | None = None) -> None:
     args = parse_train_count_args(argv)
-    run_train_count(args)
+    from ag_foundation.progress import command_progress_context
+    with command_progress_context(argv) as progress:
+        progress_cb = progress.update if progress else None
+        summary = run_train_count(args, progress_callback=progress_cb)
+        if summary:
+            print(summary)

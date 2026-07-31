@@ -1,7 +1,7 @@
 # Task 4: Temporal Analysis — Longitudinal Nutrient Deficiency — ImageNet Baseline
 
 data:
-  data_root: 'E:\AG_Dataset\Evaluation\longitudinal-nutrient-deficiency\data'
+  data_root: 'E:\AG_Dataset\01_Evaluation\longitudinal-nutrient-deficiency\data'
   crop_size: 224
   batch_size: 64
   num_workers: 8
